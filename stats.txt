@@ -1,0 +1,44 @@
+E################ 100 examples ############################
+###### RESULTS ######
+model: bart_2022-06-22-20_54_40_4xA40_ga4
+range: (10000, 10099)
+generated for each example: 10 samples
+average from the 3 best samples: 0.7743897095985108
+average from the 1 best sample: 0.8212066263623978
+
+###### RESULTS ######
+model: bart_2022-06-22-20_54_40_4xA40_ga4 - IDs removed during the evaluation
+range: (10000, 10099)
+generated for each example: 10 samples
+average from the 3 best samples: 0.0005040091638029783
+average from the 1 best sample: 0.0005040091638029783
+
+###### RESULTS ######
+model: bart_2022-05-10-16_06_04_P_IDs
+range: (10000, 10099)
+generated for each example: 10 samples
+average from the 3 best samples: 0.6002513043928479
+average from the 1 best sample: 0.6619438792890879
+
+###### RESULTS ######
+model: bart_2022-05-11-14_44_04_NO_P_IDs - triained without IDs
+range: (10000, 10099)
+generated for each example: 10 samples
+average from the 3 best samples: 0.5654672751042088
+average from the 1 best sample: 0.6236819026611852
+
+###### RESULTS ######
+model: bart_2022-06-28-10_02_31_bigdata
+range: (15000, 15099)
+generated for each example: 10 samples
+data type: 8M
+average from the 3 best samples: 0.705158535516559
+average from the 1 best sample: 0.7674217117758421
+
+################ 1000 examples ############################
+###### RESULTS ######
+model: bart_2022-06-22-20_54_40_4xA40_ga4
+range: (15000, 15999)
+generated for each example: 10 samples
+average from the 3 best samples: 0.7547165633124878
+average from the 1 best sample: 0.8052376297701799
