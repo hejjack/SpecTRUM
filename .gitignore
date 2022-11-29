@@ -139,4 +139,6 @@ zia_training_stuff
 **/tmp
 michal_repo
 data/ZINC-2D-clean-instock-8.1M
+data/NIST/NIST20_deriv/NIST20_deriv.msp
+data/rcx_spectra
 **/*.swp
