@@ -3,7 +3,6 @@ import numpy as np
 from pandas import DataFrame
 import os
 import re
-from collections import defaultdict
 from typing import Union, Dict, List
 # from rdkit import Chem
 # from rdkit.Chem import PandasTools

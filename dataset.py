@@ -13,7 +13,7 @@ import pandas as pd
 
 class SpectroDataset(Dataset):
     def __init__(self, df_or_pth_pkl, eval_mode=False, original=False):
-        """ 
+        """
         Parameters
         ----------
         df_or_pth_pkl: pd.DataFrame 
@@ -27,12 +27,11 @@ class SpectroDataset(Dataset):
             self.data = df_or_pth_pkl
         else:
             self.data = pd.read_pickle(df_or_pth_pkl)
-        self.len = len(self.data)
         self.eval_mode = eval_mode
         self.original = original
 
     def __len__(self):
-        return self.len
+        return len(self.data)
 
     def __getitem__(self,idx):
         row = self.data.iloc[idx]

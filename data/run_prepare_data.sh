@@ -84,7 +84,7 @@ PRED_SCRIPT=$SPECTRO_DIR/NEIMS/run_make_spectra_prediction.sh
 
 conda activate NEIMSpy2
 
-echo NEIMS GENERATING SKIPPED
+# echo NEIMS GENERATING SKIPPED
 echo "##### Generating spectra #####"
 . $PRED_SCRIPT $plain_sdf $enriched_sdf
 
