@@ -2,6 +2,7 @@
 data/datasets/**
 data/NIST/**
 data/rcx_spectra/**
+data/ZINC15/**/*.smi
 
 checkpoints/**
 **/wandb/**

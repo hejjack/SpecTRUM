@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import glob
 import pathlib
@@ -118,7 +119,7 @@ def data_split(df, config, logging, process_id, lock):
         config["test_split_ratio"]+config["valid_split_ratio"]), random_state=config["seed"])
     valid_set = rest.drop(test_set.index)
 
-    log_safely(lock, logging.info, "SPLITTING STATS process:{process_id}\n" +
+    log_safely(lock, logging.info, f"SPLITTING STATS process:{process_id}\n" +
                "################################################\n" +
                f"train len: {len(train_set)}\ntest len: {len(test_set)}\nvalid len: {len(valid_set)}\n" +
                f"{len(train_set)} + {len(test_set)} + {len(valid_set)} == {len(df)} : the sum matches len of the df\n" +
@@ -141,6 +142,18 @@ def autoremove_file(file_path: pathlib.Path, logging, lock: Lock):
         else:
             log_safely(lock, logging.error, f"Error while removing: {file_path} : file does not exist")
     log_safely(lock, logging.info, f"removed succesfully: {file_path}")
+
+
+def smiles_to_labels(smiles, tokenizer, et, source_id, seq_len):
+    """Converts smiles to labels for the model"""
+    encoded_smiles = tokenizer.encode(smiles).ids
+    padding_len = (seq_len-2-len(encoded_smiles))
+    labels = [source_id] + encoded_smiles + [et] + padding_len * [-100]
+    mask = [1] * (seq_len - padding_len) + [0] * padding_len
+    assert len(labels) == seq_len, "Labeles have wrong length"
+    assert len(mask) == seq_len, "Mask has wrong length"
+    return labels, mask
+
 
 @app.command()
 def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identify it and its tmp files (e.g. 8M)"),
@@ -178,9 +191,9 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
         config_str += f"{key}: {value}\n"
     logging.info(f"CONFIG:\n{config_str}")
     logging.info(f"PARAMETERS:\ndataset_id = {dataset_id}\n" +
-                 "smiles_path = {smiles_path}\n" +
-                 "num_workers = {num_workers}\n" +
-                 "config_file = {config_file}")
+                 f"smiles_path = {smiles_path}\n" +
+                 f"num_workers = {num_workers}\n" +
+                 f"config_file = {config_file}")
 
     # open smiles file (ONLY SMILES COLUMN)
     logging.info("READING CSV")
@@ -190,6 +203,19 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
         df = pd.read_csv(smiles_path, header=None, names=["smiles"])
     logging.info("READING DONE")
 
+    # set lost chunks - if some of the chunks don't get properly through (process fails)
+    try:
+        if config["lost_chunks"] != []:
+            process_ids = config["lost_chunks"]
+            logging.info(f"SETTING PROCESES IDS USING <LOST_CHUNKS> TO: {process_ids}")
+        else:
+            process_ids = list(range(num_workers))
+            logging.info(f"SETTING PROCESES IDS BY DEFAULT TO: {process_ids}")
+    except KeyError:
+        process_ids = list(range(num_workers))
+        logging.info(f"SETTING PROCESES IDS BY DEFAULT TO: {process_ids}")
+
+
     # set multiprocessing
     logging.info(f"SETTING MULTIPROCESSING with {num_workers} workers")
     df_chunks = df_to_n_chunks(df, num_workers)
@@ -197,7 +223,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
     return_dict = manager.dict()
     lock = Lock()
     processes = [Process(target=process, args=(df_chunks[i],
-                                               dataset_id,        
+                                               dataset_id,
                                                config["phases_to_perform"],  # might cause trouble (type)
                                                config,
                                                tmp_dir,
@@ -205,7 +231,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
                                                return_dict,
                                                lock,
                                                auto_remove,
-                                               i)) for i in range(num_workers)]
+                                               i)) for i in process_ids]
     start_time = time.time()
 
     logging.info("RUNNING")
@@ -214,26 +240,41 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
     for p in processes:
         p.join()
 
-    # if last phase is skipped,don't concat and save df
-    if 6 not in config["phases_to_perform"]:
-        logging.info("#### PHASE 6 SKIPPED (no concat and save) ####")
-        return
-
     # concat results
-    df_train = pd.concat([return_dict[i]["train"] for i in range(num_workers)])
-    df_test = pd.concat([return_dict[i]["test"] for i in range(num_workers)])
-    df_valid = pd.concat([return_dict[i]["valid"] for i in range(num_workers)])
-
-    # save results
+    done_split_files = glob.glob(str(tmp_dir / f"{dataset_id}_chunk*_after_phase6_train.pkl")) # done train/test/valid chunks so far
+    done_split_ids = set([int(re.findall(r"chunk(\d+)", file)[0]) for file in done_split_files])
+    df_splits = {"df_train": None, "df_test": None, "df_valid": None}
     output_dir_with_id = pathlib.Path(config["output_dir"]) / dataset_id
     os.makedirs(output_dir_with_id, exist_ok=True)
-    logging.info("SAVING ALL")
-    df_train.to_pickle(output_dir_with_id / f"{dataset_id}_train.pkl")
-    df_test.to_pickle(output_dir_with_id / f"{dataset_id}_test.pkl")
-    df_valid.to_pickle(output_dir_with_id / f"{dataset_id}_valid.pkl")
+    # if all chunks got through 6th phase, concat it from return_dict
+    if set(process_ids) == set(range(num_workers)) and 6 in config["phases_to_perform"]:
+        try:
+            for data_type in tqdm(["test", "valid", "test"]):
+                df_split = pd.concat([return_dict[i][data_type] for i in tqdm(range(num_workers))])
+                df_split.to_pickle(output_dir_with_id / f"{dataset_id}_{data_type}.pkl")
+        except ValueError:
+            logging.info("SOME CHUNKS DIDN'T GET THROUGH 6TH PHASE, TRYING TO LOAD THEM")
+    # else if all the split files are saved, prepared for concat, load them and concat them
+    elif done_split_ids == set(range(num_workers)):
+        del return_dict
+        logging.info("LOADING CHUNKS FROM FILES TO CONCAT IT")
+        for data_type in ["valid", "test", "train"]:
+            logging.info(f"{data_type.upper()} ")
+            file_path = tmp_dir / f"{dataset_id}_chunk*_after_phase6_{data_type}.pkl"   # pickled df
+            files = glob.glob(str(file_path))
+            for f in files:
+                df_split = pd.concat([pd.read_pickle(f) for f in tqdm(files)])
+                df_split.to_pickle(output_dir_with_id / f"{dataset_id}_{data_type}.pkl")
+
+    # some chunks didn't get through 6th phase, try to run them again
+    else:
+        raise Exception(f"Not all chunks got through preprocessing, try to run these" +
+                        f" specific ones via <lost_chunks> config option.\n" + 
+                        f"Those lost are: {set(range(num_workers)).difference(done_split_ids)}")
 
     # removing after 6phase files
     if auto_remove:
+        logging.info("REMOVING ALL AFTER 6PHASE SPLITS")
         for i in range(num_workers):
             file_path = tmp_dir / f"{dataset_id}_chunk{i}_after_phase6_*.pkl"   # pickled df
             files = glob.glob(str(file_path))
@@ -351,19 +392,21 @@ def phase1(df: pd.DataFrame,
     # canonicalization
     log_safely(lock, logging.debug,
                f"CANONICALIZATION process:{process_id}")
-    cans = [Chem.MolToSmiles(Chem.MolFromSmiles(smi), True)
-            for smi in tqdm(df["smiles"])]
-    df["canon_smiles"] = cans
-    df = df[["canon_smiles"]]
+    cans = []
+    for smi in tqdm(df["smiles"]):
+        try:
+            can = Chem.MolToSmiles(Chem.MolFromSmiles(smi), True)
+            cans.append(can)
+        except Exception as e:
+            logging.warning(f"SMILES {smi} couldn't be canonicalized due to: {e}")
     log_safely(lock, logging.debug,
                f"CANONICALIZATION DONE process:{process_id}")
 
     # save plain smiles
     log_safely(lock, logging.debug,
                f"SAVING CANON SMILES process:{process_id}")
-    sms = df["canon_smiles"].tolist()
     with open(after_phase1_smiles, "w+") as out:
-        for s in tqdm(sms):
+        for s in tqdm(cans):
             out.write(s + "\n")
 
 
@@ -567,22 +610,24 @@ def phase6(df_after_phase5: pd.DataFrame,
     bt = tokenizer.token_to_id("<bos>")
     et = tokenizer.token_to_id("<eos>")
 
-    df["tok_smiles"] = [tokenizer.encode(
-        s).ids for s in tqdm(df["smiles"])]
+    tokenizer.add_special_tokens(["<neims>", "<nist>", "<rassp>", "<source1>", "<source2>", "<source3>"])
+    source_token = "<" + config['spectra_generator'] + ">"
+    source_id = tokenizer.token_to_id(source_token)
+    seq_len = config["seq_len"]
 
-    df["tok_smiles"] = [[bt] + ts + [et] + (config['seq_len']-2-len(ts))
-                        * [pt] for ts in tqdm(df.tok_smiles)]
-    df["mz"] = [ts + (config['seq_len']-len(ts)) * [pt] for ts in df.mz]
+    # create labels and decoder masks
+    labels, dec_masks = [], []
+    for i, smiles in enumerate(tqdm(df["smiles"])):
+        l, m = smiles_to_labels(smiles, tokenizer, et, source_id, seq_len)
+        labels.append(l)
+        dec_masks.append(m)
+    df["labels"], df["decoder_attention_mask"] = labels, dec_masks
 
-    log_safely(lock, logging.debug,
-               f"CREATING MASKS process:{process_id}")
+    # create mz and encoder masks
+    df["mz"] = [ts + (seq_len-len(ts)) * [pt] for ts in df.mz]
     df["encoder_attention_mask"] = [
         [int(id_ != pt) for id_ in arr] for arr in tqdm(df.mz)]
-    df["decoder_attention_mask"] = [
-        [int(id_ != pt) for id_ in arr] for arr in tqdm(df.tok_smiles)]
-    df["labels"] = [[id_ if int(id_ != pt) else -100 for id_ in arr]
-                    for arr in tqdm(df.tok_smiles)]
-
+    
     log_safely(lock, logging.debug,
                f"LOG BINNING INTENSITIES process:{process_id}")
     log_base = np.log(config["log_base"])
@@ -592,12 +637,11 @@ def phase6(df_after_phase5: pd.DataFrame,
 
     # empty positions (padding) get -1 (=> no information there. BART doesn't have position ids -> we create them)
     df["position_ids"] = [my_position_ids_creator(
-        arr, log_base, log_shift, config["seq_len"]) for arr in df.intensity]
+        arr, log_base, log_shift, seq_len) for arr in df.intensity]
 
     log_safely(lock, logging.debug,
                f"DROPPING USELESS COLUMNS process:{process_id}")
-    df.rename(columns={"mz": "input_ids",
-              "tok_smiles": "decoder_input_ids"}, inplace=True)
+    df.rename(columns={"mz": "input_ids"}, inplace=True)
     df.drop(columns=["intensity"], inplace=True)
 
     log_safely(lock, logging.info, f"len after PHASE6: {len(df)}")
@@ -612,9 +656,9 @@ def phase6(df_after_phase5: pd.DataFrame,
     parent_dir = after_phase6_pickle.parents[0]
     os.makedirs(parent_dir, exist_ok=True)
 
-    df_train.to_pickle(str(path_wo_ext) + "_train." + path_ext)
-    df_test.to_pickle(str(path_wo_ext) + "_test." + path_ext)
-    df_valid.to_pickle(str(path_wo_ext) + "_valid." + path_ext)
+    df_train.to_pickle(str(path_wo_ext) + "_train" + path_ext)
+    df_test.to_pickle(str(path_wo_ext) + "_test" + path_ext)
+    df_valid.to_pickle(str(path_wo_ext) + "_valid" + path_ext)
 
     log_safely(lock, logging.debug,
                f"PHASE6 DONE process:{process_id}")
