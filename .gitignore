@@ -10,7 +10,7 @@ michal_repo/**
 **/*.SIF
 zia_training_stuff_30M/**
 RLHF/ckpts/**
-
+neims_gen_analysis_ntbs/**
 
 # temporary files
 **/tmp/**

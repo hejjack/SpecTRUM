@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-# make a fction that preprocess one SPECTRUM
+
 def preprocess_spectrum(s : Spectrum, tokenizer, seq_len=200, max_smiles_len=100, max_mz=500):
     """
     Preprocess one matchms.Spectrum according to BART_spektro preprocessing pipeline
@@ -94,8 +94,7 @@ def preprocess_spectrum(s : Spectrum, tokenizer, seq_len=200, max_smiles_len=100
     intensities = np.concatenate((x, [-1]*pad_len)).astype("int32")
     return (mz, intensities, attention_mask, canon_smiles, error_dict)
 
-def preproces
-s_spectra(spectra: List[Spectrum], tokenizer, spectra_name="spectra"):
+def preprocess_spectra(spectra: List[Spectrum], tokenizer, spectra_name="spectra"):
     """
     Preprocess a list of matchms.Spectrum according to BART_spektro preprocessing pipeline
     Catch errors, sort them into 5 categories and print a report

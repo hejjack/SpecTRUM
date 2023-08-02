@@ -1,4 +1,4 @@
-echo $CONDA_PREFIX should be /storage/brno12-cerit/home/ahajek/.conda/envs/NEIMSpy3
+echo $CONDA_PREFIX should be /storage/brno2/home/ahajek/miniconda3/envs/NEIMSpy3
 OMP_NUM_THREADS=1
 ID=30M
 python ../data_preprocess_all.py \
