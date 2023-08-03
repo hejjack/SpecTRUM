@@ -1,0 +1,85 @@
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:167] INFO CONFIG:
+tmp_dir: ../datasets/tmp
+log_dir: ../datasets/log
+output_dir: ../datasets
+phases_to_perform: [1, 2, 3, 4, 5, 6]
+data_has_header: True
+max_smiles_len: 100
+max_mz: 499
+max_peaks: 200
+seq_len: 200
+log_base: 1.7
+spectra_generator: neims
+train_split_ratio: 0.9
+valid_split_ratio: 0.05
+test_split_ratio: 0.05
+tokenizer_path: /storage/brno2/home/ahajek/Spektro/MassGenie/tokenizer/bbpe_tokenizer/bart_bbpe_1K_tokenizer.model
+neims_dir: /storage/brno2/home/ahajek/Spektro/NEIMS
+neims_conda_env_name: NEIMSpy2
+seed: 42
+
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:171] INFO PARAMETERS:
+dataset_id = 1K
+smiles_path = {smiles_path}
+num_workers = {num_workers}
+config_file = {config_file}
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:174] INFO READING CSV
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:179] INFO READING DONE
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:182] INFO SETTING MULTIPROCESSING with 4 workers
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:198] INFO RUNNING
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 1 process:0 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 1 process:1 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 1 process:2 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 1 process:3 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 2 process:3 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 2 process:2 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 2 process:1 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 2 process:0 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 3 process:1 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 3 process:3 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 3 process:0 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 3 process:2 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 4 process:3 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 4 process:1 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 4 process:2 #####
+Tue, 28 Mar 2023 16:41:21 data_preprocess_all.py[line:132] INFO ##### PHASE 4 process:0 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 5 process:1 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 5 process:0 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 5 process:3 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 5 process:2 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 6 process:1 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 6 process:2 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 6 process:0 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### PHASE 6 process:3 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### len after PHASE6: 184 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### SPLITTING STATS process:{process_id}
+################################################
+train len: 166
+test len: 9
+valid len: 9
+166 + 9 + 9 == 184 : the sum matches len of the df
+################################################ #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### len after PHASE6: 192 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### SPLITTING STATS process:{process_id}
+################################################
+train len: 173
+test len: 10
+valid len: 9
+173 + 10 + 9 == 192 : the sum matches len of the df
+################################################ #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### len after PHASE6: 184 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### SPLITTING STATS process:{process_id}
+################################################
+train len: 166
+test len: 9
+valid len: 9
+166 + 9 + 9 == 184 : the sum matches len of the df
+################################################ #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### len after PHASE6: 183 #####
+Tue, 28 Mar 2023 16:41:38 data_preprocess_all.py[line:132] INFO ##### SPLITTING STATS process:{process_id}
+################################################
+train len: 165
+test len: 9
+valid len: 9
+165 + 9 + 9 == 183 : the sum matches len of the df
+################################################ #####

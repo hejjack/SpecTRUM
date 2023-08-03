@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-# make a fction that preprocess one SPECTRUM
+
 def preprocess_spectrum(s : Spectrum, tokenizer, seq_len=200, max_smiles_len=100, max_mz=500):
     """
     Preprocess one matchms.Spectrum according to BART_spektro preprocessing pipeline

@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data_range, additional_info="", figure_save_dir="figures",  printing=True, gt_list=[], num_generated=100, top_k=None, top_p=0.8, do_sample=True, num_beams=1, temperature=None, device="cuda"):
+def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data_range, additional_info="", figure_save_dir="figures", printing=True, gt_list=[], num_generated=100, gen_kwargs={}, device="cuda"):
     """
     Evaluates model on a given range of given dataset. For every datapoint it sorts 
     generated SMILES according to the probability of each SMILES to be generated. 
@@ -36,12 +36,16 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
         additional info to the fi
     figure_save_dir : str
         directory to use for saving stat figure
+    forced_decoder_ids : List[List[int]]
+        list of tuples (position, token_idx) for forced tokens in generate
     printing : bool
         whether or not print the final statistics 
     gt_list : List[str]
         a parameter to help eval_mode - a list of ground truth SMILES for a reference
     num_generated : int
         number of generated SMILES for each datapoint
+    penalty_alpha : float	
+        parametr of Hugging face generate function, if penalty_alpha>0 and top_k>1 => CONTRASTIVE SEARCH is used
     top_k : int
         parametr of Hugging face generate function
     top_p : float
@@ -60,6 +64,13 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
     histplot : matplotlib.figure.Figure
         statistics about the evaluation, the histogram shows counts of best generated spectra with particular similarities
     """
+    
+    # default gen_kwargs
+    def_kwargs = {"top_k": None, "top_p": 0.8, "do_sample": True, "num_beams": 1, "temperature": None, "penalty_alpha": None}
+    for k, v in def_kwargs.items():
+        if k not in gen_kwargs.keys():
+            gen_kwargs[k] = v
+    
     all_datapoint_ids = []
     all_smiles = []
     all_sequence_probs = []
@@ -84,19 +95,13 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
                                num_return_sequences = num_generated,
                                position_ids=inputs["position_ids"].unsqueeze(0).to(device=device),
                                attention_mask=inputs["attention_mask"].unsqueeze(0).to(device=device),
-                               top_p=top_p,
-                               top_k=top_k,
-            #                    min_length=20,
-            #                    max_length=200,
-                               do_sample=do_sample,
-                               num_beams=num_beams,
-                               temperature=temperature,
                                return_dict_in_generate=True,
-                               output_scores=True)
+                               output_scores=True,
+                               **gen_kwargs)
 
         # decode the generated SMILESs
-        generated_smiless = [tokenizer.decode(generated[1:-1]) for generated in generated_outputs.sequences.tolist()]
-        generated_smiless_enum = list(enumerate(generated_smiless)) # enum for analizing which smiles drops after validation
+        generated_smiless = [tokenizer.decode(generated, skip_special_tokens=True) for generated in generated_outputs.sequences.tolist()]
+        generated_smiless_enum = list(enumerate(generated_smiless)) # enum for analyzing which smiles drops after validation
         
         # filter invalid
         valid_smiless = [s for s in generated_smiless_enum if Chem.MolFromSmiles(s[1])]
@@ -201,16 +206,18 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
       f"average simles simil from the 3 best samples: {top3averageSmi}\n"+\
       f"average smiles simil from the 1 best sample: {top1averageSmi}\n"+\
       f"mean num of unique vals: {unique_vals/num_of_datapoints}\n"
-    
-    if printing:
-        print(f"###### RESULTS ######\n" + output_text)
-    
+
     sns.set(rc={'figure.figsize':(11.7,8.27)})
     histplot = sns.histplot(all_top1Smi, bins=100).set_title(output_text)
     fig = histplot.get_figure()
     plt.xlabel("Best predictions (smiles similarity)")
     fig.savefig(f"{figure_save_dir}/option2_prob{additional_info}_{model_name}_{data_type}_generated{num_generated}_({min(data_range)}, {max(data_range)}).png", bbox_inches='tight') 
-    return histplot
+
+    if printing:	
+        print(f"###### RESULTS ######\n" + output_text)	
+        plt.show()	
+        	
+    return all_top1Smi
 
 
 def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
@@ -365,3 +372,69 @@ def my_position_ids_restorer(log_intensities, log_base=np.log(1.7), log_shift=9)
     """
     intensities = np.around(np.exp((log_intensities - log_shift) * log_base), decimals=4)
     return intensities
+
+
+def show_predictions_for_datapoint(model, tokenizer, inputs, num_generated=10, device="cuda", printing=True, gt_smiles="", gen_kwargs={}):
+    
+    # default gen_kwargs
+    def_kwargs = {"top_k": None, "top_p": 0.8, "do_sample": True, "num_beams": 1, "temperature": None}
+    for k, v in def_kwargs.items():
+        if k not in gen_kwargs.keys():
+            gen_kwargs[k] = v
+            
+    #     inputs = data[id_]
+    if not gt_smiles:
+        gt_smiles = tokenizer.decode(list(np.array(inputs["labels"].tolist())*np.array(inputs["decoder_attention_mask"].tolist()))[1:-1])
+    
+    # generate
+    generated_smiless = []          
+    input_ids = inputs["input_ids"].unsqueeze(0).to(device=device)
+    position_ids=inputs["position_ids"].unsqueeze(0).to(device=device)
+    attention_mask=inputs["attention_mask"].unsqueeze(0).to(device=device)
+
+    generated_outputs = model.generate(
+                           input_ids=input_ids,
+                           num_return_sequences = num_generated,
+                           position_ids=position_ids,
+                           attention_mask=attention_mask,
+                           return_dict_in_generate=True,
+                           output_scores=False,
+                           **gen_kwargs)
+
+    # decode the generated SMILESs
+    generated_smiless = [tokenizer.decode(generated[1:-1]) for generated in generated_outputs.sequences.tolist()]
+
+    # deduplicate (or not)
+    unique_smiless = generated_smiless # unique_nonsorted(np.array(generated_smiless)) #####################################
+    
+    # filter invalid
+    valid_smiless = [s for s in unique_smiless if Chem.MolFromSmiles(s)]
+    
+    # canonize
+    canon_smiles = [Chem.MolToSmiles(Chem.MolFromSmiles(smi),True) for smi in valid_smiless]
+    
+    df_valid_smiles = pd.DataFrame(canon_smiles, columns=["smiles"])
+    
+    Chem.PandasTools.AddMoleculeColumnToFrame(df_valid_smiles, smilesCol='smiles', molCol='ROMol')
+    
+    df = df_valid_smiles
+    
+    # compute SMILES simil
+    ms = [Chem.MolFromSmiles(smiles) for smiles in df["smiles"]]
+    gt_fp = Chem.RDKFingerprint(Chem.MolFromSmiles(gt_smiles)) 
+    fps = [Chem.RDKFingerprint(x) for x in ms if x]
+    smiles_simils = [DataStructs.FingerprintSimilarity(fp, gt_fp) for fp in fps]
+    
+    df["SMILES_simil"] = smiles_simils
+    
+    if printing:
+#         print("##### GROUND TRUTH #####")
+#         print(f"Ground Truth SMILES: {gt_smiles}")
+#         print(f"Input mzs: {input_ids}")
+#         print(f"Input logbin intensities: {position_ids}")
+#         print(f"Input attention mask: {attention_mask}")
+        mol = Chem.MolFromSmiles(gt_smiles)
+        display(mol)
+        print("Ground Truth SMILES:", gt_smiles)
+    
+    return df.sort_values(by="SMILES_simil", ascending=False).reset_index()

@@ -1,0 +1,7 @@
+### ZINC15 Statistics ###
+original number of downloaded SMILES: 1,820,661,921
+number of SMILES in 100M_slice: 109,239,397 
+number of SMILES in raw 43M_slice: 43,695,735
+number of preprocessed SMILES in 43m_slice: 42,772,118
+number of preprocessed SMILES in 43m_slice: 41,217,389
+number of preprocessed SMILES after ommiting NIST test split: 41,217,379

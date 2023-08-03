@@ -38,6 +38,60 @@
       "rstrip": false,
       "normalized": false,
       "special": true
+    },
+    {
+      "id": 1233,
+      "content": "<neims>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1234,
+      "content": "<nist>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1235,
+      "content": "<rassp>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1236,
+      "content": "<source1>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1237,
+      "content": "<source2>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1238,
+      "content": "<source3>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
     }
   ],
   "normalizer": {
@@ -51,13 +105,15 @@
   "pre_tokenizer": {
     "type": "ByteLevel",
     "add_prefix_space": true,
-    "trim_offsets": true
+    "trim_offsets": true,
+    "use_regex": true
   },
   "post_processor": null,
   "decoder": {
     "type": "ByteLevel",
     "add_prefix_space": true,
-    "trim_offsets": true
+    "trim_offsets": true,
+    "use_regex": true
   },
   "model": {
     "type": "BPE",
