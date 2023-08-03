@@ -1,19 +1,13 @@
-# data
-data/datasets/**
-data/NIST/**
-data/rcx_spectra/**
-data/ZINC15/**/*.smi
-
 checkpoints/**
-**/wandb/**
-michal_repo/**
-**/*.SIF
-zia_training_stuff_30M/**
-RLHF/ckpts/**
+data/**/*.pkl
+data/**/*.smi
+data/deprecated/**
 neims_gen_analysis_ntbs/**
+**/wandb
+zia_training_stuff
 
 # temporary files
-**/tmp/**
 **/.ipynb_checkpoints/**
 **/__pycache__/**
+**/tmp
 **/*.swp
