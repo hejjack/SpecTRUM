@@ -138,7 +138,7 @@ def autoremove_file(file_path: pathlib.Path, logging, lock: Lock):
     """delete file safely and log the action"""
     with lock:
         if os.path.isfile(file_path):
-                os.remove(str(file_path))
+            os.remove(str(file_path))
         else:
             log_safely(lock, logging.error, f"Error while removing: {file_path} : file does not exist")
     log_safely(lock, logging.info, f"removed succesfully: {file_path}")
@@ -494,6 +494,8 @@ def phase3(after_phase2_smiles: pathlib.Path,
             df.columns))  # might be trouble with index
         log_safely(lock, logging.debug,
                    f"SAVING SDF DONE process:{process_id}")
+        log_safely(lock, logging.info,
+                   f"len after PHASE3 process {process_id}: {len(df)}")
     else:
         raise ValueError(
             f"SPECTRA GENERATOR {config['spectra_generator']} NOT RECOGNIZED")
@@ -560,11 +562,15 @@ def phase5(after_phase4_sdf: pathlib.Path,
     log_safely(lock, logging.debug,
                f"FILTERING HIGH MZs process:{process_id}")
     df = df.loc[[x[-1] <= config["max_mz"] for x in tqdm(df["mz"])]]
+    log_safely(lock, logging.info,
+               f"len after MZ filtering; process {process_id}: {len(df)}")
 
     # filtering long spectra
     log_safely(lock, logging.debug,
                f"FILTERING LONG SPECTRA process:{process_id}")
     df = df.loc[[len(x) <= config["max_peaks"] for x in tqdm(df["mz"])]]
+    log_safely(lock, logging.info,
+               f"len after long spectra filtering; process {process_id}: {len(df)}")
 
     # drop unnecessary columns
     df = df[["smiles", "mz", "intensity"]]
@@ -572,7 +578,9 @@ def phase5(after_phase4_sdf: pathlib.Path,
     # strip potentioal \t from smiles
     df["smiles"] = df["smiles"].progress_apply(lambda x: x.strip()) 
 
-    # save th df
+    # save the df
+    log_safely(lock, logging.info,
+               f"len after PHASE5 process {process_id}: {len(df)}")
     log_safely(lock, logging.debug,
                f"SAVING destereo_smiles mz intensity; process:{process_id}")
     df.to_pickle(after_phase5_pickle)
@@ -607,7 +615,6 @@ def phase6(df_after_phase5: pd.DataFrame,
 
     # set special tokens
     pt = tokenizer.token_to_id("<pad>")
-    bt = tokenizer.token_to_id("<bos>")
     et = tokenizer.token_to_id("<eos>")
 
     tokenizer.add_special_tokens(["<neims>", "<nist>", "<rassp>", "<source1>", "<source2>", "<source3>"])
@@ -644,7 +651,7 @@ def phase6(df_after_phase5: pd.DataFrame,
     df.rename(columns={"mz": "input_ids"}, inplace=True)
     df.drop(columns=["intensity"], inplace=True)
 
-    log_safely(lock, logging.info, f"len after PHASE6: {len(df)}")
+    log_safely(lock, logging.info, f"len after PHASE6 {process_id}: {len(df)}")
 
     df_train, df_test, df_valid = data_split(
         df, config, logging, process_id, lock)

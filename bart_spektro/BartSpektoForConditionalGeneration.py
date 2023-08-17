@@ -45,7 +45,7 @@
 # from ...utils import logging
 
 # adam imports
-from ConfigurationBartSpektro import BartSpektroConfig
+from configuration_bart_spektro import BartSpektroConfig
 from transformers.models.bart.modeling_bart import BartPretrainedModel
 from typing import Optional, Tuple
 import torch

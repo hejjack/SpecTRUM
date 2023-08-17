@@ -1,3 +1,15 @@
+30M 
+---------------
+originaly: 30M
+after canon, dedup, erasing corrupted mols, spectra gen..: ???
+filter high MZs: ???
+filter long spectra: ???
+
+train: 22430122
+test: 1246118
+valid: 1246114
+
+
 12M_derivatized  ... 8M derivatized (invalid filtered)
 ---------------
 originaly: 12.2M

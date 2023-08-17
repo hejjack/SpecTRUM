@@ -17,7 +17,7 @@
 # adam imports
 
 from transformers.modeling_outputs import BaseModelOutput, Seq2SeqModelOutput, Seq2SeqLMOutput
-from configuration_bart_spektro import BartSpektroConfig
+from .configuration_bart_spektro import BartSpektroConfig
 from transformers.models.bart.modeling_bart import BartPretrainedModel, BartLearnedPositionalEmbedding, BartEncoderLayer, BartDecoder, BartDecoderLayer
 from typing import Optional, Tuple
 import torch
