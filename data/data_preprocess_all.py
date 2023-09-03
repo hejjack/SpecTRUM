@@ -144,11 +144,12 @@ def autoremove_file(file_path: pathlib.Path, logging, lock: Lock):
     log_safely(lock, logging.info, f"removed succesfully: {file_path}")
 
 
-def smiles_to_labels(smiles, tokenizer, et, source_id, seq_len):
+def smiles_to_labels(smiles, tokenizer, source_id, seq_len):
     """Converts smiles to labels for the model"""
+    eos_token = tokenizer.token_to_id("<eos>")
     encoded_smiles = tokenizer.encode(smiles).ids
     padding_len = (seq_len-2-len(encoded_smiles))
-    labels = [source_id] + encoded_smiles + [et] + padding_len * [-100]
+    labels = [source_id] + encoded_smiles + [eos_token] + padding_len * [-100]
     mask = [1] * (seq_len - padding_len) + [0] * padding_len
     assert len(labels) == seq_len, "Labeles have wrong length"
     assert len(mask) == seq_len, "Mask has wrong length"
@@ -575,7 +576,7 @@ def phase5(after_phase4_sdf: pathlib.Path,
     # drop unnecessary columns
     df = df[["smiles", "mz", "intensity"]]
 
-    # strip potentioal \t from smiles
+    # strip potential \t from smiles
     df["smiles"] = df["smiles"].progress_apply(lambda x: x.strip()) 
 
     # save the df
@@ -615,24 +616,22 @@ def phase6(df_after_phase5: pd.DataFrame,
 
     # set special tokens
     pt = tokenizer.token_to_id("<pad>")
-    et = tokenizer.token_to_id("<eos>")
 
-    tokenizer.add_special_tokens(["<neims>", "<nist>", "<rassp>", "<source1>", "<source2>", "<source3>"])
-    source_token = "<" + config['spectra_generator'] + ">"
+    source_token = config["source_token"]
     source_id = tokenizer.token_to_id(source_token)
     seq_len = config["seq_len"]
 
     # create labels and decoder masks
     labels, dec_masks = [], []
     for i, smiles in enumerate(tqdm(df["smiles"])):
-        l, m = smiles_to_labels(smiles, tokenizer, et, source_id, seq_len)
+        l, m = smiles_to_labels(smiles, tokenizer, source_id, seq_len)
         labels.append(l)
         dec_masks.append(m)
     df["labels"], df["decoder_attention_mask"] = labels, dec_masks
 
     # create mz and encoder masks
     df["mz"] = [ts + (seq_len-len(ts)) * [pt] for ts in df.mz]
-    df["encoder_attention_mask"] = [
+    df["attention_mask"] = [
         [int(id_ != pt) for id_ in arr] for arr in tqdm(df.mz)]
     
     log_safely(lock, logging.debug,

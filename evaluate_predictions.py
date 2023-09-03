@@ -11,7 +11,10 @@ import numpy as np
 from collections import defaultdict
 from icecream import ic
 import plotly
+import plotly.express as px
 import yaml
+import time
+from datetime import datetime
 
 
 app = typer.Typer(pretty_exceptions_enable=False)
@@ -50,25 +53,27 @@ def move_file_pointer(num_lines: int, file_pointer: TextIOWrapper) -> None:
 
 
 def update_counter(sorted_simil: np.ndarray, all_simils: dict) -> None:
-    """Add simil values to all lists with the same or lower index"""
+    """Add simil values to lists with the same index as their ranking"""
     for i, simil in enumerate(sorted_simil):
-        for j in range(i):
-            all_simils[j].append(simil)
-    
+        all_simils[i].append(simil)
+
 
 def dummy_generator():
+    i = 0
     while True:
-        yield
+        yield i
+        i += 1
 
-def diagram_from_cumul(cumul_dict: dict):
+
+def diagram_from_dict(d: dict, title: str):
     """Create a plotly figure from a cumulatively stored simils dict"""
     simils = []
     ks = []
-    for k, s in cumul_dict.items():
+    for k, s in d.items():
         simils += s
         ks += [k] * len(s)
     df = pd.DataFrame({"simil": simils, "k": ks})
-    fig = plotly.express.box(df, x="time", y="total_bill", points="all")
+    fig = px.box(df, x="k", y="simil", points="all")
     return fig
 
 
@@ -105,14 +110,14 @@ def main(
     log_file = (parent_dir / "log_file.yaml").open("a+")
     pred_jsonl = {}
     counter_empty_preds = 0
+    start_time = time.time()
 
     simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
     prob_all_simils = defaultdict(list)   # all simils sorted by probability (at each ranking)
-    for _ in tqdm(dummy_generator()):  # basically a while True
+    for i in tqdm(dummy_generator()):  # basically a while True
         pred_jsonl = pred_f.readline()
         if not pred_jsonl:
             break
-        
         preds = json.loads(pred_jsonl)
         gt_smiles = next(labels_iterator)
 
@@ -122,36 +127,41 @@ def main(
             continue
 
         pred_fps = [Chem.RDKFingerprint(Chem.MolFromSmiles(smiles)) for smiles in preds.keys()]
-        gt_fp = Chem.RDKFingerprint(Chem.MolFromSmiles(gt_smiles)) 
+        gt_fp = Chem.RDKFingerprint(Chem.MolFromSmiles(gt_smiles))
         smiles_simils = [DataStructs.FingerprintSimilarity(fp, gt_fp) for fp in pred_fps]
 
         prob_simil = np.stack(np.array(list(zip(preds.values(), smiles_simils))))
 
-        simil_index = np.argsort(prob_simil[:, 1])
-        probs_index = np.argsort(prob_simil[:, 0])
+        simil_decreasing_index = np.argsort(-prob_simil[:, 1])
+        probs_decreasing_index = np.argsort(-prob_simil[:, 0])
 
-        update_counter(prob_simil[simil_index][:, 1], simil_all_simils)
-        update_counter(prob_simil[probs_index][:, 1], prob_all_simils)
+        update_counter(prob_simil[simil_decreasing_index][:, 1], simil_all_simils)
+        update_counter(prob_simil[probs_decreasing_index][:, 1], prob_all_simils)
         
-    # making 'cumulative extending' to compute the AverageTopK
-    simil_sorted_cumul = {i: simil_all_simils[i-1] + simil_all_simils[i]
-                               for i in sorted(simil_all_simils.keys())}
-    prob_sorted_cumul = {i: prob_all_simils[i-1] + prob_all_simils[i]
-                              for i in sorted(prob_all_simils.keys())}
+    simil_average_simil_kth = [mean(simil_all_simils[k]) for k in sorted(simil_all_simils.keys())]
+    prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
+    num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
 
-    simil_average_simil_first_k = [mean(s) for s in simil_sorted_cumul]
-    prob_average_simil_first_k = [mean(s) for s in prob_sorted_cumul]
-
-
-    fig_similsort = diagram_from_cumul(simil_sorted_cumul)
-    fig_probsort = diagram_from_cumul(prob_sorted_cumul)
+    fig_similsort = diagram_from_dict(simil_all_simils, title="Similarity on the k-th position (sorted by ground truth similarity)")
+    fig_probsort = diagram_from_dict(prob_all_simils, title="Similarity on the k-th position (sorted by generation probability)")
+    df_top1 = pd.DataFrame({"simil": simil_all_simils[0], "prob": prob_all_simils[0]})
+    fig_top1_simil_simils = px.histogram(df_top1, x="simil", nbins=100, labels={'x':'similarity', 'y':'count'})
+    fig_top1_prob_simils = px.histogram(df_top1, x="prob", nbins=100, labels={'x':'similarity', 'y':'count'})
 
     fig_similsort.write_image(str(parent_dir / "topk_similsort.png"))
     fig_probsort.write_image(str(parent_dir / "topk_probsort.png"))
+    fig_top1_simil_simils.write_image(str(parent_dir / "top1_simil_simils.png"))
+    fig_top1_prob_simils.write_image(str(parent_dir / "top1_prob_simils.png"))
 
-    logs = {"topk_similsort": simil_average_simil_first_k,
-            "topk_probsort": prob_average_simil_first_k,
-            "counter_empty_preds": counter_empty_preds}
+    finish_time = time.time()
+    logs = {"evaluation":
+            {"topk_similsort": str(simil_average_simil_kth),
+            "topk_probsort": str(prob_average_simil_kth),
+            "num_predictions_at_k_counter": str(num_predictions_at_k_counter),
+            "counter_empty_preds": str(counter_empty_preds),
+            "start_time": datetime.utcfromtimestamp(start_time).strftime("%d/%m/%Y %H:%M:%S"),
+            "eval_time": f"{time.strftime('%H:%M:%S', time.gmtime(finish_time - start_time))}"
+            }}
     yaml.dump(logs, log_file)
     print(logs)
     

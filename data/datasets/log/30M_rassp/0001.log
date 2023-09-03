@@ -1,0 +1,191 @@
+Sun, 03 Sep 2023 13:14:00 data_preprocess_all.py[line:193] INFO CONFIG:
+tmp_dir: ../datasets/tmp
+log_dir: ../datasets/log
+output_dir: ../datasets
+phases_to_perform: [4, 5, 6]
+lost_chunks: []
+data_has_header: False
+max_smiles_len: 100
+max_mz: 499
+max_peaks: 200
+seq_len: 200
+log_base: 1.7
+spectra_generator: neims
+source_token: <neims>
+train_split_ratio: 0.9
+valid_split_ratio: 0.05
+test_split_ratio: 0.05
+tokenizer_path: ../../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model
+neims_dir: ../../../NEIMS
+seed: 42
+
+Sun, 03 Sep 2023 13:14:00 data_preprocess_all.py[line:194] INFO PARAMETERS:
+dataset_id = 30M_rassp
+smiles_path = ../datasets/30M_rassp/30M_rassp.smi
+num_workers = 32
+config_file = config_preprocess_NEIMS.yaml
+Sun, 03 Sep 2023 13:14:00 data_preprocess_all.py[line:200] INFO READING CSV
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:205] INFO READING DONE
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:214] INFO SETTING PROCESES IDS BY DEFAULT TO: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:221] INFO SETTING MULTIPROCESSING with 32 workers
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:238] INFO RUNNING
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:0 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:0 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:1 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:1 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:2 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:2 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:3 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:3 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:4 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:4 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:5 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:5 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:6 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:6 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:7 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:7 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:8 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:8 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:9 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:9 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:10 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:10 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:11 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:11 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:12 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:12 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:13 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:13 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:14 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:14 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:15 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:15 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:16 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:16 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:17 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:17 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:18 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:18 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:19 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:19 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:20 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:20 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:21 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:21 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:22 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:22 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:23 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:23 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:24 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:24 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:25 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:25 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:26 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:26 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:27 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:27 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:28 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:28 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:29 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:29 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:30 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:30 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:327] INFO Skipping phase 1
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:334] INFO Skipping phase 2
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:343] INFO Skipping phase 3
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] INFO ##### PHASE 4 process:31 #####
+Sun, 03 Sep 2023 13:14:07 data_preprocess_all.py[line:134] DEBUG ##### SPECTRA GENERATION process:31 #####

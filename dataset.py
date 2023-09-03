@@ -36,11 +36,11 @@ class SpectroDataset(Dataset):
         if self.eval_mode:
             out = {"input_ids": torch.tensor(row["input_ids"]),
                    "position_ids": torch.tensor(row["position_ids"]),
-                   "attention_mask": torch.tensor(row["encoder_attention_mask"]),
+                   "attention_mask": torch.tensor(row["attention_mask"]),
                    }
         else:
             out = {"input_ids": torch.tensor(row["input_ids"].tolist()),
-                   "attention_mask": torch.tensor(row["encoder_attention_mask"].tolist()),
+                   "attention_mask": torch.tensor(row["attention_mask"].tolist()),
                    "decoder_attention_mask": torch.tensor(row["decoder_attention_mask"].tolist()),
                    "position_ids": torch.tensor(row["position_ids"].tolist()),
                    "labels": torch.tensor(row["labels"].tolist())}

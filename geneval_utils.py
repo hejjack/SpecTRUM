@@ -220,44 +220,6 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
     return all_top1Smi
 
 
-def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
-    """
-    Function that takes a DF and splits the one-array-representation of spectra into mz and intensity parts
-    
-    Parameters
-    ----------
-    df : pd.DataFrame
-         dataframe containing 'PREDICTED SPECTRUM' column with sdf spectra representation
-         -> is used after loading enriched sdf file with PandasTools.LoadSDF
-    
-    Returns
-    -------
-    df2 : pd.DataFrame
-          dataframe containing columns 'mz' and 'intensity' that contain decomposed spectra representation, two arrays of the same length
-    """
-    df2 = df.copy()
-    all_i = []
-    all_mz = []
-    for row in range(len(df2)):
-        spec = df2["PREDICTED SPECTRUM"][row].split("\n")
-        mz = []
-        i = []
-        spec_max = 0
-        for t in spec:
-            j,d = t.split()
-            j,d = int(j), float(d)
-            if spec_max < d:
-                spec_max  = d
-            mz.append(j)
-            i.append(d)
-        all_mz.append(mz)
-        all_i.append(np.around(np.array(i)/spec_max, 2))
-    new_df = pd.DataFrame.from_dict({"mz": all_mz, "intensity": all_i})
-    df2 = pd.concat([df2, new_df], axis=1)
-    df2 = df2.drop(["PREDICTED SPECTRUM"], axis=1)
-    return df2
-
-
 def unique_nonsorted(array : np.ndarray) -> np.ndarray:
     """
     Version of np.unique that doesn't change the order of the items

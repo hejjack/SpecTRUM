@@ -200,8 +200,8 @@ def main(
     predictions_file.close()
     log_config = {
         "finished_time": timestamp_to_readable(finished_time),
-        "generation_time": f"{hours_minutes_seconds(finished_time - start_generation_time):.2f}",
-        "wall_time": f"{hours_minutes_seconds(finished_time - start_time):.2f}"}
+        "generation_time": f"{hours_minutes_seconds(finished_time - start_generation_time)}",
+        "wall_time": f"{hours_minutes_seconds(finished_time - start_time)}"}
     yaml.dump(log_config, log_file)
     log_file.close()
 

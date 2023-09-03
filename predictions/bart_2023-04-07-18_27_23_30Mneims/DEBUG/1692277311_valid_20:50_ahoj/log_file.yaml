@@ -1,0 +1,308 @@
+command: predict.py --checkpoint ./checkpoints/bart_2023-04-07-18_27_23_30Mneims/checkpoint-1680000/
+  --output-folder predictions --config-file configs/predict_config_example.yaml
+cuda_visible_devices: GPU-274129ec-5367-1845-d870-9db2fa46e7c4
+dataloader:
+  batch_size: 1
+  num_workers: 0
+dataset:
+  data_path: data/datasets/DEBUG/DEBUG_valid.pkl
+  data_range: '20:50'
+  data_split: valid
+  dataset_name: DEBUG
+general:
+  additional_naming_info: ahoj
+  device: cuda
+generation_args:
+  do_sample: true
+  length_penalty: 1.0
+  max_length: 200
+  num_beams: 5
+  num_return_sequences: 10
+  penalty_alpha: null
+  temperature: null
+  top_k: null
+  top_p: 0.8
+start_loading_time: 17/08/2023 13:01:50
+tokenizer:
+  tokenizer_path: tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_probsort_cumul_counter:
+  - 1
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      AAAAAAAA8D8=
+  topk_similsort_cumul_counter:
+  - 1
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      4nhAhedV5z8=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      G3UWSTib5z8=
+  topk_probsort_cumul_counter:
+  - 31
+  - 32
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      4nhAhedV5z8=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      G3UWSTib5z8=
+  topk_similsort_cumul_counter:
+  - 31
+  - 32
+evaluation:
+  counter_empty_preds: 0
+  topk_probsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      4nhAhedV5z8=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      G3UWSTib5z8=
+  topk_probsort_cumul_counter:
+  - 31
+  - 32
+  topk_similsort:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      4nhAhedV5z8=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - *id001
+    - !!binary |
+      G3UWSTib5z8=
+  topk_similsort_cumul_counter:
+  - 31
+  - 32
