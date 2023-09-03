@@ -1,6 +1,8 @@
 checkpoints/**
 data/**/*.pkl
 data/**/*.smi
+data/**/*.msp
+data/datasets/NIST
 data/deprecated/**
 neims_gen_analysis_ntbs/**
 **/wandb
