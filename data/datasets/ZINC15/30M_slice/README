@@ -1,6 +1,0 @@
-30M scrape from ZINC15 database
-
-- query "2d-clean-annotated-druglike"
-- exactly 30,000,000 SMILES separated by newline
-- preprocessing: CANONIZATION, DESTEREOCHEMICALIZATION, DEDUPLICATION, LONG SMILES FILTERING, CORRUPTED SMILES FILTERING
-- removed all SMILES that were common with ../../../../../NIST_split/test.msp

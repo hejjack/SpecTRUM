@@ -1,6 +1,0 @@
-count num of smiles in all subdirs: find tranches/ -type f -exec wc -l {} \; | awk '{total += $1} END{print total}'
-random slice: scripts/make_a_zinc_split.py
-preprocess parts of 43M dataset in loop: for i in {0..28} ; do ./run_prepare_data.sh 43M_${i} ; done
-add a first line with a legend: sed -i '1 i\smiles zinc_id' 43M_0.smi
-concat to one file (without first lines): for FILE in * ; do cat $FILE >> ../all_clean_43M.smi ; done
-do a final slice (30M) prepared for datapreprocess pipeline: scripts/make_smiles_file_slice.py 
