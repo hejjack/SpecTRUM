@@ -4,9 +4,12 @@ data/**/*.smi
 data/**/*.msp
 data/datasets/**
 data/deprecated/**
+data/categorized
 neims_gen_analysis_ntbs/**
 **/wandb
 zia_training_stuff
+zia_training_stuff_30M/**
+RLHF/**
 
 # temporary files
 **/.ipynb_checkpoints/**
