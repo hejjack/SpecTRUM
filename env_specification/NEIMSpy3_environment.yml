@@ -71,6 +71,7 @@ dependencies:
   - openbabel=3.1.1=py36he0ca515_2
   - openjpeg=2.4.0=h3ad879b_0
   - openssl=1.1.1l=h7f98852_0
+  - pandas=0.23.0
   - pcre=8.45=h295c915_0
   - pillow=8.3.1=py36h2c7a002_0
   - pip=21.2.2=py36h06a4308_0
@@ -110,7 +111,6 @@ dependencies:
   - zstd=1.5.4=hc292b87_0
   - pip:
       - importlib-resources==5.4.0
-      - pandas==0.23.0
       - pyyaml==6.0
       - tokenizers==0.10.0
       - tqdm==4.64.1

@@ -1,7 +1,7 @@
 tmp_dir: "../datasets/tmp"
 log_dir: "../datasets/log"
 output_dir: "../datasets"
-phases_to_perform: [4,5,6]   # 1_6, order is not important
+phases_to_perform: [5,6]   # 1_6, order is not important
 lost_chunks: []
 data_has_header: False     # whether the input has clean smiles file or csv (with <smiles zinc_id> structure)
 max_smiles_len: 100

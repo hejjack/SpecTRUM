@@ -552,7 +552,6 @@ def phase5(after_phase4_sdf: pathlib.Path,
                f"\n\nLOADING GENERATED SPECTRA process:{process_id}")
 
     df = PandasTools.LoadSDF(str(after_phase4_sdf), idName="id", molColName='Molecule')
-    print("what's up man")
     
     # processing spectra
     log_safely(lock, logging.debug,
