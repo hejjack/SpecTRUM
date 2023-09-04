@@ -11,6 +11,10 @@ zia_training_stuff
 zia_training_stuff_30M/**
 RLHF/**
 
+# big files
+data/categorized_michal.csv
+
+
 # temporary files
 **/.ipynb_checkpoints/**
 **/__pycache__/**
