@@ -2,8 +2,10 @@ checkpoints/**
 data/**/*.pkl
 data/**/*.smi
 data/**/*.msp
-data/datasets/*
+data/**/*.SIF
+data/**/*.log
 data/deprecated/*
+
 data/categorized
 neims_gen_analysis_ntbs/*
 **/wandb
