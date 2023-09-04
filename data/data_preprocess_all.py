@@ -250,7 +250,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
     # if all chunks got through 6th phase, concat it from return_dict
     if set(process_ids) == set(range(num_workers)) and 6 in config["phases_to_perform"]:
         try:
-            for data_type in tqdm(["test", "valid", "test"]):
+            for data_type in tqdm(["train", "valid", "test"]):
                 df_split = pd.concat([return_dict[i][data_type] for i in tqdm(range(num_workers))])
                 df_split.to_pickle(output_dir_with_id / f"{dataset_id}_{data_type}.pkl")
         except ValueError:
