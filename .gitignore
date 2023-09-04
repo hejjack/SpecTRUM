@@ -2,13 +2,13 @@ checkpoints/**
 data/**/*.pkl
 data/**/*.smi
 data/**/*.msp
-data/datasets/**
-data/deprecated/**
+data/datasets/*
+data/deprecated/*
 data/categorized
-neims_gen_analysis_ntbs/**
+neims_gen_analysis_ntbs/*
 **/wandb
 zia_training_stuff
-zia_training_stuff_30M/**
+zia_training_stuff_30M/*
 RLHF/**
 
 # big files
