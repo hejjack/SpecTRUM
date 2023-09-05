@@ -92,6 +92,15 @@
       "rstrip": false,
       "normalized": false,
       "special": true
+    },
+    {
+      "id": 1239,
+      "content": "<trafo>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
     }
   ],
   "normalizer": {
@@ -122,6 +131,7 @@
     "continuing_subword_prefix": null,
     "end_of_word_suffix": null,
     "fuse_unk": false,
+    "byte_fallback": false,
     "vocab": {
       "<eos>": 0,
       "<ukn>": 1,
