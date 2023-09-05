@@ -1,6 +1,6 @@
 # Class representing custom dataset inheriting from torch Dataset
 # crucial part: __getitem__ changes data to tensor (could not be
-# stored as pickle)
+# stored as jsonl)
 
 import json
 import torch
@@ -13,19 +13,19 @@ import numpy as np
 # from dataset file
 
 class SpectroDataset(Dataset):
-    def __init__(self, df_or_pth_pkl, eval_mode=False):
+    def __init__(self, df_or_pth_jsonl, eval_mode=False):
         """
         Parameters
         ----------
-        df_or_pth_pkl: pd.DataFrame 
-            dataframe with prepared data or a path to DFs stored as pkl (prepared with run_prepare_data.sh)
+        df_or_pth_jsonl: pd.DataFrame 
+            dataframe with prepared data or a path to DFs stored as jsonl (prepared with run_prepare_data.sh)
         eval_mode: bool
             evaluation mode where we work only with input_ids and position_ids
         """
-        if isinstance(df_or_pth_pkl, pd.DataFrame):
-            self.data = df_or_pth_pkl
+        if isinstance(df_or_pth_jsonl, pd.DataFrame):
+            self.data = df_or_pth_jsonl
         else:
-            self.data = pd.read_pickle(df_or_pth_pkl)
+            self.data = pd.read_json(df_or_pth_jsonl, orient="records", lines=True)
         self.eval_mode = eval_mode
 
     def __len__(self):
