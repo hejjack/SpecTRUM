@@ -5,9 +5,11 @@
 import json
 import torch
 from torch.utils.data import Dataset
-from typing import Dict, Union, Any, Optional, List, Tuple
+from torchdata.datapipes.iter import IterDataPipe, IterableWrapper, SampleMultiplexer, Concater
+from typing import Dict, Union, Any, Optional, List, Tuple, Iterable
 import pandas as pd
 import numpy as np
+from pathlib import Path 
 
 
 # from dataset file
@@ -33,18 +35,13 @@ class SpectroDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.data.iloc[idx]
-        if self.eval_mode:
-            out = {"input_ids": torch.tensor(row["input_ids"]),
-                   "position_ids": torch.tensor(row["position_ids"]),
-                   "attention_mask": torch.tensor(row["attention_mask"]),
-                   }
-        else:
-            out = {"input_ids": torch.tensor(row["input_ids"].tolist()),
-                   "attention_mask": torch.tensor(row["attention_mask"].tolist()),
-                   "decoder_attention_mask": torch.tensor(row["decoder_attention_mask"].tolist()),
-                   "position_ids": torch.tensor(row["position_ids"].tolist()),
-                   "labels": torch.tensor(row["labels"].tolist())}
-        
+        out = {"input_ids": row["input_ids"],
+                "position_ids": row["position_ids"],
+                "attention_mask": row["attention_mask"],
+                }
+        if not self.eval_mode:
+            out["decoder_attention_mask"] = row["decoder_attention_mask"],
+            out["labels"] = row["labels"]
         return out
 
 
@@ -57,34 +54,114 @@ class SpectroDataCollator:
         self.eval_mode = eval_mode
 
     def __call__(
-        self, examples: List[Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]]
+        self, batch: List[Dict[str, list]]
     ) -> Dict[str, torch.Tensor]:
-        batch = self._collate_batch(examples)
-        return batch
+        return self._collate_batch(batch)
                    
-    def _collate_batch(self, examples):
+    def _collate_batch(self, batch: List[Dict[str, list]],
+                eval_mode: bool = False ) -> Dict[str, torch.Tensor]:
         """Collate `examples` into a batch"""
         inputs = []
         position_ids = []
         attention_masks = []
-        if self.eval_mode:
-            for e in examples:
+        if eval_mode:
+            for e in batch:
                 inputs.append(e["input_ids"])
                 position_ids.append(e["position_ids"])
                 attention_masks.append(e["attention_mask"])
-            return {"input_ids": torch.stack(inputs, dim=0),
-                    "position_ids": torch.stack(position_ids, dim=0),
-                    "attention_mask": torch.stack(attention_masks, dim=0)}
+            return {"input_ids": torch.tensor(inputs),
+                    "position_ids": torch.tensor(position_ids),
+                    "attention_mask": torch.tensor(attention_masks)}
         else:
             dec_att = []
             labels = []
-            for e in examples:
+            for e in batch:
                 inputs.append(e["input_ids"])
+                position_ids.append(e["position_ids"])
                 attention_masks.append(e["attention_mask"])
                 dec_att.append(e["decoder_attention_mask"])
                 labels.append(e["labels"])
-            return {"input_ids": torch.stack(inputs, dim=0),
-                    "position_ids": torch.stack(position_ids, dim=0),
-                    "attention_mask": torch.stack(attention_masks, dim=0),
-                    "decoder_attention_mask": torch.stack(dec_att, dim=0),
-                    "labels": torch.stack(labels, dim=0)}
+            return {"input_ids": torch.tensor(inputs),
+                    "position_ids": torch.tensor(position_ids),
+                    "attention_mask": torch.tensor(attention_masks),
+                    "decoder_attention_mask": torch.tensor(dec_att),
+                    "labels": torch.tensor(labels)}
+
+
+def json_loader(row):
+    return json.loads(row[1])
+
+
+def build_single_datapipe(json_file: str, buffer_size=2):
+    datapipe = IterableWrapper([json_file])
+    datapipe = datapipe.open_files(mode='rt')
+    datapipe = datapipe.readlines()
+    if buffer_size:
+        datapipe = datapipe.shuffle(buffer_size=2)
+    datapipe = datapipe.sharding_filter()  # after shuffle, before expensive operations
+    datapipe = datapipe.map(json_loader)
+    return datapipe
+
+
+def build_datapipe_mixture(datapipes: List[IterDataPipe], 
+                           weights: Union[Tuple[float], None], 
+                           concat: bool = False):
+    """
+    Build a datapipe that samples from a mixture of datapipes.
+    Parameters
+    ----------
+    datapipes: List[IterDataPipe]
+        List of datapipes to sample from.
+    weights: List[float]
+        List of weights for each datapipe.
+    concat: bool
+        Whether to concatenate the datapipes (if False, the pipes will be interleaved).
+    """
+    if concat:
+        return Concater(*datapipes)
+    else:
+        assert weights is not None, "weights must be provided if concat=False"
+        assert len(datapipes) == len(weights)
+        
+        return SampleMultiplexer({
+            pipe: weight for pipe, weight in zip(datapipes, weights)
+        })
+    
+
+def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
+    """
+    Load all datapipes from a dict of json files.
+    Parameters
+    ----------
+    data_args: Dict[str,Dict]
+        Dictionary containing datasets' paths, weights and other config info.
+    buffer_size: int
+        Buffer size for shuffling.
+    
+    Returns
+    -------
+    Dict[str, IterDataPipe]
+        Dictionary with train and valid datapipes.
+        {"train": train_datapipe,
+         "valid":
+             {"dataset1": valid_datapipe1,
+             "dataset2": valid_datapipe2}
+        }
+    """
+    buffer_size = data_args["buffer_size"]
+    datapipes = {}
+
+    info = [(dataset["train_path"], 
+             dataset["valid_path"],
+             dataset["weight"],
+             dataset_name)
+           for dataset_name, dataset in data_args["datasets"].items()]
+    train_paths, valid_paths, weights, dataset_names = list(zip(*info))
+    
+    train_pipes = [build_single_datapipe(path, buffer_size=buffer_size) for path in train_paths]
+    valid_pipes = {name: build_single_datapipe(path, buffer_size=buffer_size) 
+                   for name, path in zip(dataset_names, valid_paths)}
+
+    datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False)
+    datapipes["valid"] = valid_pipes
+    return datapipes

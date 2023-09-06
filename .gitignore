@@ -1,5 +1,6 @@
 checkpoints/**
 data/**/*.pkl
+data/**/*.jsonl
 data/**/*.smi
 data/**/*.msp
 data/**/*.SIF

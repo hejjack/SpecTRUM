@@ -10,7 +10,7 @@ from pathlib import Path
 from matchms.importing import load_from_msp
 from rdkit import Chem
 
-from Spektro.MassGenie.data.data_preprocess_all import smiles_to_labels
+from data.data_preprocess_all import smiles_to_labels
 
 
 def preprocess_spectrum(s: Spectrum, tokenizer, source_token: str, seq_len=200, max_smiles_len=100, max_mz=500, log_base=1.7, log_shift=9):
@@ -180,11 +180,11 @@ def preprocess_spectra(spectra: List[Spectrum], tokenizer, source_token):
     return df_out
 
 
-def msp_file_to_pkl(path_msp: Path,
+def msp_file_to_jsonl(path_msp: Path,
                     tokenizer_path: Path,
                     source_token: str,
-                    path_pkl: Path = None):
-    """load msp file, prepare BART compatible dataframe and save to pkl file
+                    path_jsonl: Path = None):
+    """load msp file, prepare BART compatible dataframe and save to jsonl file
     
     Parameters
     ----------
@@ -194,15 +194,15 @@ def msp_file_to_pkl(path_msp: Path,
         path to the tokenizer
     source_token : str
         token to be used as a source token (e.g. "<neims>", "<rassp>")
-    path_pkl : Path
-        path of the output pkl file
+    path_jsonl : Path
+        path of the output jsonl file
     """
     data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
     df = preprocess_spectra(data_msp, tokenizer, source_token)
-    if not path_pkl:
-        path_pkl = path_msp.with_suffix(".pkl")
-    df.to_pickle(path_pkl)
+    if not path_jsonl:
+        path_jsonl = path_msp.with_suffix(".jsonl")
+    df.to_jsonl(path_jsonl, orient="records", lines=True)
 
 
 def canonicalize_smiles(smi: str):

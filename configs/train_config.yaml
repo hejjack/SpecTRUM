@@ -1,0 +1,95 @@
+hw_args:
+  device: "cpu" # "cuda" or "cpu"
+  ncpus: 16
+  ngpus: 4 #4
+  bs: 32 #32 for small model, 16 or 28(slower) for 707M model
+  gas: 1 # int(16/ngpus)
+
+tokenizer_path: "..." # for spektro tokenizer use ""
+
+training_args:
+  num_epochs: 200 # 10 (BARTy se trenovaly 10 epoch celkem) # int(os.environ["TOTAL_EPOCHS"])
+  resume_training: False # True # bool(int(os.environ["RESUME_TRAINING"]))
+  resume_wandb_id: "" # 2yqhwcas" # "191h62zs" #pass # ""
+  eval_steps: 10000 # 6500 # 9000 # 30M steps per epoch : 87617 => 9000 steps should be roughly 8hours -> eval_steps, save_steps
+  save_steps: 10000
+  log_steps: 1 # 5
+  eval_log_predictions_size: 100 # 100
+  eval_subset_size: 200000 # 100000 #100k
+  debug_data_len:  None #{"train": 4000, "valid": 4000} # None for no debug   
+
+data_args:
+  buffer_size: 1000 # for shuffling in dataloader
+  datasets: 
+    30M_rassp: 
+      train_path: "data/datasets/30M_rassp/30M_rassp_train.jsonl"
+      valid_path: "data/datasets/30M_rassp/30M_rassp_valid.jsonl"
+      weight: 1.0
+      limit_val_split: 1000     # limit on validation set size
+      limit_example_split: 100  # limit on number of examples generated
+    nist:
+      train_path: "data/datasets/NIST/NIST_split_filip/train_<nist>.jsonl"
+      valid_path: "data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
+      weight: 1.0
+      limit_val_split: 1000     # limit on validation set size
+      limit_example_split: 100  # limit on number of examples generated
+
+example_generation_args:
+  "top_k": null
+  "top_p": null
+  "do_sample": True
+  "num_beams": 5
+  "temperature": null
+  "penalty_alpha": null
+  "num_return_sequences": 10
+  "max_length": 200                  # don't touch this
+  # "decoder_input_token": ""          # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  "length_penalty": 1.0 # (use for beam search otherwise set to 0)
+
+model_args:
+  seq_len: 200
+  encoder_layers: 12 # 24
+  encoder_ffn_dim: 4096
+  encoder_attention_heads: 16
+  decoder_layers: 12 # 24
+  decoder_ffn_dim: 4096
+  decoder_attention_heads: 16    
+
+##### 
+# hf_training_args:
+#   do_train: True
+#   do_eval: True
+
+#   max_steps: 1_000_000
+#   optim: "adamw_torch"
+#   warmup_steps: 1000
+
+#   learning_rate: 0.00002
+#   per_device_train_batch_size: 1
+#   gradient_accumulation_steps: 32
+#   per_device_eval_batch_size: 1
+#   eval_accumulation_steps: 8
+
+#   dataloader_num_workers: 8
+#   dataloader_pin_memory: True
+#   dataloader_drop_last: False
+
+#   logging_steps: 1
+#   report_to: "wandb"
+#   remove_unused_columns: False # NEVER TOUCH THIS
+
+#   fp16: True
+
+#   metric_for_best_model: "audiocaps/spider"
+#   greater_is_better: True
+
+#   load_best_model_at_end: True
+#   predict_with_generate: True # NEVER TOUCH THIS
+#   generation_num_beams: 1
+#   generation_max_length: 80
+#   evaluation_strategy: "steps"
+#   eval_steps: 900
+
+#   save_strategy: "steps"
+#   save_steps: 900
+#   save_total_limit: 5

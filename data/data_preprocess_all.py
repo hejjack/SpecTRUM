@@ -242,7 +242,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
         p.join()
 
     # concat results
-    done_split_files = glob.glob(str(tmp_dir / f"{dataset_id}_chunk*_after_phase6_train.pkl")) # done train/test/valid chunks so far
+    done_split_files = glob.glob(str(tmp_dir / f"{dataset_id}_chunk*_after_phase6_train.jsonl")) # done train/test/valid chunks so far
     done_split_ids = set([int(re.findall(r"chunk(\d+)", file)[0]) for file in done_split_files])
     df_splits = {"df_train": None, "df_test": None, "df_valid": None}
     output_dir_with_id = pathlib.Path(config["output_dir"]) / dataset_id
@@ -252,7 +252,8 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
         try:
             for data_type in tqdm(["train", "valid", "test"]):
                 df_split = pd.concat([return_dict[i][data_type] for i in tqdm(range(num_workers))])
-                df_split.to_pickle(output_dir_with_id / f"{dataset_id}_{data_type}.pkl")
+                df_split.to_json(output_dir_with_id / f"{dataset_id}_{data_type}.jsonl", orient="records", lines=True)
+                print(f"FULL LEN {data_type}: {len(df_split)}")
         except ValueError:
             logging.info("SOME CHUNKS DIDN'T GET THROUGH 6TH PHASE, TRYING TO LOAD THEM")
     # else if all the split files are saved, prepared for concat, load them and concat them
@@ -261,11 +262,12 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
         logging.info("LOADING CHUNKS FROM FILES TO CONCAT IT")
         for data_type in ["valid", "test", "train"]:
             logging.info(f"{data_type.upper()} ")
-            file_path = tmp_dir / f"{dataset_id}_chunk*_after_phase6_{data_type}.pkl"   # pickled df
+            file_path = tmp_dir / f"{dataset_id}_chunk*_after_phase6_{data_type}.jsonl"
             files = glob.glob(str(file_path))
             for f in files:
-                df_split = pd.concat([pd.read_pickle(f) for f in tqdm(files)])
-                df_split.to_pickle(output_dir_with_id / f"{dataset_id}_{data_type}.pkl")
+                df_split = pd.concat([pd.read_json(f, orient="records", lines=True) for f in tqdm(files)])
+                df_split.to_json(output_dir_with_id / f"{dataset_id}_{data_type}.jsonl", orient="records", lines=True)
+                print(f"FULL LEN {data_type}: {len(df_split)}")
 
     # some chunks didn't get through 6th phase, try to run them again
     else:
@@ -277,7 +279,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
     if auto_remove:
         logging.info("REMOVING ALL AFTER 6PHASE SPLITS")
         for i in range(num_workers):
-            file_path = tmp_dir / f"{dataset_id}_chunk{i}_after_phase6_*.pkl"   # pickled df
+            file_path = tmp_dir / f"{dataset_id}_chunk{i}_after_phase6_*.jsonl"   # jsond df
             files = glob.glob(str(file_path))
             for f in files:
                 os.remove(f)
@@ -317,8 +319,8 @@ def process(df: pd.DataFrame,
     after_phase2_smiles = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase2.smi"  # destereo smiles (plain)
     after_phase3_file = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase3_{config['spectra_generator']}.{phase3_extension}"  # file prepared for generation
     after_phase4_sdf = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase4_neims.sdf" # enriched sdf w/ generated spectra
-    after_phase5_pickle = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase5.pkl"  # pickled df
-    after_phase6_pickle = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase6.pkl"  # pickled df
+    after_phase5_json = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase5.jsonl"  # jsond df
+    after_phase6_json = tmp_dir / f"{dataset_id}_chunk{process_id}_after_phase6.jsonl"  # jsond df
 
     df_after_phase5 = None  # in case phase 5 is not performed
     if 1 in phases_to_perform:
@@ -353,7 +355,7 @@ def process(df: pd.DataFrame,
 
     if 5 in phases_to_perform:
         df_after_phase5 = phase5(
-            after_phase4_sdf, after_phase5_pickle, logging, config, lock, process_id)
+            after_phase4_sdf, after_phase5_json, logging, config, lock, process_id)
         if auto_remove:
             autoremove_file(after_phase4_sdf, logging, lock)
     else:
@@ -361,14 +363,14 @@ def process(df: pd.DataFrame,
 
     if 6 in phases_to_perform:
         df_train, df_test, df_valid = phase6(df_after_phase5,
-                                             after_phase5_pickle,
-                                             after_phase6_pickle,
+                                             after_phase5_json,
+                                             after_phase6_json,
                                              logging,
                                              config,
                                              lock,
                                              process_id)
         if auto_remove:
-            autoremove_file(after_phase5_pickle, logging, lock)
+            autoremove_file(after_phase5_json, logging, lock)
     else:
         logging.info("Skipping phase 6")
         return_dict[process_id] = {"train": None,
@@ -537,7 +539,7 @@ def phase4(after_phase3_file: pathlib.Path,
 
 
 def phase5(after_phase4_sdf: pathlib.Path,
-           after_phase5_pickle: pathlib.Path,
+           after_phase5_json: pathlib.Path,
            logging,  # module 
            config: dict,
            lock: Lock,
@@ -547,7 +549,7 @@ def phase5(after_phase4_sdf: pathlib.Path,
     # check whether phase 4 was performed
     check_phase(after_phase4_sdf, 4, process_id, logging, lock)
 
-    # load the pickle from the first phase
+    # load the json from the first phase
     log_safely(lock, logging.debug,
                f"\n\nLOADING GENERATED SPECTRA process:{process_id}")
 
@@ -583,28 +585,28 @@ def phase5(after_phase4_sdf: pathlib.Path,
                f"len after PHASE5 process {process_id}: {len(df)}")
     log_safely(lock, logging.debug,
                f"SAVING destereo_smiles mz intensity; process:{process_id}")
-    df.to_pickle(after_phase5_pickle)
+    df.to_json(after_phase5_json, orient="records", lines=True)
 
     return df
 
 
 def phase6(df_after_phase5: pd.DataFrame,
-           after_phase5_pickle: pathlib.Path,
-           after_phase6_pickle: pathlib.Path,
+           after_phase5_json: pathlib.Path,
+           after_phase6_json: pathlib.Path,
            logging,  # module 
            config: dict,
            lock: Lock,
            process_id: int = 0):
     """ Phase 6: DATASET_CREATION """
     log_safely(lock, logging.info, f"PHASE 6 process:{process_id}")
-    check_phase(after_phase5_pickle, 5, process_id, logging,
+    check_phase(after_phase5_json, 5, process_id, logging,
                 lock)  # check whether phase 5 was performed
 
     # load df from the phase 5 (check if we got the df, first - faster)
     if df_after_phase5 is None:
         log_safely(lock, logging.debug,
                    f"\n\nLOADING GENERATED SPECTRA process:{process_id}")
-        df = pd.read_pickle(after_phase5_pickle)
+        df = pd.read_json(after_phase5_json, orient="records", lines=True)
     else:
         df = df_after_phase5
 
@@ -616,6 +618,7 @@ def phase6(df_after_phase5: pd.DataFrame,
     # set special tokens
     pt = tokenizer.token_to_id("<pad>")
 
+    # TODO: what if the source_token is not present in the tokenizer?
     source_token = config["source_token"]
     source_id = tokenizer.token_to_id(source_token)
     seq_len = config["seq_len"]
@@ -655,18 +658,18 @@ def phase6(df_after_phase5: pd.DataFrame,
         df, config, logging, process_id, lock)
 
     log_safely(lock, logging.debug,
-               f"PICKELING PREPARED DATA process:{process_id}")
-    path_wo_ext = after_phase6_pickle.with_suffix('')
-    path_ext = after_phase6_pickle.suffix
-    parent_dir = after_phase6_pickle.parents[0]
+               f"JSONING PREPARED DATA process:{process_id}")
+    path_wo_ext = after_phase6_json.with_suffix('')
+    path_ext = after_phase6_json.suffix
+    parent_dir = after_phase6_json.parents[0]
     os.makedirs(parent_dir, exist_ok=True)
 
-    df_train.to_pickle(str(path_wo_ext) + "_train" + path_ext)
-    df_test.to_pickle(str(path_wo_ext) + "_test" + path_ext)
-    df_valid.to_pickle(str(path_wo_ext) + "_valid" + path_ext)
+    df_train.to_json(str(path_wo_ext) + "_train" + path_ext, orient="records", lines=True)
+    df_test.to_json(str(path_wo_ext) + "_test" + path_ext, orient="records", lines=True)
+    df_valid.to_json(str(path_wo_ext) + "_valid" + path_ext, orient="records", lines=True)
 
     log_safely(lock, logging.debug,
-               f"PHASE6 DONE process:{process_id}")
+               f"PHASE6 DONE process:{process_id}\n")
 
     return df_train, df_test, df_valid
 
