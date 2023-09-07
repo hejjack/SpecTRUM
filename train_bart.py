@@ -21,6 +21,9 @@ import typer
 import yaml
 import torchdata.datapipes as dp
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
+from callbacks import PredictionLogger
+from metrics import SpectroMetrics
 
 
 # custom code
@@ -28,7 +31,6 @@ from dataset import SpectroDataset, SpectroDataCollator, load_all_datapipes
 from bart_spektro.modeling_bart_spektro import BartSpektoForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.bart_spektro_tokenizer import BartSpektroTokenizer
-from bart_spektro.bart_spektro_trainer import BartSpectroTrainer
 from tokenizers import Tokenizer
 
 app = typer.Typer()
@@ -39,8 +41,8 @@ def get_nice_time():
     now = now.replace(":","_").replace(" ", "-")
     return now
 
-def get_spectro_config(model_args, tokenizer):
-    BartSpektroConfig(vocab_size = len(tokenizer.get_vocab()),
+def get_spectro_config(model_args: Dict, tokenizer: Tokenizer) -> BartSpektroConfig:
+    return BartSpektroConfig(vocab_size = len(tokenizer.get_vocab()),
                       max_position_embeddings = model_args["seq_len"],
                       max_length = model_args["seq_len"],
                       min_len = 0,
@@ -70,12 +72,37 @@ def get_spectro_config(model_args, tokenizer):
                       max_log_id=9)
 
 
+def load_prediction_loggers(datapipes: Dict[str, dp.iter.IterableWrapper],
+                            hf_training_args: Dict,
+                            dataset_args: Dict,
+                            example_gen_args: Dict,
+                            tokenizer: Tokenizer,
+                            show_raw_preds: bool = False,
+                            log_to_wandb: bool = True) -> List[PredictionLogger]:
+    """Load prediction loggers for all datasets in datapipes"""
+    callbacks = []
+    for name, pipe in datapipes["example"].items():
+        example_gen_args["forced_decoder_ids"] = [[1, tokenizer.token_to_id(dataset_args["datasets"][name]["prefix_token"])]]
+        callbacks.append(PredictionLogger(
+            log_prefix=name,
+            dataset=pipe,
+            collator=SpectroDataCollator(),
+            log_every_n_steps=hf_training_args["eval_steps"],
+            show_raw_preds=show_raw_preds,
+            log_to_wandb=log_to_wandb,
+            generate_kwargs=example_gen_args,
+        ))
+    return callbacks
+
+
 @app.command()
 def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the config file"),
          checkpoint: Path = typer.Option(None, help="Path to the checkpoint directory"),
          resume_id: str = typer.Option(None, help="Wandb id of the run to resume, if not None, resume will be attempted"),
          checkpoints_dir: Path = typer.Option("../checkpoints", help="Path to the checkpoints directory"),
-         save_name: str = typer.Option(None, help="Path to the save directory")
+         additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
+         device: str = typer.Option("cuda", help="Device to use for training"),
+         wandb_group: str = typer.Option(..., help="Wandb group to use for logging")
          ):
 
     # load config
@@ -85,45 +112,86 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         except yaml.YAMLError as exc:
             raise ValueError("Error in configuration file:", exc) from exc
 
-    hw_args = config["hw_args"]
-    training_args = config["training_args"]
+    hf_training_args = config["hf_training_args"]
     dataset_args = config["data_args"]
-    tokenizer_path = config["tokenizer_path"]
     model_args = config["model_args"]
-    
-    # load tokenizer, data, model
+    example_gen_args = config["example_gen_args"]
+    trainer_args = config["trainer_args"]
+    tokenizer_path = model_args["tokenizer_path"]
+
+    # load tokenizer, data
     tokenizer = Tokenizer.from_file(tokenizer_path)
     os.environ["TOKENIZERS_PARALLELISM"] = "false" # surpressing a warning
     datapipes = load_all_datapipes(dataset_args)
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
-    model = BartSpektoForConditionalGeneration(config)
-    model.to(hw_args["device"])
 
 
+    print("Loading model...")
+    model = BartSpektoForConditionalGeneration(bart_spectro_config)
+    model.to(device)
+    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Number of trainable parameters: {num_params}")
 
+    run_name = f"{get_nice_time()}{additional_info}"
+    # Resume training
     if resume_id:
         if not checkpoint:
             raise ValueError("Checkpoint must be provided when resuming training")
-            
         save_path = checkpoint.parent
-        save_name = checkpoint.parent
     else:
-        if save_name:
-            save_path = checkpoints_dir / save_name
-        else:
-            save_path = checkpoints_dir / f"bart_{get_nice_time()}"
+        save_path = checkpoints_dir / run_name
     print(f"save path: {save_path}")
-    # Resume training
 
     # Init wandb
+    log_tags = [d for d in dataset_args["datasets"].keys()]
+    log_tags.append(wandb_group)
+    log_tags.append(f"params={num_params}")
+    log_tags.append(f"lr={hf_training_args['learning_rate']}")
+    log_tags.append(f"pd_bs={hf_training_args['per_device_train_batch_size']}")
+
     wandb.login()
-    run = wandb.init(id=resume_id, resume="allow", entity="hajekad", project="BART_for_gcms")
-    wandb.run.name = save_name
+    run = wandb.init(
+            id=resume_id, 
+            resume="must" if resume_id else "never",
+            entity="hajekad", 
+            project="BART_for_gcms",
+            tags=log_tags,
+            save_code=True,
+            config=config,
+            group=wandb_group,
+            name = run_name
+        )
+    
+    # set callbacks
+    example_gen_args["forced_decoder_ids"] = [[1, ]]
+    callbacks = load_prediction_loggers(datapipes, 
+                                        hf_training_args,
+                                        dataset_args, 
+                                        example_gen_args, 
+                                        tokenizer,
+                                        show_raw_preds=True) ##!!DEBUG!!##
 
+    compute_metrics = SpectroMetrics(tokenizer)
+    training_args = TrainingArguments(**hf_training_args,
+                                      output_dir=str(save_path),
+                                      run_name=run_name
+                                    )
 
-
-    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Number of trainable parameters: {num_params}")
+    trainer = Trainer(
+                model=model,                   
+                args=trainer_args,                
+                train_dataset=datapipes["train"],
+                eval_dataset=datapipes["valid"], 
+                callbacks=callbacks,
+                tokenizer=tokenizer,
+                compute_metrics=compute_metrics,
+                data_collator = SpectroDataCollator(),
+            )
+    
+    if checkpoint:
+        trainer.train(str(checkpoint))
+    else:
+        trainer.train()
 
 
 if __name__ == "__main__":

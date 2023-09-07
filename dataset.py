@@ -5,15 +5,16 @@
 import json
 import torch
 from torch.utils.data import Dataset
-from torchdata.datapipes.iter import IterDataPipe, IterableWrapper, SampleMultiplexer, Concater
-from typing import Dict, Union, Any, Optional, List, Tuple, Iterable
+from torchdata.datapipes.iter import IterDataPipe, IterableWrapper, SampleMultiplexer, Concater, Header
+from typing import Dict, Sized, Union, Any, Optional, List, Tuple, Iterator, Hashable, TypeVar
+import warnings
 import pandas as pd
 import numpy as np
 from pathlib import Path 
 
+T_co = TypeVar("T_co", covariant=True)
 
-# from dataset file
-
+ 
 class SpectroDataset(Dataset):
     def __init__(self, df_or_pth_jsonl, eval_mode=False):
         """
@@ -86,19 +87,23 @@ class SpectroDataCollator:
                     "attention_mask": torch.tensor(attention_masks),
                     "decoder_attention_mask": torch.tensor(dec_att),
                     "labels": torch.tensor(labels)}
-
+        
 
 def json_loader(row):
     return json.loads(row[1])
 
 
-def build_single_datapipe(json_file: str, buffer_size=2):
+def build_single_datapipe(json_file: str, 
+                          buffer_size=2,
+                          limit: Optional[int] = None,
+                        ):
     datapipe = IterableWrapper([json_file])
     datapipe = datapipe.open_files(mode='rt')
     datapipe = datapipe.readlines()
     if buffer_size:
         datapipe = datapipe.shuffle(buffer_size=2)
     datapipe = datapipe.sharding_filter()  # after shuffle, before expensive operations
+    datapipe = datapipe.header(limit)
     datapipe = datapipe.map(json_loader)
     return datapipe
 
@@ -118,7 +123,7 @@ def build_datapipe_mixture(datapipes: List[IterDataPipe],
         Whether to concatenate the datapipes (if False, the pipes will be interleaved).
     """
     if concat:
-        return Concater(*datapipes)
+        return Concater(*datapipes) # type: ignore
     else:
         assert weights is not None, "weights must be provided if concat=False"
         assert len(datapipes) == len(weights)
@@ -151,17 +156,31 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
     buffer_size = data_args["buffer_size"]
     datapipes = {}
 
-    info = [(dataset["train_path"], 
+    info = [(dataset_name,
+             dataset["train_path"], 
              dataset["valid_path"],
              dataset["weight"],
-             dataset_name)
+             dataset["limit_train_split"],
+             dataset["limit_val_split"],
+             dataset["limit_example_split"]
+             )
            for dataset_name, dataset in data_args["datasets"].items()]
-    train_paths, valid_paths, weights, dataset_names = list(zip(*info))
+    dataset_names, train_paths, valid_paths, weights, limit_train_splits, limit_val_splits, limit_example_splits = list(zip(*info))
     
-    train_pipes = [build_single_datapipe(path, buffer_size=buffer_size) for path in train_paths]
-    valid_pipes = {name: build_single_datapipe(path, buffer_size=buffer_size) 
-                   for name, path in zip(dataset_names, valid_paths)}
+    train_pipes = [build_single_datapipe(path, 
+                                         buffer_size=buffer_size,
+                                         limit=limit) 
+                   for path, limit in zip(train_paths, limit_train_splits)]
+    valid_pipes = {name: build_single_datapipe(path, 
+                                               buffer_size=buffer_size,
+                                               limit=limit)
+                   for name, path, limit in zip(dataset_names, valid_paths, limit_val_splits)}
+    example_pipes = {name: build_single_datapipe(path, 
+                                           buffer_size=buffer_size,
+                                           limit=limit)
+                     for name, path, limit in zip(dataset_names, valid_paths, limit_example_splits)}
 
     datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False)
     datapipes["valid"] = valid_pipes
+    datapipes["example"] = example_pipes
     return datapipes
