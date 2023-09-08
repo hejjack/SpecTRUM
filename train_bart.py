@@ -1,8 +1,5 @@
 import os
-import sys
-import inspect
 
-import argparse
 from datetime import datetime
 import json
 import os
@@ -16,7 +13,7 @@ import glob
 from tqdm import tqdm
 import torch
 import numpy as np
-from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, BartConfig, BartForConditionalGeneration
+from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, PreTrainedTokenizerFast
 import typer
 import yaml
 import torchdata.datapipes as dp
@@ -48,7 +45,19 @@ def enrich_best_metric_name(metric_name: str, dataset_name: str) -> str:
     metric_name = "_".join(subnames)
     return metric_name
 
-def get_spectro_config(model_args: Dict, tokenizer: Tokenizer) -> BartSpektroConfig:
+def build_tokenizer(tokenizer_path: str) -> PreTrainedTokenizerFast:
+    bpe_tokenizer = Tokenizer.from_file(tokenizer_path)
+
+    tokenizer = PreTrainedTokenizerFast(tokenizer_object=bpe_tokenizer,
+                                        bos_token="<bos>",
+                                        eos_token="<eos>",
+                                        unk_token="<ukn>",
+                                        pad_token="<pad>",
+                                        is_split_into_words=True)
+    return tokenizer
+
+
+def get_spectro_config(model_args: Dict, tokenizer: PreTrainedTokenizerFast) -> BartSpektroConfig:
     return BartSpektroConfig(vocab_size = len(tokenizer.get_vocab()),
                       max_position_embeddings = model_args["seq_len"],
                       max_length = model_args["seq_len"],
@@ -117,11 +126,10 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         raise ValueError("dataset_for_choosing_best_model must be provided in data_args.")
 
     # load tokenizer, data
-    tokenizer = Tokenizer.from_file(tokenizer_path)
+    tokenizer = build_tokenizer(tokenizer_path)
     os.environ["TOKENIZERS_PARALLELISM"] = "false" # surpressing a warning
     datapipes = load_all_datapipes(dataset_args)
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
-
 
     print("Loading model...")
     model = BartSpektroForConditionalGeneration(bart_spectro_config)
@@ -130,8 +138,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.to(device)
     ######
-    ic(model.model.encoder.embed_tokens.weight.shape) ####
-    ic(len(tokenizer.get_vocab()))
+    # ic("model embedding shape", model.model.encoder.embed_tokens.weight.shape) ####
+    # ic("tokenizer vocab size: ", len(tokenizer.get_vocab()))
     ######
 
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

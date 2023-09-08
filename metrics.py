@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import transformers
-from tokenizers import Tokenizer
 from rdkit import Chem, DataStructs
 import numpy as np
 from icecream import ic
-
 
 def compute_cos_simils(preds: list[str], 
                        trues: list[str], 
@@ -37,6 +35,7 @@ def compute_cos_simils(preds: list[str],
             simils.append(0.0)
             pred_mols.append(None)
             true_mols.append(None)
+            ic(pred, true)
             continue
         pred_fp = Chem.RDKFingerprint(pred_mol)
         true_fp = Chem.RDKFingerprint(true_mol)
@@ -44,7 +43,8 @@ def compute_cos_simils(preds: list[str],
         simils.append(simil)
         pred_mols.append(pred_mol)
         true_mols.append(true_mol)
-        # print("pred: " + pred, "true: " + true, "simil: " + str(simil), sep="\n")
+        # print("pred: " + pred, "true: " + true, "simil: " + str(simil), sep="\n")    
+    
     if return_mols:
         return simils, pred_mols, true_mols
     else:
@@ -55,7 +55,7 @@ class SpectroMetrics:
 
     def __init__(
         self,
-        tokenizer: Tokenizer,
+        tokenizer: transformers.PreTrainedTokenizerFast,
     ) -> None:
 
         self.tokenizer = tokenizer
@@ -68,13 +68,14 @@ class SpectroMetrics:
         if isinstance(preds_all, tuple):
             preds_all = preds_all[0]
 
-        pad_token_id = self.tokenizer.token_to_id("<pad>")
-        # ic(preds_all, trues_all)
+        pad_token_id = self.tokenizer.pad_token_id
         preds_all = np.where(preds_all != -100, preds_all, pad_token_id)
         trues_all = np.where(trues_all != -100, trues_all, pad_token_id)
+        
+        # ic(preds_all, trues_all, )
 
-        preds_str_all = self.tokenizer.decode_batch(preds_all, skip_special_tokens=True)
-        trues_str_all = self.tokenizer.decode_batch(trues_all, skip_special_tokens=True)
+        preds_str_all = self.tokenizer.batch_decode(preds_all, skip_special_tokens=True)
+        trues_str_all = self.tokenizer.batch_decode(trues_all, skip_special_tokens=True)
 
         metrics = {}
         metrics["cos_simil"] = np.mean(compute_cos_simils(preds_str_all, trues_str_all))

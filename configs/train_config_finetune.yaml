@@ -58,7 +58,7 @@ hf_training_args:
   per_device_eval_batch_size: 32
   eval_accumulation_steps: 1
 
-  dataloader_num_workers: 8
+  dataloader_num_workers: 2
   dataloader_drop_last: False
 
   report_to: "wandb" # "wandb"

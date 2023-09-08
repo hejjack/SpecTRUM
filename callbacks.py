@@ -1,20 +1,15 @@
 from __future__ import annotations
 
 import math
-import pathlib
-import shutil
 from typing import Callable, Iterable
 
 from tqdm.auto import tqdm
 import pandas as pd
 import transformers
-import tokenizers
 import wandb
 import torch
 import torch.utils.data
-import warnings
-from rdkit import Chem, DataStructs
-from rdkit.Chem import Draw, MolFromSmiles, RDKFingerprint
+from rdkit.Chem import Draw
 from icecream import ic
 
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
@@ -70,7 +65,7 @@ class PredictionLogger(transformers.TrainerCallback):
         """
 
         model: BartSpektroForConditionalGeneration = kwargs["model"]
-        tokenizer: tokenizers.Tokenizer = kwargs["tokenizer"] # if missing add to the class args
+        tokenizer: transformers.PreTrainedTokenizerFast = kwargs["tokenizer"] # if missing add to the class args
         
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -91,7 +86,7 @@ class PredictionLogger(transformers.TrainerCallback):
         all_simils = []
 
         gen_kwargs = self.generate_kwargs.copy()
-        gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.token_to_id(prefix_token)]]
+        gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.convert_tokens_to_ids(prefix_token)]]
 
         with torch.no_grad():
             for batch in progress:     
@@ -100,16 +95,16 @@ class PredictionLogger(transformers.TrainerCallback):
                                        attention_mask=batch["attention_mask"].to(args.device),
                                        **gen_kwargs)
 
-                raw_preds_str = tokenizer.decode_batch(preds.tolist(), skip_special_tokens=False)
-                preds_str = tokenizer.decode_batch(preds.tolist(), skip_special_tokens=True)
-                gts_str = [tokenizer.decode((label*mask).tolist()) for label, mask in zip(batch["labels"], batch["decoder_attention_mask"])]
+                raw_preds_str = tokenizer.batch_decode(preds, skip_special_tokens=False)
+                preds_str = tokenizer.batch_decode(preds, skip_special_tokens=True)
+                gts_str = [tokenizer.decode((label*mask).tolist(), skip_special_tokens=True) for label, mask in zip(batch["labels"], batch["decoder_attention_mask"])]
                 all_raw_preds.extend(raw_preds_str)
                 all_preds.extend(preds_str)
                 all_decoded_labels.extend(gts_str)
 
                 # compute SMILES simil
                 smiles_simils, pred_mols, gt_mols = compute_cos_simils(preds_str, gts_str, return_mols=True)        
-                all_simils.extend(smiles_simils)
+                all_simils.extend(smiles_simils) # type: ignore
                 
                 # create images for logging
                 for mol in pred_mols:
