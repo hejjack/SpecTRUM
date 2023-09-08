@@ -164,6 +164,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 project="BART_for_gcms",
                 tags=log_tags,
                 save_code=True,
+                dir="../wandb"
                 config=config,
                 group=wandb_group,
             )
