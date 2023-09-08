@@ -16,7 +16,7 @@ import glob
 from tqdm import tqdm
 import torch
 import numpy as np
-from transformers import TrainingArguments, Trainer, BartConfig, BartForConditionalGeneration
+from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, BartConfig, BartForConditionalGeneration
 import typer
 import yaml
 import torchdata.datapipes as dp
@@ -24,11 +24,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from callbacks import PredictionLogger
 from metrics import SpectroMetrics
+from icecream import ic
 
 
 # custom code
 from dataset import SpectroDataset, SpectroDataCollator, load_all_datapipes
-from bart_spektro.modeling_bart_spektro import BartSpektoForConditionalGeneration
+from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.bart_spektro_tokenizer import BartSpektroTokenizer
 from tokenizers import Tokenizer
@@ -40,6 +41,12 @@ def get_nice_time():
     now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     now = now.replace(":","_").replace(" ", "-")
     return now
+
+def enrich_best_metric_name(metric_name: str, dataset_name: str) -> str:
+    subnames = metric_name.split("_")
+    subnames = subnames[:1] + [dataset_name] + subnames[1:]
+    metric_name = "_".join(subnames)
+    return metric_name
 
 def get_spectro_config(model_args: Dict, tokenizer: Tokenizer) -> BartSpektroConfig:
     return BartSpektroConfig(vocab_size = len(tokenizer.get_vocab()),
@@ -72,29 +79,6 @@ def get_spectro_config(model_args: Dict, tokenizer: Tokenizer) -> BartSpektroCon
                       max_log_id=9)
 
 
-def load_prediction_loggers(datapipes: Dict[str, dp.iter.IterableWrapper],
-                            hf_training_args: Dict,
-                            dataset_args: Dict,
-                            example_gen_args: Dict,
-                            tokenizer: Tokenizer,
-                            show_raw_preds: bool = False,
-                            log_to_wandb: bool = True) -> List[PredictionLogger]:
-    """Load prediction loggers for all datasets in datapipes"""
-    callbacks = []
-    for name, pipe in datapipes["example"].items():
-        example_gen_args["forced_decoder_ids"] = [[1, tokenizer.token_to_id(dataset_args["datasets"][name]["prefix_token"])]]
-        callbacks.append(PredictionLogger(
-            log_prefix=name,
-            dataset=pipe,
-            collator=SpectroDataCollator(),
-            log_every_n_steps=hf_training_args["eval_steps"],
-            show_raw_preds=show_raw_preds,
-            log_to_wandb=log_to_wandb,
-            generate_kwargs=example_gen_args,
-        ))
-    return callbacks
-
-
 @app.command()
 def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the config file"),
          checkpoint: Path = typer.Option(None, help="Path to the checkpoint directory"),
@@ -104,6 +88,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          device: str = typer.Option("cuda", help="Device to use for training"),
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging")
          ):
+
+    for i in range(torch.cuda.device_count()):
+        print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
+        print(f"device: {device }")
+        print(torch.cuda.get_device_properties(i))
 
     # load config
     with open(config_file, "r") as f:
@@ -115,9 +104,17 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     hf_training_args = config["hf_training_args"]
     dataset_args = config["data_args"]
     model_args = config["model_args"]
-    example_gen_args = config["example_gen_args"]
-    trainer_args = config["trainer_args"]
+    example_gen_args = config["example_generation_args"]
     tokenizer_path = model_args["tokenizer_path"]
+    use_wandb = hf_training_args["report_to"] == "wandb"
+    
+    # set the name for metric choosing the best model (add chosen dataset name)
+    if dataset_args.get("dataset_for_choosing_best_model", None):
+        hf_training_args["metric_for_best_model"] = enrich_best_metric_name(hf_training_args["metric_for_best_model"], 
+                                                                            dataset_args["dataset_for_choosing_best_model"])
+        print(f"Metric for choosing best model: {hf_training_args['metric_for_best_model']}")
+    else:
+        raise ValueError("dataset_for_choosing_best_model must be provided in data_args.")
 
     # load tokenizer, data
     tokenizer = Tokenizer.from_file(tokenizer_path)
@@ -127,71 +124,89 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
 
 
     print("Loading model...")
-    model = BartSpektoForConditionalGeneration(bart_spectro_config)
+    model = BartSpektroForConditionalGeneration(bart_spectro_config)
+    if checkpoint:
+        print(f"Loading checkpoint from {checkpoint}")
+        model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.to(device)
+    ######
+    ic(model.model.encoder.embed_tokens.weight.shape) ####
+    ic(len(tokenizer.get_vocab()))
+    ######
+
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Number of trainable parameters: {num_params}")
 
-    run_name = f"{get_nice_time()}{additional_info}"
+
+    # Init wandb
+    if use_wandb:
+        log_tags = [d for d in dataset_args["datasets"].keys()]
+        log_tags.append(wandb_group)
+        log_tags.append(f"params={num_params}")
+        log_tags.append(f"lr={hf_training_args['learning_rate']}")
+        log_tags.append(f"pd_bs={hf_training_args['per_device_train_batch_size']}")
+        if additional_info:
+            log_tags.append(additional_info)
+
+        wandb.login()
+        run = wandb.init(
+                id=resume_id, 
+                resume="must" if resume_id else "never",
+                entity="hajekad", 
+                project="BART_for_gcms",
+                tags=log_tags,
+                save_code=True,
+                config=config,
+                group=wandb_group,
+            )
+        
+        run_name = run.name + additional_info
+        run.name = run_name
+    else:
+        run_name = get_nice_time() + additional_info
+    print(f"Run name: {run_name}")
+        
     # Resume training
     if resume_id:
         if not checkpoint:
             raise ValueError("Checkpoint must be provided when resuming training")
         save_path = checkpoint.parent
     else:
-        save_path = checkpoints_dir / run_name
+        save_path = checkpoints_dir / wandb_group / run_name
     print(f"save path: {save_path}")
-
-    # Init wandb
-    log_tags = [d for d in dataset_args["datasets"].keys()]
-    log_tags.append(wandb_group)
-    log_tags.append(f"params={num_params}")
-    log_tags.append(f"lr={hf_training_args['learning_rate']}")
-    log_tags.append(f"pd_bs={hf_training_args['per_device_train_batch_size']}")
-
-    wandb.login()
-    run = wandb.init(
-            id=resume_id, 
-            resume="must" if resume_id else "never",
-            entity="hajekad", 
-            project="BART_for_gcms",
-            tags=log_tags,
-            save_code=True,
-            config=config,
-            group=wandb_group,
-            name = run_name
-        )
     
     # set callbacks
-    example_gen_args["forced_decoder_ids"] = [[1, ]]
-    callbacks = load_prediction_loggers(datapipes, 
-                                        hf_training_args,
-                                        dataset_args, 
-                                        example_gen_args, 
-                                        tokenizer,
-                                        show_raw_preds=True) ##!!DEBUG!!##
+    sorted_dataset_names = sorted([name for name in datapipes["example"].keys()])
+    prediction_callback = PredictionLogger(datasets=[datapipes["example"][name] for name in sorted_dataset_names],
+                                           prefix_tokens=[dataset_args["datasets"][name]["prefix_token"] for name in sorted_dataset_names],
+                                           log_prefixes=sorted_dataset_names, # type: ignore
+                                           collator=SpectroDataCollator(),
+                                           log_every_n_steps=hf_training_args["eval_steps"],
+                                           show_raw_preds=dataset_args["show_raw_preds"],
+                                           log_to_wandb=use_wandb,
+                                           generate_kwargs=example_gen_args,
+                                        )
 
     compute_metrics = SpectroMetrics(tokenizer)
-    training_args = TrainingArguments(**hf_training_args,
-                                      output_dir=str(save_path),
-                                      run_name=run_name
-                                    )
+    seq2seq_training_args = Seq2SeqTrainingArguments(**hf_training_args,
+                                                     output_dir=str(save_path),
+                                                     run_name=run_name,
+                                                     data_seed=dataset_args["data_seed"]
+                                                    )
+    
 
-    trainer = Trainer(
+    trainer = Seq2SeqTrainer(
                 model=model,                   
-                args=trainer_args,                
+                args=seq2seq_training_args,                
                 train_dataset=datapipes["train"],
                 eval_dataset=datapipes["valid"], 
-                callbacks=callbacks,
+                callbacks=[prediction_callback],
                 tokenizer=tokenizer,
                 compute_metrics=compute_metrics,
                 data_collator = SpectroDataCollator(),
             )
     
-    if checkpoint:
-        trainer.train(str(checkpoint))
-    else:
-        trainer.train()
+    trainer.train()
 
 
 if __name__ == "__main__":

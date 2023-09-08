@@ -21,7 +21,7 @@ def evaluate_range_opt2_prob(model, model_name, tokenizer, data, data_type, data
     
     Parameters
     ----------
-    model : BartSpektoForConditionalGeneration
+    model : BartSpektroForConditionalGeneration
         model to be evaluated
     model_name : str
         name used as an identifier of given model in titles and figure file name

@@ -377,7 +377,7 @@ class BartSpektroModel(BartPretrainedModel):
             encoder_attentions=encoder_outputs.attentions,
         )
 
-class BartSpektoForConditionalGeneration(BartPretrainedModel):
+class BartSpektroForConditionalGeneration(BartPretrainedModel):
     base_model_prefix = "model"
     _keys_to_ignore_on_load_missing = [r"final_logits_bias", r"lm_head\.weight"]
 

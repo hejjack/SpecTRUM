@@ -17,8 +17,8 @@ from typing import Dict, Any, Tuple, List
 from icecream import ic
 from rdkit import Chem
 from dataset import SpectroDataset, SpectroDataCollator
-# from bart_spektro import BartSpektoForConditionalGeneration
-from bart_spektro.modeling_bart_spektro import BartSpektoForConditionalGeneration
+# from bart_spektro import BartSpektroForConditionalGeneration
+from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -150,7 +150,7 @@ def main(
     # set output files
     log_file, predictions_file = open_files(output_folder, checkpoint, dataset_config, additional_info)
 
-    model = BartSpektoForConditionalGeneration.from_pretrained(checkpoint)
+    model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.generation_config.length_penalty = generation_config["length_penalty"]
     tokenizer = Tokenizer.from_file(tokenizer_path)
     loader = torch.utils.data.DataLoader(dataset, **dataloader_config, collate_fn=SpectroDataCollator(eval_mode=True), drop_last=False, shuffle=False) # type: ignore

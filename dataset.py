@@ -96,21 +96,24 @@ def json_loader(row):
 def build_single_datapipe(json_file: str, 
                           buffer_size=2,
                           limit: Optional[int] = None,
+                          shuffle: bool = False
                         ):
     datapipe = IterableWrapper([json_file])
     datapipe = datapipe.open_files(mode='rt')
     datapipe = datapipe.readlines()
-    if buffer_size:
+    if buffer_size and shuffle:
         datapipe = datapipe.shuffle(buffer_size=2)
     datapipe = datapipe.sharding_filter()  # after shuffle, before expensive operations
-    datapipe = datapipe.header(limit)
+    if limit is not None:
+        datapipe = datapipe.header(limit)
     datapipe = datapipe.map(json_loader)
     return datapipe
 
 
 def build_datapipe_mixture(datapipes: List[IterDataPipe], 
                            weights: Union[Tuple[float], None], 
-                           concat: bool = False):
+                           concat: bool = False,
+                           seed: Optional[int] = 42):
     """
     Build a datapipe that samples from a mixture of datapipes.
     Parameters
@@ -128,10 +131,16 @@ def build_datapipe_mixture(datapipes: List[IterDataPipe],
         assert weights is not None, "weights must be provided if concat=False"
         assert len(datapipes) == len(weights)
         
+        # filter zero weight datasets
+        nonzero_datapipes = [(pipe, weight) for pipe, weight in zip(datapipes, weights) if weight]
+        if len(nonzero_datapipes)==0:
+            raise ValueError("All train weights are zero! Please provide at least one non-zero weight.")
+        print("Number of non-zero weight datasets: ", len(nonzero_datapipes))
+
         return SampleMultiplexer({
-            pipe: weight for pipe, weight in zip(datapipes, weights)
-        })
-    
+            pipe.cycle(): weight for pipe, weight in nonzero_datapipes
+        }, seed=seed)
+
 
 def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
     """
@@ -153,6 +162,7 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
              "dataset2": valid_datapipe2}
         }
     """
+    seed = data_args["data_seed"] if data_args.get("data_seed") else 42
     buffer_size = data_args["buffer_size"]
     datapipes = {}
 
@@ -176,11 +186,11 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
                                                limit=limit)
                    for name, path, limit in zip(dataset_names, valid_paths, limit_val_splits)}
     example_pipes = {name: build_single_datapipe(path, 
-                                           buffer_size=buffer_size,
-                                           limit=limit)
+                                                 buffer_size=buffer_size,
+                                                 limit=limit)
                      for name, path, limit in zip(dataset_names, valid_paths, limit_example_splits)}
 
-    datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False)
+    datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False, seed=seed)
     datapipes["valid"] = valid_pipes
     datapipes["example"] = example_pipes
     return datapipes

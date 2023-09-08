@@ -1,18 +1,8 @@
-trainer_args:
-  num_epochs: 200 # 10 (BARTy se trenovaly 10 epoch celkem) # int(os.environ["TOTAL_EPOCHS"])
-  resume_training: False # True # bool(int(os.environ["RESUME_TRAINING"]))
-  resume_wandb_id: "" # 2yqhwcas" # "191h62zs" #pass # ""
-  eval_steps: 10000 # 6500 # 9000 # 30M steps per epoch : 87617 => 9000 steps should be roughly 8hours -> eval_steps, save_steps
-  save_steps: 10000
-  log_steps: 1 # 5
-  eval_log_predictions_size: 100 # 100
-  eval_subset_size: 200000 # 100000 #100k
-  debug_data_len:  None #{"train": 4000, "valid": 4000} # None for no debug   
-
-
 data_args:
-
+  show_raw_preds: True
   buffer_size: 1000 # for shuffling in dataloader
+  data_seed: 42
+  dataset_for_choosing_best_model: "nist"
   datasets: 
     # 30M_rassp: 
     #   train_path: "data/datasets/30M_rassp/30M_rassp_train.jsonl"
@@ -28,26 +18,26 @@ data_args:
     #   limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
     #   limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
     #   limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
-    debug1:
-      train_path: "data/datasets/DEBUG/DEBUG_train.jsonl"
-      valid_path: "data/datasets/DEBUG/DEBUG_valid.jsonl"
+    nist:
+      train_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
+      valid_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
       weight: 1.0
-      limit_train_split: 100  # null for full; limit of head from valid set chosen for validation split
-      limit_val_split: 10     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 1  # null for full; limit of head chosen for visualized (generated)
-      prefix_token: "<source1>"
-    debug2:
-      train_path: "data/datasets/DEBUG/DEBUG_train.jsonl"
-      valid_path: "data/datasets/DEBUG/DEBUG_valid.jsonl"
+      limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 100    # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 10  # null for full; limit of head chosen for visualized (generated)
+      prefix_token: "<nist>"
+    debug_neims:
+      train_path: "../data/datasets/DEBUG/DEBUG_train.jsonl"
+      valid_path: "../data/datasets/DEBUG/DEBUG_valid.jsonl"
       weight: 1.0
-      limit_train_split: 100  # null for full; limit of head from valid set chosen for validation split
-      limit_val_split: 10     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 1  # null for full; limit of head chosen for visualized (generated)
-      prefix_token: "<source2>"
+      limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 100     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 10  # null for full; limit of head chosen for visualized (generated)
+      prefix_token: "<neims>"
  
 
 model_args:
-  tokenizer_path: "tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"
+  tokenizer_path: "../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"
   seq_len: 200
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
@@ -64,9 +54,8 @@ example_generation_args:
   "num_beams": 5
   "temperature": null
   "penalty_alpha": null
-  "num_return_sequences": 10
-  "max_length": 200                  # don't touch this
-  # "decoder_input_token": ""          # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  "num_return_sequences": 1  # NEVER TOUCH THIS
+  # "max_length": 200                  # don't touch this
   "length_penalty": 1.0 # (use for beam search otherwise set to 0)  
 
 
@@ -82,28 +71,29 @@ hf_training_args:
   per_device_train_batch_size: 32
   gradient_accumulation_steps: 1
   per_device_eval_batch_size: 32
-  eval_accumulation_steps: 4
+  eval_accumulation_steps: 1
 
   dataloader_num_workers: 2
   dataloader_drop_last: False
 
-  report_to: "wandb"
+  report_to: "wandb" # "wandb"
   remove_unused_columns: False # NEVER TOUCH THIS
   logging_steps: 5
 
   fp16: True
-
-  # metric_for_best_model: "audiocaps/spider"  # ???
-  # greater_is_better: True                    # ???
+  seed: 42
 
   predict_with_generate: True # NEVER TOUCH THIS
   generation_num_beams: 1
-  generation_max_length: 199
+  generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 900
+  eval_steps: 10 ### make it match
 
+  save_steps: 10 ### make it match
   save_strategy: "steps"
-  save_steps: 900
-  save_total_limit: 5
+  save_total_limit: 2
 
   load_best_model_at_end: True
+  metric_for_best_model: "eval_cos_simil"
+  greater_is_better: True
+
