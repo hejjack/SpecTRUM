@@ -53,12 +53,12 @@ hf_training_args:
   warmup_steps: 1000
 
   learning_rate: 0.00005
-  per_device_train_batch_size: 128
-  gradient_accumulation_steps: 1
+  per_device_train_batch_size: 64
+  gradient_accumulation_steps: 2
   per_device_eval_batch_size: 32
   eval_accumulation_steps: 1
 
-  dataloader_num_workers: 2
+  dataloader_num_workers: 4
   dataloader_drop_last: False
 
   report_to: "wandb" # "wandb"

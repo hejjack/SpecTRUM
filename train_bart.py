@@ -132,10 +132,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
 
     print("Loading model...")
-    model = BartSpektroForConditionalGeneration(bart_spectro_config)
     if checkpoint:
         print(f"Loading checkpoint from {checkpoint}")
         model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
+    else:
+        model = BartSpektroForConditionalGeneration(bart_spectro_config)
     model.to(device)
     ######
     # ic("model embedding shape", model.model.encoder.embed_tokens.weight.shape) ####
@@ -164,7 +165,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 project="BART_for_gcms",
                 tags=log_tags,
                 save_code=True,
-                dir="../wandb"
+                dir="../wandb",
                 config=config,
                 group=wandb_group,
             )
