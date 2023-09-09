@@ -13,6 +13,7 @@ import glob
 from tqdm import tqdm
 import torch
 import numpy as np
+import transformers
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, PreTrainedTokenizerFast
 import typer
 import yaml
@@ -30,6 +31,7 @@ from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGenerati
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.bart_spektro_tokenizer import BartSpektroTokenizer
 from tokenizers import Tokenizer
+
 
 app = typer.Typer()
 
@@ -165,13 +167,15 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 project="BART_for_gcms",
                 tags=log_tags,
                 save_code=True,
-                dir="../wandb",
+                dir=checkpoints_dir.parent,
                 config=config,
                 group=wandb_group,
             )
         
         run_name = run.name + additional_info
         run.name = run_name
+        config["run_id"] = run.id
+        log_tags.append(f"run_id={run.id}")
     else:
         run_name = get_nice_time() + additional_info
     print(f"Run name: {run_name}")
@@ -216,7 +220,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 data_collator = SpectroDataCollator(),
             )
     
-    trainer.train()
+    
+    if checkpoint and resume_id:
+        trainer.train(resume_from_checkpoint=str(checkpoint))
+    else:
+        trainer.train()
 
 
 if __name__ == "__main__":
