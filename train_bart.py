@@ -101,8 +101,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
 
+    print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
+    additional_tags.append("CVD=" + os.environ["CUDA_VISIBLE_DEVICES"])
     for i in range(torch.cuda.device_count()):
-        print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
         print(f"device: {device }")
         print(torch.cuda.get_device_properties(i))
 
