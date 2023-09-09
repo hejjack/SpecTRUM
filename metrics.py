@@ -35,7 +35,6 @@ def compute_cos_simils(preds: list[str],
             simils.append(0.0)
             pred_mols.append(None)
             true_mols.append(None)
-            ic(pred, true)
             continue
         pred_fp = Chem.RDKFingerprint(pred_mol)
         true_fp = Chem.RDKFingerprint(true_mol)

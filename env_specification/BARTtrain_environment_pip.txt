@@ -16,16 +16,16 @@ brotlipy==0.7.0
 cachetools==5.3.0
 certifi==2023.7.22
 cffi==1.15.1
-charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+charset-normalizer
 click==8.1.3
-colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1666700638685/work
+colorama
 comm==0.1.3
 contourpy==1.1.0
-cryptography @ file:///croot/cryptography_1677533068310/work
-cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1635519461629/work
+cryptography
+cycler
 datasets==2.11.0
 debugpy==1.6.7
-decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
+decorator
 defusedxml==0.7.1
 Deprecated==1.2.14
 dill==0.3.6
@@ -33,21 +33,21 @@ docker-pycreds==0.4.0
 executing==1.2.0
 fastjsonschema==2.18.0
 fastobo==0.12.2
-filelock @ file:///home/conda/feedstock_root/build_artifacts/filelock_1693242237773/work
-flit_core @ file:///croot/flit-core_1679397103445/work/source/flit_core
+filelock
+flit_core 
 fonttools==4.42.0
 frozenlist==1.4.0
-fsspec @ file:///home/conda/feedstock_root/build_artifacts/fsspec_1693658915743/work
+fsspec 
 gitdb==4.0.10
 GitPython==3.1.34
 google==3.0.0
 google-auth==2.18.1
 google-auth-oauthlib==1.0.0
-greenlet @ file:///home/conda/feedstock_root/build_artifacts/greenlet_1648882382141/work
+greenlet 
 grpcio==1.54.2
-huggingface-hub @ file:///home/conda/feedstock_root/build_artifacts/huggingface_hub_1689416562716/work
+huggingface-hub 
 icecream==2.1.3
-idna @ file:///croot/idna_1666125576474/work
+idna 
 importlib-metadata==6.6.0
 importlib-resources==6.0.1
 ipykernel==6.23.1
@@ -69,7 +69,7 @@ jupyter_server_terminals==0.4.4
 jupyterlab-pygments==0.2.2
 jupyterlab-widgets==3.0.7
 kaleido==0.2.1
-kiwisolver @ file:///home/conda/feedstock_root/build_artifacts/kiwisolver_1648854389294/work
+kiwisolver 
 lark==1.1.7
 llvmlite==0.40.1
 lxml==4.9.3
@@ -80,7 +80,7 @@ matplotlib==3.7.2
 matplotlib-inline==0.1.6
 mistune==2.0.5
 mkl-fft==1.3.1
-mkl-random @ file:///tmp/build/80754af9/mkl_random_1626186064646/work
+mkl-random 
 mkl-service==2.4.0
 multidict==6.0.4
 multiprocess==0.70.14
@@ -93,25 +93,25 @@ networkx==3.1
 notebook==6.5.4
 notebook_shim==0.2.3
 numba==0.57.1
-numpy @ file:///croot/numpy_and_numpy_base_1672336185480/work
+numpy 
 oauthlib==3.2.2
 packaging==23.1
 pandas==2.0.3
 pandocfilters==1.5.0
 parso==0.8.3
 pathtools==0.1.2
-pexpect @ file:///tmp/build/80754af9/pexpect_1605563209008/work
+pexpect 
 pickleshare==0.7.5
 pickydict==0.4.0
 Pillow==10.0.0
 pkgutil_resolve_name==1.3.10
 platformdirs==3.5.1
 plotly==5.16.0
-portalocker @ file:///home/conda/feedstock_root/build_artifacts/portalocker_1674135640384/work
+portalocker 
 prometheus-client==0.16.0
 prompt-toolkit==3.0.38
 protobuf==4.22.3
-psutil @ file:///opt/conda/conda-bld/psutil_1656431268089/work
+psutil 
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pyarrow==11.0.0
@@ -120,14 +120,14 @@ pyasn1-modules==0.3.0
 pycairo==1.21.0
 pycparser==2.21
 Pygments==2.15.1
-pyOpenSSL @ file:///croot/pyopenssl_1677607685877/work
-pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1652235407899/work
+pyOpenSSL 
+pyparsing 
 pyrsistent==0.19.3
-PySocks @ file:///tmp/build/80754af9/pysocks_1605305779399/work
+PySocks 
 pyteomics==4.6
 python-dateutil==2.8.2
 python-json-logger==2.0.7
-pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1680088766131/work
+pytz 
 PyYAML==6.0.1
 pyzmq==25.0.2
 qtconsole==5.4.3
@@ -136,7 +136,7 @@ rdkit==2023.3.2
 referencing==0.30.2
 regex==2023.3.23
 reportlab==3.5.68
-requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1684774241324/work
+requests 
 requests-oauthlib==1.3.1
 responses==0.18.0
 rfc3339-validator==0.1.4
@@ -150,13 +150,13 @@ seaborn==0.12.2
 Send2Trash==1.8.2
 sentry-sdk==1.20.0
 setproctitle==1.3.2
-six @ file:///tmp/build/80754af9/six_1644875935023/work
+six 
 smmap==5.0.0
 sniffio==1.3.0
 soupsieve==2.4.1
 sparsestack==0.4.1
 spectrum-utils==0.4.2
-SQLAlchemy @ file:///home/conda/feedstock_root/build_artifacts/sqlalchemy_1651017965248/work
+SQLAlchemy 
 stack-data==0.6.2
 tenacity==8.2.3
 tensorboard==2.13.0
@@ -167,16 +167,16 @@ tinycss2==1.2.1
 tokenizers==0.13.3
 torch==1.12.1
 torchaudio==0.12.1
-torchdata @ file:///home/conda/feedstock_root/build_artifacts/torchdata_1665788001163/work
+torchdata 
 torchvision==0.13.1
 tornado==6.3.2
-tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1691671248568/work
+tqdm 
 traitlets==5.9.0
 transformers==4.31.0
 typer==0.9.0
 typing_extensions==4.5.0
 tzdata==2023.3
-urllib3 @ file:///croot/urllib3_1680254681959/work
+urllib3 
 wandb==0.15.9
 wcwidth==0.2.6
 webencodings==0.5.1
@@ -186,4 +186,4 @@ widgetsnbextension==4.0.7
 wrapt==1.15.0
 xxhash==3.3.0
 yarl==1.9.2
-zipp @ file:///croot/zipp_1672387121353/work
+zipp 
