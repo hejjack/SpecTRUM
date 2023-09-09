@@ -71,8 +71,6 @@ class SpectroMetrics:
         preds_all = np.where(preds_all != -100, preds_all, pad_token_id)
         trues_all = np.where(trues_all != -100, trues_all, pad_token_id)
         
-        # ic(preds_all, trues_all, )
-
         preds_str_all = self.tokenizer.batch_decode(preds_all, skip_special_tokens=True)
         trues_str_all = self.tokenizer.batch_decode(trues_all, skip_special_tokens=True)
 

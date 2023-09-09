@@ -14,7 +14,7 @@ from tqdm import tqdm
 import torch
 import numpy as np
 import transformers
-from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, PreTrainedTokenizerFast
+from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, PreTrainedTokenizerFast, Trainer
 import typer
 import yaml
 import torchdata.datapipes as dp
@@ -96,8 +96,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          resume_id: str = typer.Option(None, help="Wandb id of the run to resume, if not None, resume will be attempted"),
          checkpoints_dir: Path = typer.Option("../checkpoints", help="Path to the checkpoints directory"),
          additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
+         additional_tags: List[str] = typer.Option([], help="Tags to add to the wandb run"),
          device: str = typer.Option("cuda", help="Device to use for training"),
-         wandb_group: str = typer.Option(..., help="Wandb group to use for logging")
+         wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
 
     for i in range(torch.cuda.device_count()):
@@ -152,6 +153,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     # Init wandb
     if use_wandb:
         log_tags = [d for d in dataset_args["datasets"].keys()]
+        log_tags.extend(additional_tags)
         log_tags.append(wandb_group)
         log_tags.append(f"params={num_params}")
         log_tags.append(f"lr={hf_training_args['learning_rate']}")
@@ -172,7 +174,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 group=wandb_group,
             )
         
-        run_name = run.name + additional_info
+        # to not add additional info to the run name if it is already there
+        if run.name.endswith(additional_info):
+            run_name = run.name
+        else:
+            run_name = run.name + additional_info
         run.name = run_name
         config["run_id"] = run.id
         log_tags.append(f"run_id={run.id}")
