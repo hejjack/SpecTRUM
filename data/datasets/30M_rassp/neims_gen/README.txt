@@ -3,6 +3,6 @@ suits the RASSP model trained by Ales Krenek (following the official RASSP model
 
 There is 4.8M SMILES in the dataset. The preprocessing further cut the number of molecules,
 finally the lengths of splits are:
-    - train 
-    - valid
-    - test
+    - train 4283848
+    - valid 237990
+    - test  237990
