@@ -96,12 +96,15 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          resume_id: str = typer.Option(None, help="Wandb id of the run to resume, if not None, resume will be attempted"),
          checkpoints_dir: Path = typer.Option("../checkpoints", help="Path to the checkpoints directory"),
          additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
-         additional_tags: str = typer.Option(..., help="Tags to add to the wandb run, one string, delimited by ':'"),
+         additional_tags: str = typer.Option(None, help="Tags to add to the wandb run, one string, delimited by ':'"),
          device: str = typer.Option("cuda", help="Device to use for training"),
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
-
-    add_tags = additional_tags.split(":")
+    
+    if additional_tags:
+        add_tags = additional_tags.split(":")
+    else: 
+        add_tags = []
 
     print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
     add_tags.append("CVD=" + os.environ["CUDA_VISIBLE_DEVICES"])

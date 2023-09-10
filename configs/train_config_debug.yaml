@@ -22,17 +22,17 @@ data_args:
       train_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
       valid_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
       weight: 1.0
-      limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
-      limit_val_split: 100    # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 10  # null for full; limit of head chosen for visualized (generated)
+      limit_train_split: 10000  # null for full; limit of head from train set chosen for validation split
+      limit_val_split: 1000    # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 300  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<nist>"
     debug_neims:
       train_path: "../data/datasets/DEBUG/DEBUG_train.jsonl"
       valid_path: "../data/datasets/DEBUG/DEBUG_valid.jsonl"
       weight: 1.0
-      limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
-      limit_val_split: 100     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 10  # null for full; limit of head chosen for visualized (generated)
+      limit_train_split: 10000  # null for full; limit of head from train set chosen for validation split
+      limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 300  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<neims>"
  
 
