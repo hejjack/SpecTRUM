@@ -96,13 +96,15 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          resume_id: str = typer.Option(None, help="Wandb id of the run to resume, if not None, resume will be attempted"),
          checkpoints_dir: Path = typer.Option("../checkpoints", help="Path to the checkpoints directory"),
          additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
-         additional_tags: List[str] = typer.Option([], help="Tags to add to the wandb run"),
+         additional_tags: str = typer.Option(..., help="Tags to add to the wandb run, one string, delimited by ':'"),
          device: str = typer.Option("cuda", help="Device to use for training"),
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
 
+    add_tags = additional_tags.split(":")
+
     print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
-    additional_tags.append("CVD=" + os.environ["CUDA_VISIBLE_DEVICES"])
+    add_tags.append("CVD=" + os.environ["CUDA_VISIBLE_DEVICES"])
     for i in range(torch.cuda.device_count()):
         print(f"device: {device }")
         print(torch.cuda.get_device_properties(i))
@@ -154,7 +156,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     # Init wandb
     if use_wandb:
         log_tags = [d for d in dataset_args["datasets"].keys()]
-        log_tags.extend(additional_tags)
+        log_tags.extend(add_tags)
         log_tags.append(wandb_group)
         log_tags.append(f"params={num_params}")
         log_tags.append(f"lr={hf_training_args['learning_rate']}")
