@@ -1,5 +1,5 @@
 # RASSP pretrain from scratch
-CUDA_VISIBLE_DEVICES=1 python ../train_bart.py --config-file ../configs/train_config_pretrain_rassp.yaml \
+CUDA_VISIBLE_DEVICES=0 python ../train_bart.py --config-file ../configs/train_config_pretrain_rassp.yaml \
                                                --additional-info "_rassp_scratch" \
                                                --wandb-group pretrain \
                                                --additional-tags "A100:scratch"
