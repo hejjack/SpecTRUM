@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 python ../train_bart.py --config-file ../configs/train_co
                                                --additional-info "_neims_scratch" \
                                                --wandb-group pretrain \
                                                --resume-id lw7cyi1d \
-                                               --additional-tags ["A100"] \
+                                               --additional-tags "A100:scratch:alfa" \
                                             #    --device cpu \
                                                # --checkpoints_dir ../checkpoints \
 

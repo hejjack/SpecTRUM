@@ -183,8 +183,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         else:
             run_name = run.name + additional_info
         run.name = run_name
-        config["run_id"] = run.id
-        log_tags.append(f"run_id={run.id}")
+        run.tags += (f"run_id={run.id}",)
     else:
         run_name = get_nice_time() + additional_info
     print(f"Run name: {run_name}")
