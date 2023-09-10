@@ -1,5 +1,7 @@
+from __future__ import annotations
 from typing import List
 from matchms import Spectrum
+from matchms.importing import load_from_msp
 from rdkit import Chem
 import numpy as np
 import pandas as pd
@@ -7,13 +9,20 @@ from tqdm import tqdm
 from icecream import ic
 from tokenizers import Tokenizer
 from pathlib import Path
-from matchms.importing import load_from_msp
-from rdkit import Chem
+
 
 from data.data_preprocess_all import smiles_to_labels
 
 
-def preprocess_spectrum(s: Spectrum, tokenizer, source_token: str, seq_len=200, max_smiles_len=100, max_mz=500, log_base=1.7, log_shift=9):
+def preprocess_spectrum(s: Spectrum, 
+                        tokenizer,
+                        source_token: str,
+                        seq_len=200,
+                        max_smiles_len=100,
+                        max_mz=500,
+                        log_base=1.7,
+                        log_shift=9,
+                        max_sum=None):
     """
     Preprocess one matchms.Spectrum according to BART_spektro preprocessing pipeline
 
@@ -79,6 +88,11 @@ def preprocess_spectrum(s: Spectrum, tokenizer, source_token: str, seq_len=200, 
     if s.peaks.mz[-1] > max_mz:
         goes_out = 1
         error_dict["high_mz"] = True
+
+    # filter little peaks so it doesn't get kicked off    
+    if max_sum:
+        s = cumsum_filtering(s, max_sum)
+
     # filter long spectra
     if len(s.peaks.mz) > seq_len:
         goes_out = 1
@@ -112,7 +126,10 @@ def preprocess_spectrum(s: Spectrum, tokenizer, source_token: str, seq_len=200, 
     return (mz, intensities, attention_mask, canon_smiles, label, dec_mask, error_dict)
 
 
-def preprocess_spectra(spectra: List[Spectrum], tokenizer, source_token):
+def preprocess_spectra(spectra: List[Spectrum],
+                       tokenizer, 
+                       source_token, 
+                       max_sum: float | None = None):
     """
     Preprocess a list of matchms.Spectrum according to BART_spektro preprocessing pipeline
     Catch errors, sort them into 5 categories and print a report
@@ -146,7 +163,7 @@ def preprocess_spectra(spectra: List[Spectrum], tokenizer, source_token):
 
     num_spectra = 0
     for d in tqdm(spectra): 
-        (mz, i, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token)
+        (mz, i, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_sum=max_sum)
         if not mz:
             long_smiles += ed["long_smiles"]
             corrupted += ed["corrupted"]
@@ -181,10 +198,11 @@ def preprocess_spectra(spectra: List[Spectrum], tokenizer, source_token):
 
 
 def msp_file_to_jsonl(path_msp: Path,
-                    tokenizer_path: Path,
-                    source_token: str,
-                    path_jsonl: Path = None):
-    """load msp file, prepare BART compatible dataframe and save to jsonl file
+                      tokenizer_path: Path,
+                      source_token: str,
+                      path_jsonl: Path | None = None,
+                      max_sum: float | None = None):
+    """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
     
     Parameters
     ----------
@@ -195,14 +213,19 @@ def msp_file_to_jsonl(path_msp: Path,
     source_token : str
         token to be used as a source token (e.g. "<neims>", "<rassp>")
     path_jsonl : Path
-        path of the output jsonl file
+        path of the output jsonl file, if None, the jsonl file is saved
+        with the same name as the msp file, but with .jsonl extension
+    max_sum : float
+        when provided, preprocessing includes cumsum filtering of spectra
+        that means leaving only the highest peak with sum of intensities
+        just over max_sum (if sums to 1, basically percentage of 'mass') 
     """
     data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    df = preprocess_spectra(data_msp, tokenizer, source_token)
+    df = preprocess_spectra(data_msp, tokenizer, source_token, max_sum=max_sum)
     if not path_jsonl:
         path_jsonl = path_msp.with_suffix(".jsonl")
-    df.to_jsonl(path_jsonl, orient="records", lines=True)
+    df.to_json(path_jsonl, orient="records", lines=True)
 
 
 def canonicalize_smiles(smi: str):
@@ -299,3 +322,47 @@ def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     df2 = pd.concat([df2, new_df], axis=1)
     df2 = df2.drop(["PREDICTED SPECTRUM"], axis=1)
     return df2
+
+
+def cumsum_filtering(spectrum, max_sum, max_normalize=False):
+    """
+    Leaves in the spectrum only the biggest peaks with sum of intensities
+    just over max_sum.
+
+    Parameters
+    ----------
+    spectrum : Spectrum
+        spectrum to be filtered
+    max_sum : float
+        maximum sum of intensities of peaks in the spectrum (if sums to 1, basically percentage of 'mass')
+    max_normalize : bool, optional
+        whether to normalize the intensities by dividing by max intensity, by default True
+    """
+    mz = spectrum.peaks.mz
+    i = spectrum.peaks.intensities
+    
+    # sort arrays
+    index = (-i).argsort() # descending sort
+    mz_sorted = mz[index]
+    i_sorted = i[index]
+    
+    # cut off the smallest peaks (according to cumsum)
+    cs = np.cumsum(i_sorted)
+    cut = np.searchsorted(cs, max_sum) + 1
+    mz_sorted = mz_sorted[:cut] # take only the biggest peaks
+    i_sorted = i_sorted[:cut]
+    
+    # sort arrays back
+    index = mz_sorted.argsort()
+    mz_sorted = mz_sorted[index]
+    i_sorted = i_sorted[index]
+
+    if max_normalize:
+        i_sorted = i_sorted / i_sorted.max()
+
+    # create new spectrum
+    metadata = spectrum.metadata
+    metadata["num_peaks"] = len(mz_sorted)
+    s = Spectrum(mz=mz_sorted, intensities=i_sorted, metadata=metadata, metadata_harmonization=False)
+    assert s.metadata["num_peaks"] == len(mz_sorted)
+    return s
