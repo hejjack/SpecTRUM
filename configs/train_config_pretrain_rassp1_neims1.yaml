@@ -2,9 +2,17 @@ data_args:
   show_raw_preds: True
   buffer_size: 100000 # for shuffling in dataloader
   data_seed: 42
-  dataset_for_choosing_best_model: "30M_rassp_rassp_gen"  # !!!!!!!!!!!!
+  dataset_for_choosing_best_model: "30M_rassp"  # !!!!!!!!!!!!
   datasets: 
-    30M_rassp_rassp_gen:
+    30M_rassp: # only for evaluation tracking purposes
+      train_path: "../data/datasets/30M_rassp/rassp_gen/train.jsonl"
+      valid_path: "../data/datasets/30M_rassp/rassp_gen/valid.jsonl"
+      weight: 1.0
+      limit_train_split: null  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 20000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
+      prefix_token: "<rassp>"
+    30M_rassp_rassp_gen: # only for evaluation tracking purposes
       train_path: "../data/datasets/30M_rassp/rassp_gen/train.jsonl"
       valid_path: "../data/datasets/30M_rassp/rassp_gen/valid.jsonl"
       weight: 1.0
@@ -54,10 +62,10 @@ hf_training_args:
   learning_rate: 0.00005
   per_device_train_batch_size: 128
   gradient_accumulation_steps: 1
-  per_device_eval_batch_size: 64
+  per_device_eval_batch_size: 32
   eval_accumulation_steps: 1
 
-  dataloader_num_workers: 3
+  dataloader_num_workers: 2
   dataloader_drop_last: False
 
   report_to: "wandb" # "wandb"
