@@ -24,7 +24,7 @@ data_args:
       weight: 1.0
       limit_train_split: 10000  # null for full; limit of head from train set chosen for validation split
       limit_val_split: 1000    # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 300  # null for full; limit of head chosen for visualized (generated)
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<nist>"
     debug_neims:
       train_path: "../data/datasets/DEBUG/DEBUG_train.jsonl"
@@ -32,7 +32,7 @@ data_args:
       weight: 1.0
       limit_train_split: 10000  # null for full; limit of head from train set chosen for validation split
       limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 300  # null for full; limit of head chosen for visualized (generated)
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<neims>"
  
 
@@ -68,8 +68,8 @@ hf_training_args:
   warmup_steps: 1000
 
   learning_rate: 0.00005
-  per_device_train_batch_size: 32
-  gradient_accumulation_steps: 1
+  per_device_train_batch_size: 64
+  gradient_accumulation_steps: 2
   per_device_eval_batch_size: 64
   eval_accumulation_steps: 1
 
@@ -87,9 +87,9 @@ hf_training_args:
   generation_num_beams: 1
   generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 10 ### make it match
+  eval_steps: 50 ### make it match
 
-  save_steps: 10 ### make it match
+  save_steps: 1000 ### make it match
   save_strategy: "steps"
   save_total_limit: 2
 

@@ -38,14 +38,16 @@ app = typer.Typer()
 
 def get_nice_time():
     now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    now = now.replace(":","_").replace(" ", "-")
+    now = now.replace(":", "_").replace(" ", "-")
     return now
+
 
 def enrich_best_metric_name(metric_name: str, dataset_name: str) -> str:
     subnames = metric_name.split("_")
     subnames = subnames[:1] + [dataset_name] + subnames[1:]
     metric_name = "_".join(subnames)
     return metric_name
+
 
 def build_tokenizer(tokenizer_path: str) -> PreTrainedTokenizerFast:
     bpe_tokenizer = Tokenizer.from_file(tokenizer_path)
@@ -60,35 +62,35 @@ def build_tokenizer(tokenizer_path: str) -> PreTrainedTokenizerFast:
 
 
 def get_spectro_config(model_args: Dict, tokenizer: PreTrainedTokenizerFast) -> BartSpektroConfig:
-    return BartSpektroConfig(vocab_size = len(tokenizer.get_vocab()),
-                      max_position_embeddings = model_args["seq_len"],
-                      max_length = model_args["seq_len"],
-                      min_len = 0,
-                      encoder_layers = model_args["encoder_layers"],
-                      encoder_ffn_dim = model_args["encoder_ffn_dim"],
-                      encoder_attention_heads = model_args["encoder_attention_heads"],
-                      decoder_layers = model_args["decoder_layers"],
-                      decoder_ffn_dim = model_args["decoder_ffn_dim"],
-                      decoder_attention_heads = model_args["decoder_attention_heads"],
-                      encoder_layerdrop = 0.0,
-                      decoder_layerdrop = 0.0,
-                      activation_function = 'gelu',
-                      d_model = 1024,
-                      dropout = 0.2,
-                      attention_dropout = 0.0,
-                      activation_dropout = 0.0,
-                      init_std = 0.02,
-                      classifier_dropout = 0.0,
-                      scale_embedding = False,
-                      use_cache = True,
-                      pad_token_id = 2,
-                      bos_token_id = 3,
-                      eos_token_id = 0,
-                      is_encoder_decoder = True,
-                      decoder_start_token_id = 3,
-                      forced_eos_token_id = 0,
-                      max_log_id=9)
-
+    return BartSpektroConfig(vocab_size=len(tokenizer.get_vocab()),
+                             max_position_embeddings=model_args["seq_len"],
+                             max_length=model_args["seq_len"],
+                             min_len=0,
+                             encoder_layers=model_args["encoder_layers"],
+                             encoder_ffn_dim=model_args["encoder_ffn_dim"],
+                             encoder_attention_heads=model_args["encoder_attention_heads"],
+                             decoder_layers=model_args["decoder_layers"],
+                             decoder_ffn_dim=model_args["decoder_ffn_dim"],
+                             decoder_attention_heads=model_args["decoder_attention_heads"],
+                             encoder_layerdrop=0.0,
+                             decoder_layerdrop=0.0,
+                             activation_function='gelu',
+                             d_model=1024,
+                             dropout=0.2,
+                             attention_dropout=0.0,
+                             activation_dropout=0.0,
+                             init_std=0.02,
+                             classifier_dropout=0.0,
+                             scale_embedding=False,
+                             use_cache=True,
+                             pad_token_id=2,
+                             bos_token_id=3,
+                             eos_token_id=0,
+                             is_encoder_decoder=True,
+                             decoder_start_token_id=3,
+                             forced_eos_token_id=0,
+                             max_log_id=9)
+ 
 
 @app.command()
 def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the config file"),
@@ -112,6 +114,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         print(f"device: {device }")
         print(torch.cuda.get_device_properties(i))
 
+
     # load config
     with open(config_file, "r") as f:
         try:
@@ -125,6 +128,25 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     example_gen_args = config["example_generation_args"]
     tokenizer_path = model_args["tokenizer_path"]
     use_wandb = hf_training_args["report_to"] == "wandb"
+    
+    # GPU specific batch size
+    if "A100" in torch.cuda.get_device_name():
+        print("WARNING!!!: Using automatically A100 specific batch size")
+        hf_training_args["per_device_train_batch_size"] = 128
+        hf_training_args["per_device_eval_batch_size"] = 64
+        hf_training_args["gradient_accumulation_steps"] = 1
+        hf_training_args["eval_accumulation_steps"] = 1
+        print(f"train batch size: {hf_training_args['per_device_train_batch_size']}")
+        print(f"eval batch size: {hf_training_args['per_device_eval_batch_size']}")
+
+    elif "A40" in torch.cuda.get_device_name():
+        print("WARNING!!!: Using automatically A40 specific batch size")
+        hf_training_args["per_device_train_batch_size"] = 64
+        hf_training_args["per_device_eval_batch_size"] = 64
+        hf_training_args["gradient_accumulation_steps"] = 2
+        hf_training_args["eval_accumulation_steps"] = 1
+        print(f"train batch size: {hf_training_args['per_device_train_batch_size']}")
+        print(f"eval batch size: {hf_training_args['per_device_eval_batch_size']}")
     
     # set the name for metric choosing the best model (add chosen dataset name)
     if dataset_args.get("dataset_for_choosing_best_model", None):
