@@ -119,7 +119,6 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         print(f"device: {device}")
         print(torch.cuda.get_device_properties(i))
 
-
     # load config
     with open(config_file, "r") as f:
         try:
@@ -136,6 +135,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     
     # GPU specific batch size
     gpu_ram = torch.cuda.get_device_properties(0).total_memory
+    print(f"GPU RAM: {gpu_ram}")
     if gpu_ram > 70*1e9:
         print("WARNING!!!: Using automatically specific batch size")
         hf_training_args["per_device_train_batch_size"] = 128
