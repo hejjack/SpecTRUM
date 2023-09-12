@@ -103,13 +103,18 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
     
-    if additional_tags:
+if additional_tags:
         add_tags = additional_tags.split(":")
-    else: 
+    else:
         add_tags = []
 
-    print(f"CUDA_VISIBLE_DEVICES set to: {os.environ['CUDA_VISIBLE_DEVICES']}")
-    add_tags.append("CVD=" + os.environ["CUDA_VISIBLE_DEVICES"])
+    cvd = os.environ['CUDA_VISIBLE_DEVICES']
+    print(f"CUDA_VISIBLE_DEVICES set to: {cvd}")
+    if len(cvd) < 60:
+        add_tags.append("CVD=" + cvd)
+    else:
+        add_tags.append("CVD=weird_meta_id")
+
     for i in range(torch.cuda.device_count()):
         print(f"device: {device }")
         print(torch.cuda.get_device_properties(i))
@@ -130,8 +135,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     use_wandb = hf_training_args["report_to"] == "wandb"
     
     # GPU specific batch size
-    if "A100" in torch.cuda.get_device_name():
-        print("WARNING!!!: Using automatically A100 specific batch size")
+    gpu_ram = torch.cuda.get_device_properties(0).total_memory
+    if gpu_ram > 70*1e9:
+        print("WARNING!!!: Using automatically specific batch size")
         hf_training_args["per_device_train_batch_size"] = 128
         hf_training_args["per_device_eval_batch_size"] = 64
         hf_training_args["gradient_accumulation_steps"] = 1
@@ -139,8 +145,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         print(f"train batch size: {hf_training_args['per_device_train_batch_size']}")
         print(f"eval batch size: {hf_training_args['per_device_eval_batch_size']}")
 
-    elif "A40" in torch.cuda.get_device_name():
-        print("WARNING!!!: Using automatically A40 specific batch size")
+    else:
+        print("WARNING!!!: Using automatically specific batch size")
         hf_training_args["per_device_train_batch_size"] = 64
         hf_training_args["per_device_eval_batch_size"] = 64
         hf_training_args["gradient_accumulation_steps"] = 2
