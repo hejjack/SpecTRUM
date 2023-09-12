@@ -14,6 +14,10 @@ zia_training_stuff
 zia_training_stuff_30M/*
 RLHF/**
 
+# meta logs
+**/BARTSpektro_experiment*
+**/JupyterLabPyTorch_GPU*
+
 # big files
 data/categorized_michal.csv
 
