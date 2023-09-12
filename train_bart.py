@@ -103,7 +103,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
     
-if additional_tags:
+    if additional_tags:
         add_tags = additional_tags.split(":")
     else:
         add_tags = []
@@ -116,7 +116,7 @@ if additional_tags:
         add_tags.append("CVD=weird_meta_id")
 
     for i in range(torch.cuda.device_count()):
-        print(f"device: {device }")
+        print(f"device: {device}")
         print(torch.cuda.get_device_properties(i))
 
 
