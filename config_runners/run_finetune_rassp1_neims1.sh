@@ -3,6 +3,6 @@ CUDA_VISIBLE_DEVICES=1,2 python ../train_bart.py --config-file ../configs/train_
                                                --checkpoint ../checkpoints/pretrain/northern-cloud-230_rassp1_neims1/checkpoint-112000 \
                                                --additional-info "_4_8M_rassp1_neims1" \
                                                --wandb-group finetune  \
-                                               --additional-tags "2xA0:apollo" \
+                                               --additional-tags "2xA100" \
                                             #    --device cpu \
                                                # --checkpoints_dir ../checkpoints \

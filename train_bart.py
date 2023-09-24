@@ -103,7 +103,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
     
-if additional_tags:
+    if additional_tags:
         add_tags = additional_tags.split(":")
     else:
         add_tags = []
