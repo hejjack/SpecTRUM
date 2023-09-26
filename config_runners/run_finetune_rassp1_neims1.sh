@@ -5,4 +5,5 @@ CUDA_VISIBLE_DEVICES=1 python ../train_bart.py --config-file ../configs/train_co
                                                --wandb-group finetune  \
                                                --additional-tags "A100" \
                                             #    --device cpu \
-                                               # --checkpoints_dir ../checkpoints \
+                                            #    --checkpoints_dir ../checkpoints \
+# CUDA_VISIBLE_DEVICES=1,2
