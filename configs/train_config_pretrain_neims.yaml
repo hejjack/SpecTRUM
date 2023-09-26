@@ -49,7 +49,7 @@ hf_training_args:
   do_train: True
   do_eval: True
 
-  max_steps: 1_000_000
+  max_steps: 113_000
   optim: "adamw_torch"
   warmup_steps: 1000
 
