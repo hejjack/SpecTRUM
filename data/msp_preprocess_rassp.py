@@ -17,7 +17,7 @@ from spectra_process_utils import msp_file_to_jsonl
 
 app = typer.Typer()
 
-def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_sum):
+def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_cumsum):
     print(f"process {process_id} STARTED")
     for file in tqdm(files): 
         jsonl_file = output_dir / f"{file.stem}.jsonl"
@@ -25,7 +25,7 @@ def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_su
                           tokenizer_path=Path("../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"),
                           source_token=source_token,
                           path_jsonl=jsonl_file,
-                          max_sum=max_sum)
+                          max_cumsum=max_cumsum)
     print(f"process {process_id} DONE")
 
 
@@ -33,7 +33,7 @@ def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_su
 def main(input_dir: Path = typer.Option(..., help="input directory containing the msp files"), 
          output_dir: Path = typer.Option(..., help="output directory to store the preprocessed jsonl files"), 
          source_token: str = typer.Option("<rassp>", help="source token to use for the jsonl files"),
-         max_sum: float = typer.Option(0.995, help="maximum number of tokens in the summary"),
+         max_cumsum: float = typer.Option(0.995, help="maximum number of tokens in the summary"),
          num_processes: int = typer.Option(1, help="number of processes to use for parallelization"),
          concat: bool = typer.Option(False, help="concatenate the preprocessed jsonl files into one file"),
          clean: bool = typer.Option(False, help="delete the preprocessed jsonl files after concatenation")):
@@ -60,7 +60,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
     grouped_files = np.array(files).reshape(num_processes, -1)
     processes = {}
     for i in range(num_processes):
-        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, grouped_files[i], output_dir, source_token, max_sum))
+        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, grouped_files[i], output_dir, source_token, max_cumsum))
     for process in processes.values():
         process.start()
     for process in processes.values():

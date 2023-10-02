@@ -11,7 +11,7 @@ from tokenizers import Tokenizer
 from pathlib import Path
 
 
-from data.data_preprocess_all import smiles_to_labels
+from data.smi_preprocess_neims import smiles_to_labels
 
 
 def preprocess_spectrum(s: Spectrum, 
@@ -22,7 +22,7 @@ def preprocess_spectrum(s: Spectrum,
                         max_mz=500,
                         log_base=1.7,
                         log_shift=9,
-                        max_sum=None):
+                        max_cumsum=None):
     """
     Preprocess one matchms.Spectrum according to BART_spektro preprocessing pipeline
 
@@ -90,11 +90,13 @@ def preprocess_spectrum(s: Spectrum,
         error_dict["high_mz"] = True
 
     # filter little peaks so it doesn't get kicked off    
-    if max_sum:
-        s = cumsum_filtering(s, max_sum)
+    if max_cumsum:
+        mz, intensities = cumsum_filtering(s.peaks.mz, s.peaks.intensities, max_cumsum)
+    else:
+        mz, intensities = s.peaks.mz, s.peaks.intensities
 
     # filter long spectra
-    if len(s.peaks.mz) > seq_len:
+    if len(mz) > seq_len:
         goes_out = 1
         error_dict["too_many_peaks"] = True
 
@@ -102,16 +104,16 @@ def preprocess_spectrum(s: Spectrum,
         return ([], [], [], [], [], [], error_dict)
 
     # creating attention mask
-    pad_len = seq_len-len(s.peaks.mz)
-    attention_mask = len(s.peaks.mz)*[1] + pad_len*[0]
+    pad_len = seq_len-len(mz)
+    attention_mask = len(mz)*[1] + pad_len*[0]
 
     # creating MZs inputs
-    mz = [round(x) for x in s.peaks.mz]
+    mz = [round(x) for x in mz]
     pt = tokenizer.token_to_id("<pad>")
     mz += pad_len * [pt]
 
     # scaling intensities
-    intensities = s.peaks.intensities/max(s.peaks.intensities)    
+    intensities = intensities/max(intensities)    
 
     # log bining the intensities
     log_base = np.log(log_base)
@@ -129,7 +131,7 @@ def preprocess_spectrum(s: Spectrum,
 def preprocess_spectra(spectra: List[Spectrum],
                        tokenizer, 
                        source_token, 
-                       max_sum: float | None = None):
+                       max_cumsum: float | None = None):
     """
     Preprocess a list of matchms.Spectrum according to BART_spektro preprocessing pipeline
     Catch errors, sort them into 5 categories and print a report
@@ -163,7 +165,7 @@ def preprocess_spectra(spectra: List[Spectrum],
 
     num_spectra = 0
     for d in tqdm(spectra): 
-        (mz, i, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_sum=max_sum)
+        (mz, i, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_cumsum=max_cumsum)
         if not mz:
             long_smiles += ed["long_smiles"]
             corrupted += ed["corrupted"]
@@ -201,7 +203,7 @@ def msp_file_to_jsonl(path_msp: Path,
                       tokenizer_path: Path,
                       source_token: str,
                       path_jsonl: Path | None = None,
-                      max_sum: float | None = None):
+                      max_cumsum: float | None = None):
     """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
     
     Parameters
@@ -215,14 +217,14 @@ def msp_file_to_jsonl(path_msp: Path,
     path_jsonl : Path
         path of the output jsonl file, if None, the jsonl file is saved
         with the same name as the msp file, but with .jsonl extension
-    max_sum : float
+    max_cumsum : float
         when provided, preprocessing includes cumsum filtering of spectra
         that means leaving only the highest peak with sum of intensities
-        just over max_sum (if sums to 1, basically percentage of 'mass') 
+        just over max_cumsum (if sums to 1, basically percentage of 'mass') 
     """
     data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    df = preprocess_spectra(data_msp, tokenizer, source_token, max_sum=max_sum)
+    df = preprocess_spectra(data_msp, tokenizer, source_token, max_cumsum=max_cumsum)
     if not path_jsonl:
         path_jsonl = path_msp.with_suffix(".jsonl")
     df.to_json(path_jsonl, orient="records", lines=True)
@@ -324,23 +326,24 @@ def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     return df2
 
 
-def cumsum_filtering(spectrum, max_sum, max_normalize=False):
+def cumsum_filtering(mz: np.ndarray, 
+                     i: np.ndarray, 
+                     max_cumsum: float) -> tuple[np.ndarray, np.ndarray]:
     """
     Leaves in the spectrum only the biggest peaks with sum of intensities
-    just over max_sum.
+    just over max_cumsum.
 
     Parameters
     ----------
-    spectrum : Spectrum
-        spectrum to be filtered
-    max_sum : float
+    mz : np.ndarray
+        array of mz values
+    i : np.ndarray
+        array of intensities
+    max_cumsum : float
         maximum sum of intensities of peaks in the spectrum (if sums to 1, basically percentage of 'mass')
-    max_normalize : bool, optional
-        whether to normalize the intensities by dividing by max intensity, by default True
-    """
-    mz = spectrum.peaks.mz
-    i = spectrum.peaks.intensities
     
+    """
+
     # sort arrays
     index = (-i).argsort() # descending sort
     mz_sorted = mz[index]
@@ -348,7 +351,7 @@ def cumsum_filtering(spectrum, max_sum, max_normalize=False):
     
     # cut off the smallest peaks (according to cumsum)
     cs = np.cumsum(i_sorted)
-    cut = np.searchsorted(cs, max_sum) + 1
+    cut = np.searchsorted(cs, max_cumsum) + 1
     mz_sorted = mz_sorted[:cut] # take only the biggest peaks
     i_sorted = i_sorted[:cut]
     
@@ -357,12 +360,4 @@ def cumsum_filtering(spectrum, max_sum, max_normalize=False):
     mz_sorted = mz_sorted[index]
     i_sorted = i_sorted[index]
 
-    if max_normalize:
-        i_sorted = i_sorted / i_sorted.max()
-
-    # create new spectrum
-    metadata = spectrum.metadata
-    metadata["num_peaks"] = len(mz_sorted)
-    s = Spectrum(mz=mz_sorted, intensities=i_sorted, metadata=metadata, metadata_harmonization=False)
-    assert s.metadata["num_peaks"] == len(mz_sorted)
-    return s
+    return mz_sorted, i_sorted
