@@ -15,6 +15,7 @@ import yaml
 import time
 from datetime import datetime
 
+VERY MUCH NOT DONE, NOT EVEN STARTED :D
 
 app = typer.Typer(pretty_exceptions_enable=False)
 

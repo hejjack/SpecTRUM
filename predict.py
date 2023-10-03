@@ -16,7 +16,7 @@ from tqdm import tqdm
 from typing import Dict, Any, Tuple, List
 from icecream import ic
 from rdkit import Chem
-from dataset import SpectroDataset, SpectroDataCollator
+from data_utils import SpectroDataset, SpectroDataCollator
 # from bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 
