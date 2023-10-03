@@ -12,7 +12,7 @@ data_args:
       limit_val_split: null     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<nist>"
-    30M_rassp: # only for evaluation tracking purposes
+    NEIMS: # NEIMS only for evaluation tracking purposes
       train_path: "../data/datasets/30M_rassp/neims_gen/30M_rassp_train.jsonl"
       valid_path: "../data/datasets/30M_rassp/neims_gen/30M_rassp_valid.jsonl"
       weight: 0.0
@@ -20,6 +20,14 @@ data_args:
       limit_val_split: 2000     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "<neims>"
+    RASSP: # only for evaluation tracking purposes
+      train_path: "../data/datasets/30M_rassp/rassp_gen/train.jsonl"
+      valid_path: "../data/datasets/30M_rassp/rassp_gen/valid.jsonl"
+      weight: 0.0
+      limit_train_split: 0  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 2000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
+      prefix_token: "<rassp>"
 
 
 model_args:
@@ -58,7 +66,7 @@ hf_training_args:
   per_device_eval_batch_size: 64
   eval_accumulation_steps: 1
 
-  dataloader_num_workers: 2
+  dataloader_num_workers: 6
   dataloader_drop_last: False
 
   report_to: "wandb" # "wandb"
@@ -70,11 +78,11 @@ hf_training_args:
 
   predict_with_generate: True # NEVER TOUCH THIS
   generation_num_beams: 1
-  generation_max_length: 200
+  generation_max_length: 200  # NEVER TOUCH THIS
   evaluation_strategy: "steps"
-  eval_steps: 1632 ### make it match (1632 ~ approx full NIST dataset)
+  eval_steps: 4896 ### make it match (4896 ~ approx 3*full NIST dataset)
 
-  save_steps: 1632 ### make it match (1632 ~ approx full NIST dataset)
+  save_steps: 4896 ### make it match (4896 ~ approx 3*full NIST dataset)
   save_strategy: "steps"
   save_total_limit: 5
 

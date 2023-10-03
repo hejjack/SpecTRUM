@@ -4,7 +4,7 @@ general:
 
 dataset: # SET ALL - important for saving
   # data_path: "data/datasets/30M/30M_valid.pkl" # REQUIRED!
-  data_path: data/datasets/NIST/NIST20_only/NIST20_only_NIST_<neims>.pkl
+  data_path: data/datasets/NIST/NIST20_only/NIST20_only_NIST_<neims>.jsonl
   dataset_name: ZINC # rcx/ZINC/NIST/...    REQUIRED! (for naming)
   data_split: valid # train/test/valid/... REQUIRED! (for naming)
   data_range: null # "0:50" # x:y for range; null for FULL dataset  REQUIRED! (for naming)
