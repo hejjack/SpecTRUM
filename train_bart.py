@@ -26,7 +26,7 @@ from icecream import ic
 
 
 # custom code
-from dataset import SpectroDataset, SpectroDataCollator, load_all_datapipes
+from data_utils import SpectroDataset, SpectroDataCollator, load_all_datapipes
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.bart_spektro_tokenizer import BartSpektroTokenizer

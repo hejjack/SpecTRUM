@@ -6,9 +6,6 @@ import sys
 sys.path.append("..")
 
 import typer
-import os
-import json
-import glob
 import numpy as np
 import multiprocessing as mp
 from tqdm import tqdm
@@ -17,7 +14,7 @@ from spectra_process_utils import msp_file_to_jsonl
 
 app = typer.Typer()
 
-def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_cumsum):
+def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_cumsum, keep_spectra):
     print(f"process {process_id} STARTED")
     for file in tqdm(files): 
         jsonl_file = output_dir / f"{file.stem}.jsonl"
@@ -25,7 +22,8 @@ def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_cu
                           tokenizer_path=Path("../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"),
                           source_token=source_token,
                           path_jsonl=jsonl_file,
-                          max_cumsum=max_cumsum)
+                          max_cumsum=max_cumsum,
+                          keep_spectra=keep_spectra)
     print(f"process {process_id} DONE")
 
 
@@ -34,6 +32,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
          output_dir: Path = typer.Option(..., help="output directory to store the preprocessed jsonl files"), 
          source_token: str = typer.Option("<rassp>", help="source token to use for the jsonl files"),
          max_cumsum: float = typer.Option(0.995, help="maximum number of tokens in the summary"),
+         keep_spectra: bool = typer.Option(False, help="keep the mz/intensity values in the jsonl files (for evaluation)"),
          num_processes: int = typer.Option(1, help="number of processes to use for parallelization"),
          concat: bool = typer.Option(False, help="concatenate the preprocessed jsonl files into one file"),
          clean: bool = typer.Option(False, help="delete the preprocessed jsonl files after concatenation")):
@@ -60,7 +59,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
     grouped_files = np.array(files).reshape(num_processes, -1)
     processes = {}
     for i in range(num_processes):
-        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, grouped_files[i], output_dir, source_token, max_cumsum))
+        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, grouped_files[i], output_dir, source_token, max_cumsum, keep_spectra))
     for process in processes.values():
         process.start()
     for process in processes.values():

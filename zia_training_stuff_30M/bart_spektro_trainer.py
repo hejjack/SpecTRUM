@@ -11,7 +11,7 @@ import wandb
 import pandas as pd
 from rdkit import Chem
 
-from dataset import SpectroDataset
+from data_utils import SpectroDataset
 
 
 class BartSpectroTrainer(Trainer):

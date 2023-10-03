@@ -131,7 +131,9 @@ def preprocess_spectrum(s: Spectrum,
 def preprocess_spectra(spectra: List[Spectrum],
                        tokenizer, 
                        source_token, 
-                       max_cumsum: float | None = None):
+                       max_cumsum: float | None = None,
+                       keep_spectra: bool = False
+                       ):
     """
     Preprocess a list of matchms.Spectrum according to BART_spektro preprocessing pipeline
     Catch errors, sort them into 5 categories and print a report
@@ -148,9 +150,11 @@ def preprocess_spectra(spectra: List[Spectrum],
     df_out : pd.DataFrame
         a dataframe we are able to feed into SpectroDataset and then to SpectroBart
     """
-
+    
     mzs = []
-    ints = []
+    intensities = []
+    input_idss = []
+    position_idss = []
     atts = []
     smiless = []
     labels = []
@@ -165,29 +169,35 @@ def preprocess_spectra(spectra: List[Spectrum],
 
     num_spectra = 0
     for d in tqdm(spectra): 
-        (mz, i, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_cumsum=max_cumsum)
-        if not mz:
+        (input_ids, position_ids, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_cumsum=max_cumsum)
+        if not input_ids:
             long_smiles += ed["long_smiles"]
             corrupted += ed["corrupted"]
             high_mz += ed["high_mz"]
             too_many_peaks += ed["too_many_peaks"]
             no_smiles += ed["no_smiles"]
         else:
-            mzs.append(mz)
-            ints.append(i)
+            if keep_spectra:
+                mzs.append(d.peaks.mz)
+                intensities.append(d.peaks.intensities)
+            input_idss.append(input_ids)
+            position_idss.append(position_ids)
             atts.append(am)
             smiless.append(cs)
             labels.append(l)
             dec_masks.append(dm)
         num_spectra += 1  # just a counter
 
-    df_out = pd.DataFrame({"input_ids": mzs, 
-                           "position_ids": ints,
+    df_out = pd.DataFrame({"input_ids": input_idss, 
+                           "position_ids": position_idss,
                            "attention_mask": atts,
                            "smiles": smiless,
                            "labels": labels,
                            "decoder_attention_mask": dec_masks})
-    
+    if keep_spectra:
+        df_out["mz"] = mzs
+        df_out["intensity"] = intensities
+
     # print STATS
     print(f"{no_smiles} no smiles")
     print(f"{long_smiles} smiles too long")
@@ -203,7 +213,8 @@ def msp_file_to_jsonl(path_msp: Path,
                       tokenizer_path: Path,
                       source_token: str,
                       path_jsonl: Path | None = None,
-                      max_cumsum: float | None = None):
+                      max_cumsum: float | None = None,
+                      keep_spectra: bool = False):
     """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
     
     Parameters
@@ -224,7 +235,7 @@ def msp_file_to_jsonl(path_msp: Path,
     """
     data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    df = preprocess_spectra(data_msp, tokenizer, source_token, max_cumsum=max_cumsum)
+    df = preprocess_spectra(data_msp, tokenizer, source_token, max_cumsum=max_cumsum, keep_spectra=keep_spectra)
     if not path_jsonl:
         path_jsonl = path_msp.with_suffix(".jsonl")
     df.to_json(path_jsonl, orient="records", lines=True)
