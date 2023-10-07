@@ -1,5 +1,5 @@
 # RASSP pretrain from scratch
-CUDA_VISIBLE_DEVICES=0 python ../train_bart.py --config-file ../configs/train_config_pretrain_rassp1_neims1.yaml \
+CUDA_VISIBLE_DEVICES=2,3 python ../train_bart.py --config-file ../configs/train_config_pretrain_rassp1_neims1.yaml \
                                                --additional-info "_rassp1_neims1" \
                                                --additional-tags "A100:scratch" \
                                                --resume-id pwrbt7zt \
