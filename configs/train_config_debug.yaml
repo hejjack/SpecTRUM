@@ -12,15 +12,15 @@ data_args:
     #   limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
     #   limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
     # nist:
-    #   train_path: "data/datasets/NIST/NIST_split_filip/train_<nist>.jsonl"
-    #   valid_path: "data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
+    #   train_path: "data/datasets/NIST/NIST_split_filip/train.jsonl"
+    #   valid_path: "data/datasets/NIST/NIST_split_filip/valid.jsonl"
     #   weight: 1.0
     #   limit_train_split: 10000  # null for full; limit of head from valid set chosen for validation split
     #   limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
     #   limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
     nist:
-      train_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
-      valid_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
+      train_path: "../data/datasets/NIST/NIST_split_filip/valid.jsonl"
+      valid_path: "../data/datasets/NIST/NIST_split_filip/valid.jsonl"
       weight: 1.0
       limit_train_split: 10000  # null for full; limit of head from train set chosen for validation split
       limit_val_split: 1000    # null for full; limit of head from valid set chosen for validation split
