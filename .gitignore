@@ -5,6 +5,7 @@ data/**/*.smi
 data/**/*.msp
 data/**/*.SIF
 data/**/*.log
+data/**/*.sel
 data/deprecated/*
 
 data/categorized
