@@ -5,17 +5,18 @@ data_args:
   dataset_for_choosing_best_model: "nist"  # !!!!!!!!!!!!
   datasets: 
     nist:    # 208908 + 26000
-      train_path: "../data/datasets/NIST/NIST_split_filip/train_<nist>.jsonl"
-      valid_path: "../data/datasets/NIST/NIST_split_filip/valid_<nist>.jsonl"
+      train_path: "data/datasets/NIST/NIST_split_filip/sel_train.jsonl"   # removed '../' for DEBUGGING 
+      valid_path: "data/datasets/NIST/NIST_split_filip/sel_valid.jsonl"   # removed '../' for DEBUGGING
       weight: 1.0
-      limit_train_split: 200  # null for full; limit of head from valid set chosen for validation split
-      limit_val_split: 200     # null for full; limit of head from valid set chosen for validation split
+      limit_train_split: null  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: null     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       prefix_token: "[nist]"
 
 model_args:
   tokenizer_path: "selfies_tokenizer" # not a path just for the trainer to know it should use sefies tokenizer 
-  seq_len: 200
+  seq_len: 200 
+  max_mz: 500
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
@@ -28,6 +29,7 @@ example_generation_args:
   "top_k": null
   "top_p": null
   "do_sample": True
+  "max_new_tokens": 199
   "num_beams": 5
   "temperature": null
   "penalty_alpha": null
@@ -67,7 +69,7 @@ hf_training_args:
 
   save_steps: 4896 ### make it match (4896 ~ approx 3*full NIST dataset)
   save_strategy: "steps"
-  save_total_limit: 5
+  save_total_limit: 2
 
   load_best_model_at_end: True
   metric_for_best_model: "eval_cos_simil"
