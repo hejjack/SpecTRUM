@@ -2,8 +2,6 @@
 # the input is a folder containing the msp files
 # the output is a folder containing the preprocessed jsonl files (optionaly concatenated into one file)
 # the jsonl can be used directly to feed to BartSpektro
-from __future__ import annotations
-
 import sys
 sys.path.append("..")
 
@@ -11,25 +9,17 @@ import typer
 import numpy as np
 import multiprocessing as mp
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 from pathlib import Path
 from spectra_process_utils import msp_file_to_jsonl
-from bart_spektro.selfies_tokenizer import SelfiesTokenizer, hardcode_build_selfies_tokenizer
-from train_bart import build_tokenizer
 
 app = typer.Typer()
 
-def msp_files_to_jsonl_files(process_id, files, 
-                             output_dir, 
-                             tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer, 
-                             source_token, 
-                             max_cumsum, 
-                             keep_spectra):
+def msp_files_to_jsonl_files(process_id, files, output_dir, source_token, max_cumsum, keep_spectra):
     print(f"process {process_id} STARTED")
     for file in tqdm(files): 
         jsonl_file = output_dir / f"{file.stem}.jsonl"
         msp_file_to_jsonl(file,
-                          tokenizer=tokenizer,
+                          tokenizer_path=Path("../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"),
                           source_token=source_token,
                           path_jsonl=jsonl_file,
                           max_cumsum=max_cumsum,
@@ -43,7 +33,6 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
          source_token: str = typer.Option("<rassp>", help="source token to use for the jsonl files"),
          max_cumsum: float = typer.Option(0.995, help="maximum number of tokens in the summary"),
          keep_spectra: bool = typer.Option(False, help="keep the mz/intensity values in the jsonl files (for evaluation)"),
-         mol_representation: str = typer.Option("smiles", help="molecular representation to use for the jsonl files (smiles/selfies)"),
          num_processes: int = typer.Option(1, help="number of processes to use for parallelization"),
          concat: bool = typer.Option(False, help="concatenate the preprocessed jsonl files into one file"),
          clean: bool = typer.Option(False, help="delete the preprocessed jsonl files after concatenation")):
@@ -53,14 +42,6 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
     The output is a folder containing the preprocessed jsonl files (optionaly concatenated into one file).
     The jsonl can be used directly to feed to BartSpektro.
     """
-
-    if mol_representation == "smiles":
-        tokenizer = build_tokenizer(tokenizer_path="tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model")
-    elif mol_representation == "selfies":
-        tokenizer = hardcode_build_selfies_tokenizer()
-    else:
-        raise ValueError("mol_representation must be either smiles or selfies")
-
     print("Number of processes: ", num_processes)
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
@@ -78,13 +59,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
     grouped_files = np.array(files).reshape(num_processes, -1)
     processes = {}
     for i in range(num_processes):
-        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, 
-                                                                                     grouped_files[i], 
-                                                                                     output_dir, 
-                                                                                     tokenizer,
-                                                                                     source_token, 
-                                                                                     max_cumsum, 
-                                                                                     keep_spectra))
+        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, grouped_files[i], output_dir, source_token, max_cumsum, keep_spectra))
     for process in processes.values():
         process.start()
     for process in processes.values():

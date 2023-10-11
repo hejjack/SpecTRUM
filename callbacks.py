@@ -11,10 +11,8 @@ import torch
 import torch.utils.data
 from rdkit.Chem import Draw
 from icecream import ic
-import selfies as sf
 
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
-from bart_spektro.selfies_tokenizer import SelfiesTokenizer
 from metrics import compute_cos_simils
 
 
@@ -67,7 +65,7 @@ class PredictionLogger(transformers.TrainerCallback):
         """
 
         model: BartSpektroForConditionalGeneration = kwargs["model"]
-        tokenizer: transformers.PreTrainedTokenizerFast | SelfiesTokenizer = kwargs["tokenizer"] # if missing add to the class args
+        tokenizer: transformers.PreTrainedTokenizerFast = kwargs["tokenizer"] # if missing add to the class args
         
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -88,14 +86,7 @@ class PredictionLogger(transformers.TrainerCallback):
         all_simils = []
 
         gen_kwargs = self.generate_kwargs.copy()
-        gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.encode(prefix_token)[0]]]
-        
-        # decide wether to use selfies or smiles
-        if isinstance(tokenizer, SelfiesTokenizer):
-            mol_repr = "selfies"
-            assert sf.get_semantic_constraints()["I"] == 5, "Selfies tokenizer constraints are not set properly!"
-        else: 
-            mol_repr = "smiles"
+        gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.convert_tokens_to_ids(prefix_token)]]
 
         with torch.no_grad():
             for batch in progress:     
@@ -110,11 +101,6 @@ class PredictionLogger(transformers.TrainerCallback):
                 all_raw_preds.extend(raw_preds_str)
                 all_preds.extend(preds_str)
                 all_decoded_labels.extend(gts_str)
-
-                # if SELFIES, translate them to SMILES before continuing
-                if mol_repr == "selfies":
-                    preds_str = [sf.decoder(x) for x in preds_str]
-                    gts_str = [sf.decoder(x) for x in gts_str]
 
                 # compute SMILES simil
                 smiles_simils, pred_mols, gt_mols = compute_cos_simils(preds_str, gts_str, return_mols=True)        
@@ -138,14 +124,14 @@ class PredictionLogger(transformers.TrainerCallback):
 
         # ic(len(all_raw_preds), len(all_preds), len(all_decoded_labels), len(all_pred_molecules), len(all_gt_molecules), len(all_simils))
         # ic(all_raw_preds, all_preds, all_decoded_labels, all_pred_molecules, all_gt_molecules, all_simils)
-        df_log = pd.DataFrame({f"gt_{mol_repr}": all_decoded_labels,
-                               f"predicted_{mol_repr}": all_preds,
+        df_log = pd.DataFrame({"gt_smiles": all_decoded_labels,
+                               "predicted_smiles": all_preds,
                                "gt_molecule": all_gt_molecules,
                                "predicted_molecule": all_pred_molecules,
                                "cos_simil": all_simils
                                })
         if self.show_raw_preds:
-            df_log[f"raw_predicted_{mol_repr}"] = all_raw_preds
+            df_log["raw_predicted_smiles"] = all_raw_preds
         table = wandb.Table(dataframe=df_log)
 
         wandb.log({f"eval_tables/{log_prefix}/global_step_{global_step}": table})
