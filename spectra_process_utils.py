@@ -8,21 +8,38 @@ import pandas as pd
 from tqdm import tqdm
 from icecream import ic
 from tokenizers import Tokenizer
+from transformers import PreTrainedTokenizerFast
+from bart_spektro.selfies_tokenizer import SelfiesTokenizer
 from pathlib import Path
+import selfies as sf
 
 
 from data.smi_preprocess_neims import smiles_to_labels
+
+
+
+def mol_repr_to_labels(mol_repr, tokenizer, source_id, seq_len):
+    """Converts molecular representation (SMILES/SELFIES) to labels for the model"""
+    eos_token = tokenizer.eos_token_id
+    encoded_mol_repr = tokenizer.encode(mol_repr)
+    padding_len = (seq_len-2-len(encoded_mol_repr))
+    labels = [source_id] + encoded_mol_repr + [eos_token] + padding_len * [-100]
+    mask = [1] * (seq_len - padding_len) + [0] * padding_len
+    assert len(labels) == seq_len, "Labeles have wrong length"
+    assert len(mask) == seq_len, "Mask has wrong length"
+    return labels, mask
 
 
 def preprocess_spectrum(s: Spectrum, 
                         tokenizer,
                         source_token: str,
                         seq_len=200,
-                        max_smiles_len=100,
+                        max_mol_repr_len=100,
                         max_mz=500,
                         log_base=1.7,
                         log_shift=9,
-                        max_cumsum=None):
+                        max_cumsum=None,
+                        mol_representation: str = "smiles"):
     """
     Preprocess one matchms.Spectrum according to BART_spektro preprocessing pipeline
 
@@ -35,8 +52,8 @@ def preprocess_spectrum(s: Spectrum,
         tokenizer used for tokenizing the mz values to fit input_ids
     seq_len : int
         maximal seq_len (num of peaks) - specified by the BART model architecture
-    max_smiles_len : int
-        max len of SMILES string representation
+    max_mol_reprs_len : int
+        max len of SMILES/SELFIES string representation
     max_mz : the highest allowed value of mz (input element) - specified by the tokenizer's vocabulary
     log_base : float
         base of the logarithm used for log binning intensities
@@ -52,36 +69,38 @@ def preprocess_spectrum(s: Spectrum,
     attention_mask : List[int]
         list of ones and zeros of len seq_len. Zeros mask pad tokens for the future model so it doesn't 
         incorporate it into the computations
-    canon_smiles : str
-        canonical SMILES representation of the spectra
+    canon_mol_reprs : str
+        canonical SMILES/SELFIES representation of the spectra
     error_dict : Dict[str : bool]
         dict of flags detecting if spectrum has any of the five specified errors
     """
-    # canonicalization
-    canon_smiles = canonicalize_smiles(s.metadata["smiles"])
+    # canonicalization + possible selfies transformation
+    canon_mol_repr = canonicalize_smiles(s.metadata["smiles"])
+    if mol_representation == "selfies" and canon_mol_repr is not None:
+        canon_mol_repr = sf.encoder(canon_mol_repr)        # TODO?? try block?
 
     goes_out = 0 # flag for discarding the datapoint
-    error_dict = {"long_smiles": 0,
+    error_dict = {"long_mol_repr": 0,
                   "corrupted": 0,
                   "high_mz": 0,
                   "too_many_peaks": 0,
-                  "no_smiles": 0}
+                  "no_mol_repr": 0}
 
     # filter corrupted
-    if canon_smiles is None:
+    if canon_mol_repr is None:
         goes_out = 1
         error_dict["corrupted"] = True
     else:
-        canon_smiles = canon_smiles.strip() # ofen is a blank space at the beginning
+        canon_mol_repr = canon_mol_repr.strip() # ofen is a blank space at the beginning
 
         # no simles filtering
-        if canon_smiles == "":
+        if canon_mol_repr == "":
             goes_out = 1
-            error_dict["no_smiles"] = True
+            error_dict["no_mol_repr"] = True
         # long simles filtering
-        elif len(canon_smiles) > max_smiles_len:
+        elif len(canon_mol_repr) > max_mol_repr_len:
             goes_out = 1
-            error_dict["long_smiles"] = True
+            error_dict["long_mol_repr"] = True
         # destereothing ???
 
     # filter high MZ
@@ -123,16 +142,17 @@ def preprocess_spectrum(s: Spectrum,
 
     # creating label and decoder mask
     source_id = tokenizer.token_to_id(source_token)
-    label, dec_mask = smiles_to_labels(canon_smiles, tokenizer, source_id, seq_len)
+    label, dec_mask = mol_repr_to_labels(canon_mol_repr, tokenizer, source_id, seq_len)
 
-    return (mz, intensities, attention_mask, canon_smiles, label, dec_mask, error_dict)
+    return (mz, intensities, attention_mask, canon_mol_repr, label, dec_mask, error_dict)
 
 
 def preprocess_spectra(spectra: List[Spectrum],
                        tokenizer, 
                        source_token, 
                        max_cumsum: float | None = None,
-                       keep_spectra: bool = False
+                       keep_spectra: bool = False,
+                       mol_representation: str = "smiles"
                        ):
     """
     Preprocess a list of matchms.Spectrum according to BART_spektro preprocessing pipeline
@@ -156,26 +176,26 @@ def preprocess_spectra(spectra: List[Spectrum],
     input_idss = []
     position_idss = []
     atts = []
-    smiless = []
+    mol_reprs = []     # either smiles or selfies
     labels = []
     dec_masks = []
 
     # STATS
-    no_smiles = 0
-    long_smiles = 0
+    no_mol_reprs = 0
+    long_mol_reprs = 0
     corrupted = 0
     high_mz = 0
     too_many_peaks = 0
 
     num_spectra = 0
     for d in tqdm(spectra): 
-        (input_ids, position_ids, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_cumsum=max_cumsum)
+        (input_ids, position_ids, am, cs, l, dm, ed) = preprocess_spectrum(d, tokenizer, source_token, max_cumsum=max_cumsumm, mol_representation=mol_representation)
         if not input_ids:
-            long_smiles += ed["long_smiles"]
+            long_mol_reprs += ed["long_mol_reprs"]
             corrupted += ed["corrupted"]
             high_mz += ed["high_mz"]
             too_many_peaks += ed["too_many_peaks"]
-            no_smiles += ed["no_smiles"]
+            no_mol_reprs += ed["no_mol_reprs"]
         else:
             if keep_spectra:
                 mzs.append(d.peaks.mz)
@@ -183,7 +203,7 @@ def preprocess_spectra(spectra: List[Spectrum],
             input_idss.append(input_ids)
             position_idss.append(position_ids)
             atts.append(am)
-            smiless.append(cs)
+            mol_reprs.append(cs)
             labels.append(l)
             dec_masks.append(dm)
         num_spectra += 1  # just a counter
@@ -191,7 +211,7 @@ def preprocess_spectra(spectra: List[Spectrum],
     df_out = pd.DataFrame({"input_ids": input_idss, 
                            "position_ids": position_idss,
                            "attention_mask": atts,
-                           "smiles": smiless,
+                           "mol_repr": mol_reprs,
                            "labels": labels,
                            "decoder_attention_mask": dec_masks})
     if keep_spectra:
@@ -199,19 +219,20 @@ def preprocess_spectra(spectra: List[Spectrum],
         df_out["intensity"] = intensities
 
     # print STATS
-    print(f"{no_smiles} no smiles")
-    print(f"{long_smiles} smiles too long")
+    print(f"{no_mol_reprs} no mol_repr")
+    print(f"{long_mol_reprs} mol_reprs too long")
     print(f"{corrupted} spectra corrupted")
     print(f"{high_mz} spectra w/ too high mz")
     print(f"{too_many_peaks} spectra w/ too many peaks")
-    print(f"totally {long_smiles + corrupted + high_mz + too_many_peaks} issues")
+    print(f"totally {long_mol_reprs + corrupted + high_mz + too_many_peaks} issues")
     print(f"discarded {num_spectra - len(df_out)}/{num_spectra} spectra ")
     return df_out
 
 
 def msp_file_to_jsonl(path_msp: Path,
-                      tokenizer_path: Path,
+                      tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer,
                       source_token: str,
+                      mol_representation: str = "smiles",
                       path_jsonl: Path | None = None,
                       max_cumsum: float | None = None,
                       keep_spectra: bool = False):
@@ -225,6 +246,8 @@ def msp_file_to_jsonl(path_msp: Path,
         path to the tokenizer
     source_token : str
         token to be used as a source token (e.g. "<neims>", "<rassp>")
+    molecule_representation : str
+        molecule representation to be used (either "smiles" or "selfies", default "smiles")
     path_jsonl : Path
         path of the output jsonl file, if None, the jsonl file is saved
         with the same name as the msp file, but with .jsonl extension
@@ -234,14 +257,13 @@ def msp_file_to_jsonl(path_msp: Path,
         just over max_cumsum (if sums to 1, basically percentage of 'mass') 
     """
     data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
-    tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    df = preprocess_spectra(data_msp, tokenizer, source_token, max_cumsum=max_cumsum, keep_spectra=keep_spectra)
+    df = preprocess_spectra(data_msp, tokenizer, source_token, max_cumsum=max_cumsum, keep_spectra=keep_spectra, mol_representation=mol_representation)
     if not path_jsonl:
         path_jsonl = path_msp.with_suffix(".jsonl")
     df.to_json(path_jsonl, orient="records", lines=True)
 
 
-def canonicalize_smiles(smi: str):
+def canonicalize_smiles(smi: str) -> str | None:
     """canonicalize SMILES using rdkit"""
     try:
         return Chem.MolToSmiles(Chem.MolFromSmiles(smi), True)
