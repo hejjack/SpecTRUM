@@ -1,5 +1,5 @@
 import sys
-
+import io
 import os
 import time 
 from datetime import datetime
@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import json
 from tokenizers import Tokenizer
+from transformers import PreTrainedTokenizerFast
 from transformers.utils import ModelOutput
 from tqdm import tqdm
 from typing import Dict, Any, Tuple, List
@@ -19,6 +20,7 @@ from rdkit import Chem
 from data_utils import SpectroDataset, SpectroDataCollator
 # from bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
+from train_bart import build_tokenizer
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -26,7 +28,7 @@ app = typer.Typer(pretty_exceptions_enable=False)
 def open_files(output_folder: Path, 
                checkpoint: Path, 
                dataset_config: Dict[str, Any],
-               additional_info: str = "") -> Tuple[Path, Path]:
+               additional_info: str = "") -> Tuple[io.TextIOWrapper, io.TextIOWrapper]:
     """Opens log and predictions files and returns their handles"""
     timestamp = time.time()
     model_name = checkpoint.parent.name
@@ -92,10 +94,10 @@ def get_sequence_probs(model,
     return all_probs
 
 
-def prepare_decoder_input(decoder_input_token: str, tokenizer: Tokenizer, batch_size: int):
+def prepare_decoder_input(decoder_input_token: str, tokenizer: PreTrainedTokenizerFast, batch_size: int):
     """ prepare forced prefix input for the decoder"""
     if decoder_input_token:  # prepare dataset-specific prefixes for decoding
-        decoder_input_ids_single = tokenizer.encode(decoder_input_token).ids if decoder_input_token else None
+        decoder_input_ids_single = tokenizer.encode(decoder_input_token) if decoder_input_token else None
         decoder_input_ids_batch = torch.tensor([decoder_input_ids_single] * batch_size)
     else:
         decoder_input_ids_batch = None
@@ -152,7 +154,7 @@ def main(
 
     model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.generation_config.length_penalty = generation_config["length_penalty"]
-    tokenizer = Tokenizer.from_file(tokenizer_path)
+    tokenizer = build_tokenizer(tokenizer_path)
     loader = torch.utils.data.DataLoader(dataset, **dataloader_config, collate_fn=SpectroDataCollator(eval_mode=True), drop_last=False, shuffle=False) # type: ignore
 
     decoder_input_token = generation_config.pop("decoder_input_token", "")
