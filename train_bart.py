@@ -17,7 +17,6 @@ import transformers
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer, PreTrainedTokenizerFast, Trainer
 import typer
 import yaml
-import torchdata.datapipes as dp
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from callbacks import PredictionLogger
@@ -29,7 +28,7 @@ from icecream import ic
 from data_utils import SpectroDataset, SpectroDataCollator, load_all_datapipes
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
-from bart_spektro.bart_spektro_tokenizer import BartSpektroTokenizer
+from bart_spektro.selfies_tokenizer import hardcode_build_selfies_tokenizer
 from tokenizers import Tokenizer
 
 
@@ -65,6 +64,8 @@ def get_spectro_config(model_args: Dict, tokenizer: PreTrainedTokenizerFast) -> 
     return BartSpektroConfig(vocab_size=len(tokenizer.get_vocab()),
                              max_position_embeddings=model_args["seq_len"],
                              max_length=model_args["seq_len"],
+                             max_mz=model_args["max_mz"],
+                             tie_word_embeddings=False,     # exrtremely important - enables two vocabs, don't change
                              min_len=0,
                              encoder_layers=model_args["encoder_layers"],
                              encoder_ffn_dim=model_args["encoder_ffn_dim"],
@@ -163,7 +164,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         raise ValueError("dataset_for_choosing_best_model must be provided in data_args.")
 
     # load tokenizer, data
-    tokenizer = build_tokenizer(tokenizer_path)
+    if tokenizer_path == "selfies_tokenizer":
+        tokenizer = hardcode_build_selfies_tokenizer()
+    else:
+        tokenizer = build_tokenizer(tokenizer_path)
+    print(f"TOKENIZER vocab size: {len(tokenizer.get_vocab())}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false" # surpressing a warning
     datapipes = load_all_datapipes(dataset_args)
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
@@ -175,10 +180,6 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         model = BartSpektroForConditionalGeneration(bart_spectro_config)
     model.to(device)
-    ######
-    # ic("model embedding shape", model.model.encoder.embed_tokens.weight.shape) ####
-    # ic("tokenizer vocab size: ", len(tokenizer.get_vocab()))
-    ######
 
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Number of trainable parameters: {num_params}")

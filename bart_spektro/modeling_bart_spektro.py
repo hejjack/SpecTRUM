@@ -97,7 +97,8 @@ class BartSpektroEncoder(BartPretrainedModel):
         if embed_tokens is not None:
             self.embed_tokens = embed_tokens
         else:
-            self.embed_tokens = nn.Embedding(config.vocab_size, embed_dim, self.padding_idx)
+            num_embeddings = config.max_mz + 1 if hasattr(config, "max_mz") else config.vocab_size # for compatibility with previous bugged models - Adam customization
+            self.embed_tokens = nn.Embedding(num_embeddings, embed_dim, self.padding_idx) # Adam customization
         
         if config.max_log_id:
             self.embed_positions = BartSpektroLearnedPositionalEmbedding(
@@ -212,8 +213,7 @@ class BartSpektroEncoder(BartPretrainedModel):
         if head_mask is not None:
             if head_mask.size()[0] != (len(self.layers)):
                 raise ValueError(
-                    f"The head_mask should be specified for {len(self.layers)} layers, but it is for {head_mask.size()[0]}."
-                )
+                    f"The head_mask should be specified for {len(self.layers)} layers, but it is for {head_mask.size()[0]}.")
 
         for idx, encoder_layer in enumerate(self.layers):
             if output_hidden_states:
@@ -263,19 +263,17 @@ class BartSpektroModel(BartPretrainedModel):
     def __init__(self, config: BartSpektroConfig):
         super().__init__(config)
 
-        padding_idx, vocab_size = config.pad_token_id, config.vocab_size
-        self.shared = nn.Embedding(vocab_size, config.d_model, padding_idx)
-
-        self.encoder = BartSpektroEncoder(config, self.shared)
-        self.decoder = BartDecoder(config, self.shared)
+        self.encoder = BartSpektroEncoder(config)
+        self.decoder = BartDecoder(config)
 
         # Initialize weights and apply final processing
         self.post_init()
 
     def get_input_embeddings(self):
-        return self.shared
+        return self.encoder.embed_tokens
 
     def set_input_embeddings(self, value):
+        print("MANUALLY SETTING EMBEDDINGS") # adam
         self.shared = value
         self.encoder.embed_tokens = self.shared
         self.decoder.embed_tokens = self.shared
@@ -379,13 +377,13 @@ class BartSpektroModel(BartPretrainedModel):
 
 class BartSpektroForConditionalGeneration(BartPretrainedModel):
     base_model_prefix = "model"
-    _keys_to_ignore_on_load_missing = [r"final_logits_bias", r"lm_head\.weight"]
+    _keys_to_ignore_on_load_missing = [r"final_logits_bias", r"lm_head.weight"]
 
     def __init__(self, config: BartSpektroConfig):
         super().__init__(config)
         self.model = BartSpektroModel(config)
-        self.register_buffer("final_logits_bias", torch.zeros((1, self.model.shared.num_embeddings)))
-        self.lm_head = nn.Linear(config.d_model, self.model.shared.num_embeddings, bias=False)
+        self.register_buffer("final_logits_bias", torch.zeros((1, self.model.decoder.embed_tokens.num_embeddings)))
+        self.lm_head = nn.Linear(config.d_model, self.model.decoder.embed_tokens.num_embeddings, bias=False)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -414,6 +412,7 @@ class BartSpektroForConditionalGeneration(BartPretrainedModel):
         return self.lm_head
 
     def set_output_embeddings(self, new_embeddings):
+        print("MANUALLY SETTING OUTPUT EMBEDDINGS") # adam
         self.lm_head = new_embeddings
 
 

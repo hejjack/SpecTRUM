@@ -24,9 +24,11 @@ class BartSpektroConfig(BartConfig):
     def __init__(
         self,
         max_log_id=None,
+        max_mz: int = 499,
         **kwargs):
         
         self.max_log_id=max_log_id
+        self.max_mz=max_mz
         super().__init__(
             **kwargs,
         )
