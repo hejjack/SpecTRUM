@@ -32,6 +32,7 @@ data_args:
 model_args:
   tokenizer_path: "../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"
   seq_len: 200
+  max_mz: 500
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
