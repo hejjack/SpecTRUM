@@ -10,7 +10,7 @@ dataset: # SET ALL - important for saving
   data_range: null # "0:50" # x:y for range; null for FULL dataset  REQUIRED! (for naming)
 
 dataloader:
-  batch_size: 1
+  batch_size: 1  # DONT CHANGE THAT! for now (the predictions get mixed or sth.. BS1 works ok.)
   num_workers: 5
 
 tokenizer:

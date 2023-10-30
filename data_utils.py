@@ -94,15 +94,18 @@ def json_loader(row):
 
 
 def build_single_datapipe(json_file: str, 
-                          buffer_size=2,
+                          shuffle: bool,
+                          buffer_size: Optional[int] = None,
                           limit: Optional[int] = None,
-                          shuffle: bool = False
                         ):
     datapipe = IterableWrapper([json_file])
     datapipe = datapipe.open_files(mode='rt')
     datapipe = datapipe.readlines()
     if buffer_size and shuffle:
-        datapipe = datapipe.shuffle(buffer_size=2)
+        print(f"shuffling {json_file} with buffer_size={buffer_size}")
+        datapipe = datapipe.shuffle(buffer_size=buffer_size)
+    elif buffer_size or shuffle:
+        warnings.warn("SHUFFLE and its buffer_size are IGNORED if either not specified")
     datapipe = datapipe.sharding_filter()  # after shuffle, before expensive operations
     if limit is not None:
         datapipe = datapipe.header(limit)
@@ -148,9 +151,7 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
     Parameters
     ----------
     data_args: Dict[str,Dict]
-        Dictionary containing datasets' paths, weights and other config info.
-    buffer_size: int
-        Buffer size for shuffling.
+        Dictionary containing datasets' paths, weights and other config info (like shuffle and buffer_size       Buffer size for shuffling.
     
     Returns
     -------
@@ -164,6 +165,7 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
     """
     seed = data_args["data_seed"] if data_args.get("data_seed") else 42
     buffer_size = data_args["buffer_size"]
+    shuffle_train = data_args["shuffle_train"]
     datapipes = {}
 
     info = [(dataset_name,
@@ -178,14 +180,18 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
     dataset_names, train_paths, valid_paths, weights, limit_train_splits, limit_val_splits, limit_example_splits = list(zip(*info))
     
     train_pipes = [build_single_datapipe(path, 
+                                         shuffle=shuffle_train,
                                          buffer_size=buffer_size,
-                                         limit=limit) 
+                                         limit=limit,
+                                         ) 
                    for path, limit in zip(train_paths, limit_train_splits)]
     valid_pipes = {name: build_single_datapipe(path, 
+                                               shuffle=False,
                                                buffer_size=buffer_size,
                                                limit=limit)
                    for name, path, limit in zip(dataset_names, valid_paths, limit_val_splits)}
     example_pipes = {name: build_single_datapipe(path, 
+                                                 shuffle=False,
                                                  buffer_size=buffer_size,
                                                  limit=limit)
                      for name, path, limit in zip(dataset_names, valid_paths, limit_example_splits)}

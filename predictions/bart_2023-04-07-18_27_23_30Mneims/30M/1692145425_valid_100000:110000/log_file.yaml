@@ -5,7 +5,7 @@ dataloader:
   batch_size: 1
   num_workers: 5
 dataset:
-  data_path: data/datasets/30M/30M_valid.pkl
+  data_path: data/datasets/30M/30M_valid.jsonl
   data_range: 100000:110000
   data_split: valid
   dataset_name: 30M

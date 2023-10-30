@@ -1,5 +1,6 @@
 # NIST split created by FILIP JOZEFOV's notebook Noteboks/data_preprocessing.ipynb
 - NIST20 without unidentifiable spectra (~60k)
+- train:valid:test split -> 0.8:0.1:0.1
 
 ## This dataset is created by the following steps:
 1. Create jsonl files by the function msp_file_to_jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
@@ -20,7 +21,7 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
 ```
 
 # PREPROCESSING STATS
- - test_<nist>.jsonl
+ - test.jsonl
     0 no smiles
     48 smiles too long
     1 spectra corrupted
@@ -29,7 +30,7 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
     totally 3013 issues
     discarded 2693/26365 spectra
     LENGTH: 23870
- - valid 
+ - valid.jsonl
     0 no smiles
     39 smiles too long
     1 spectra corrupted
@@ -38,7 +39,7 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
     totally 2908 issues
     discarded 2623/26493 spectra
     LENGTH: 23870
- - train
+ - train.jsonl
     0 no smiles
     406 smiles too long
     14 spectra corrupted

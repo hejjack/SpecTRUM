@@ -15,12 +15,10 @@ from transformers.utils import ModelOutput
 from tqdm import tqdm
 from typing import Dict, Any, Tuple, List
 from icecream import ic
-from rdkit import Chem, RDLogger
-from data_utils import SpectroDataset, SpectroDataCollator, build_single_datapipe
+from rdkit import Chem
+from data_utils import SpectroDataset, SpectroDataCollator
 # from bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
-
-RDLogger.DisableLog('rdApp.*')
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -28,14 +26,13 @@ app = typer.Typer(pretty_exceptions_enable=False)
 def open_files(output_folder: Path, 
                checkpoint: Path, 
                dataset_config: Dict[str, Any],
-               data_range: str,
                additional_info: str = "") -> Tuple[Path, Path]:
     """Opens log and predictions files and returns their handles"""
     timestamp = time.time()
     model_name = checkpoint.parent.name
     run_name = str(round(timestamp)) + \
         "_" + dataset_config["data_split"]
-    run_name += (f"_{data_range}") if data_range else "_full"   
+    run_name += ("_" +  dataset_config["data_range"]) if dataset_config["data_range"] else "_full"   
     run_name += ("_" + additional_info) if additional_info else ""
     
     run_folder = output_folder / model_name / dataset_config["dataset_name"] / run_name
@@ -118,7 +115,6 @@ def main(
     checkpoint: Path = typer.Option(..., dir_okay=True, file_okay=True, readable=True, help="Path to the checkpoint file"),
     output_folder: Path = typer.Option(..., dir_okay=True, file_okay=True, exists=False, writable=True, help="Path to the folder where the predictions will be saved"),
     config_file: Path = typer.Option(..., dir_okay=False, file_okay=True, exists=True, readable=True, help="File with all the needed configurations"),
-    data_range: str = typer.Option("", help="Range of data to generate predictions for. Format: <start>:<end>"),
 ) -> None:
 
     for i in range(torch.cuda.device_count()):
@@ -137,27 +133,27 @@ def main(
     start_time = time.time()
     config["start_loading_time"] = timestamp_to_readable(start_time)
     
+    tokenizer_path = config["tokenizer"]["tokenizer_path"]
     batch_size = dataloader_config["batch_size"]
-    if batch_size != 1:
-        raise ValueError("For different batch sizes the prediction gives wrong results. Please set batch_size=1")
     device = general_config["device"]
+    data_range_str = dataset_config["data_range"]
     additional_info = general_config["additional_naming_info"]
     
-    datapipe = build_single_datapipe(dataset_config["data_path"],
-                                     shuffle=False,
-                                     )
-    if data_range:
-        data_range_min, data_range_max = list(map(int, data_range.split(":")))
+    dataset = SpectroDataset(dataset_config["data_path"], eval_mode=True)
+    if data_range_str:
+        data_range = range(*map(int, data_range_str.split(":")))
     else:
-        data_range_min, data_range_max = None, None
+        data_range = range(len(dataset))
+    dataset = torch.utils.data.Subset(dataset, data_range)
+
 
     # set output files
-    log_file, predictions_file = open_files(output_folder, checkpoint, dataset_config, data_range, additional_info)
+    log_file, predictions_file = open_files(output_folder, checkpoint, dataset_config, additional_info)
 
     model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.generation_config.length_penalty = generation_config["length_penalty"]
-    tokenizer = Tokenizer.from_file(config["tokenizer_path"])
-    loader = torch.utils.data.DataLoader(datapipe, **dataloader_config, collate_fn=SpectroDataCollator(eval_mode=True), drop_last=False, shuffle=False) # type: ignore
+    tokenizer = Tokenizer.from_file(tokenizer_path)
+    loader = torch.utils.data.DataLoader(dataset, **dataloader_config, collate_fn=SpectroDataCollator(eval_mode=True), drop_last=False, shuffle=False) # type: ignore
 
     decoder_input_token = generation_config.pop("decoder_input_token", "")
     decoder_input_ids = prepare_decoder_input(decoder_input_token, tokenizer, batch_size)
@@ -170,14 +166,7 @@ def main(
     model.eval()
     model.to(device)
     with torch.no_grad():
-        for i, batch in tqdm(enumerate(loader)):
-            # take care of data range since datapipe has no len()
-            if data_range_min is not None and i < data_range_min:
-                continue
-            if data_range_max is not None and i >= data_range_max:
-                break
-            
-            # proceed with generation
+        for batch in tqdm(loader):
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
             with torch.no_grad():
@@ -210,9 +199,9 @@ def main(
     
     predictions_file.close()
     log_config = {
-        "finished_time_utc": timestamp_to_readable(finished_time),
+        "finished_time": timestamp_to_readable(finished_time),
         "generation_time": f"{hours_minutes_seconds(finished_time - start_generation_time)}",
-        "wall_time_utc": f"{hours_minutes_seconds(finished_time - start_time)}"}
+        "wall_time": f"{hours_minutes_seconds(finished_time - start_time)}"}
     yaml.dump(log_config, log_file)
     log_file.close()
 
