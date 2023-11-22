@@ -1,7 +1,10 @@
+# NIST split created by FILIP JOZEFOV's notebook Noteboks/data_preprocessing.ipynb
+- NIST20 without identifiable spectra (~60k)
+- train:valid:test split -> 0.8:0.1:0.1
+
 ## This dataset is created by the following steps:
-1. Create msp splits using FILIP JOZEFOV's notebook data/nist_cleaning_splitting.ipynb
+1. Create msp splits using FILIP JOZEFOV's notebook Noteboks/data_preprocessing.ipynb
    - it dorps ~60k spectra that don't have some form of proper identifier (smiles, inchikey)
-   - split 0.8:0.1:0.1
 2. Create jsonl files by the function msp_file_to_jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
 
 ```python
@@ -21,23 +24,23 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
 
 # PREPROCESSING STATS
  - test.jsonl
-   0 no smiles
-   52 smiles too long
-   0 spectra corrupted
-   780 spectra w/ too high mz
-   2463 spectra w/ too many peaks
-   totally 3295 issues
-   discarded 2957/29218 spectra 
-   LENGTH: 26261
+    0 no smiles
+    48 smiles too long
+    1 spectra corrupted
+    697 spectra w/ too high mz
+    2267 spectra w/ too many peaks
+    totally 3013 issues
+    discarded 2693/26365 spectra
+    LENGTH: 23870
  - valid.jsonl
-   0 no smiles
-   55 smiles too long
-   0 spectra corrupted
-   709 spectra w/ too high mz
-   2339 spectra w/ too many peaks
-   totally 3103 issues
-   discarded 2809/29053 spectra 
-   LENGTH: 26244
+    0 no smiles
+    39 smiles too long
+    1 spectra corrupted
+    663 spectra w/ too high mz
+    2205 spectra w/ too many peaks
+    totally 2908 issues
+    discarded 2623/26493 spectra
+    LENGTH: 23870
  - train.jsonl
     0 no smiles
     406 smiles too long
@@ -47,4 +50,3 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
     totally 26650 issues
     discarded 24049/237455 spectra
     LENGTH: 213406
-
