@@ -3,9 +3,9 @@ data/**/*.pkl
 data/**/*.jsonl
 data/**/*.smi
 data/**/*.msp
+data/**/*.sel
 data/**/*.SIF
 data/**/*.log
-data/**/*.sel
 data/deprecated/*
 
 data/categorized
@@ -22,7 +22,7 @@ RLHF/**
 
 # big files
 data/categorized_michal.csv
-
+predictions/**/*.jsonl
 
 # temporary files
 **/.ipynb_checkpoints/**
