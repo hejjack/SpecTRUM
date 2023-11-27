@@ -1,5 +1,11 @@
-python evaluate_predictions.py --predictions-path predictions/bart_2023-04-07-18_27_23_30Mneims/30M/1692145425_valid_100000:110000/predictions.jsonl \
-                               --config-path configs/evaluate_config.yaml 
+# python ../evaluate_predictions.py --predictions-path ../predictions/fresh-blaze-258_4_8M_rassp1_neims1_224kPretrain/NIST_denovo/1697808199_valid_0:9248_beam10/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
+#                                   --do-denovo
 
-# python evaluate_predictions.py --predictions-path predictions/bart_2023-04-07-18_27_23_30Mneims/DEBUG/1692111465_valid_0:50_ahoj/predictions.jsonl \
-#                                --config-path configs/evaluate_config.yaml 
+# python ../evaluate_predictions.py --predictions-path ../predictions/fresh-blaze-258_4_8M_rassp1_neims1_224kPretrain/NIST_denovo/1697801918_valid_0:50_beam10/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
+#                                   --do-denovo
+
+python ../evaluate_predictions.py --predictions-path ../predictions/fresh-blaze-258_4_8M_rassp1_neims1_224kPretrain/NIST_denovo/1697816331_valid_full_beam10/predictions.jsonl \
+                                  --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
+                                  --do-denovo
