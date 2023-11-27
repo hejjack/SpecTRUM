@@ -1,5 +1,5 @@
 ## This dataset is created by the following steps:
-1. Create msp splits using FILIP JOZEFOV's notebook data/nist_cleaning_splitting.ipynb
+1. Create msp splits using my updated version of FILIP JOZEFOV's notebook data/nist_cleaning_splitting.ipynb
    - it dorps ~60k spectra that don't have some form of proper identifier (smiles, inchikey)
    - split 0.8:0.1:0.1
 2. Create jsonl files by the function msp_file_to_jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
