@@ -80,7 +80,7 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, outfile_p
     return pd.Series(best_indexes), pd.Series(best_spec_simils, dtype=np.float64), pd.Series(best_smiles_simils, dtype=np.float64)
 
 
-def denovo_preprocess_mp(df_reference, df_query, outfile_path, num_processes=1):
+def denovo_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, num_processes=1):
     # create fingerprints and spectra fo reference dataset
     ref_spectra = [Spectrum(mz=np.array(ref_row.mz),
                             intensities=np.array(ref_row.intensity),
@@ -95,8 +95,7 @@ def denovo_preprocess_mp(df_reference, df_query, outfile_path, num_processes=1):
     idxs = np.array_split(np.arange(len(df_query)), num_processes)
     
     # create file names
-    outfile_path = Path(outfile_path)
-    outfile_paths = [outfile_path.parent / f"{outfile_path.stem}_{i}{outfile_path.suffix}" for i in range(num_processes)]
+    tmp_paths = [tmp_folder_path / f"{outfile_path.stem}_{i}{outfile_path.suffix}" for i in range(num_processes)]
 
     # run multiprocess
     print("STARTING MULTIPROCESSING")
@@ -106,7 +105,7 @@ def denovo_preprocess_mp(df_reference, df_query, outfile_path, num_processes=1):
                                                            args=(df_query.iloc[idxs[i]], 
                                                                  ref_spectra,
                                                                  ref_fps,
-                                                                 outfile_paths[i]),
+                                                                 tmp_paths[i]),
                                                            kwargs=dict(process_id=i))
     for process in processes.values():
         process.start()
@@ -117,7 +116,7 @@ def denovo_preprocess_mp(df_reference, df_query, outfile_path, num_processes=1):
     print("CONCATENATING FILES")
     with open(outfile_path, "w+") as outfile:
         for i in range(num_processes):
-            with open(outfile_paths[i], "r") as f:
+            with open(tmp_paths[i], "r") as f:
                     for line in f:
                         outfile.write(line)
     
@@ -135,5 +134,13 @@ if __name__ == "__main__":
     df_reference = pd.read_json(args.reference, lines=True, orient="records")
     df_query = pd.read_json(args.query, lines=True, orient="records")
 
+    # create dirs
+    outfile_path = Path(args.outfile)
+    query_path = Path(args.query)
+    outfile_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_folder_path = outfile_path.parent / f"tmp_{query_path.stem}"
+    tmp_folder_path.mkdir(parents=True, exist_ok=True)
+
+
     # run precompute
-    denovo_preprocess_mp(df_reference, df_query, args.outfile, args.num_processes)
+    denovo_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, args.num_processes)
