@@ -176,8 +176,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         model = BartSpektroForConditionalGeneration(bart_spectro_config)
     model.to(device)
     ######
-    # ic("model embedding shape", model.model.encoder.embed_tokens.weight.shape) ####
-    # ic("tokenizer vocab size: ", len(tokenizer.get_vocab()))
+    ic("model embedding shape", model.model.encoder.embed_tokens.weight.shape) ####
+    ic("tokenizer vocab size: ", len(tokenizer.get_vocab()))
+    return
     ######
 
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

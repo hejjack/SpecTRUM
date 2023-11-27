@@ -40,11 +40,10 @@ msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
    LENGTH: 26244
  - train.jsonl
     0 no smiles
-    406 smiles too long
-    14 spectra corrupted
-    6004 spectra w/ too high mz
-    20226 spectra w/ too many peaks
-    totally 26650 issues
-    discarded 24049/237455 spectra
-    LENGTH: 213406
-
+    406 smiles too long              ??? deprecated
+    14 spectra corrupted             ??? deprecated
+    6004 spectra w/ too high mz      ??? deprecated
+    20226 spectra w/ too many peaks  ??? deprecated
+    totally 26650 issues             ??? deprecated
+    discarded 24049/237455 spectra   ??? deprecated
+    LENGTH: 208448                   CORRECT       
