@@ -61,7 +61,8 @@ def build_tokenizer(tokenizer_path: str) -> PreTrainedTokenizerFast:
 
 
 def get_spectro_config(model_args: Dict, tokenizer: PreTrainedTokenizerFast) -> BartSpektroConfig:
-    return BartSpektroConfig(vocab_size=len(tokenizer.get_vocab()),
+    return BartSpektroConfig(separate_encoder_decoder_embeds=model_args["separate_encoder_decoder_embeds"],
+                             vocab_size=len(tokenizer.get_vocab()),
                              max_position_embeddings=model_args["seq_len"],
                              max_length=model_args["seq_len"],
                              max_mz=model_args["max_mz"],

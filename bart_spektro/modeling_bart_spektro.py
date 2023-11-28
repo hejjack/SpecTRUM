@@ -28,6 +28,7 @@ from torch.nn import CrossEntropyLoss
 import torch.utils.checkpoint
 import math
 import random
+import warnings
 
 
 @dataclass
@@ -161,8 +162,18 @@ class BartSpektroEncoder(BartPretrainedModel):
         if embed_tokens is not None:
             self.embed_tokens = embed_tokens
         else:
-            num_embeddings = config.max_mz + 1 if hasattr(config, "max_mz") else config.vocab_size # for compatibility with previous bugged models - Adam customization
-            self.embed_tokens = nn.Embedding(num_embeddings, embed_dim, self.padding_idx) # Adam customization
+            # Adam - if user wants one dictionary for each encoder and decoder (specified in config with separate_encoder_decoder_embeds=True)
+            # he also needs to specify max_mz (size of the dictionary for encoder). vocab_size is used only for decoder then. 
+            # if separate_encoder_decoder_embeds=False, or the parameter is missing the execution didn't get here from BartSpektroModel
+            # should be compatible with previous models with one tied dict
+            if hasattr(config, "separate_encoder_decoder_embeds") and config.separate_encoder_decoder_embeds == True: # all fine
+                if hasattr(config, "max_mz") and config.max_mz != None:
+                    num_embeddings = config.max_mz + 1
+                    self.embed_tokens = nn.Embedding(num_embeddings, embed_dim, self.padding_idx) # Adam customization
+                else:
+                    raise ValueError("config.max_mz must be set for BartSpektroEncoder to have separated embeddings (it denotes the size of the dictionary for encoder)")
+            else:
+                raise ValueError("This adjusted BartSpektroEncoder shouldn't be used appart from BartSpektroModel. Use BartEncoder instead.")
         
         if config.max_log_id:
             self.embed_positions = BartSpektroLearnedPositionalEmbedding(
@@ -327,8 +338,17 @@ class BartSpektroModel(BartPretrainedModel):
     def __init__(self, config: BartSpektroConfig):
         super().__init__(config)
 
-        self.encoder = BartSpektroEncoder(config)
-        self.decoder = BartDecoder(config)
+        # this branch is also for older models before adding separate_encoder_decoder_embeds 
+        # separate_encoder_decoder_embeds is None - old models
+        # separate_encoder_decoder_embeds is False - new models that don't want to be separated
+        if not hasattr(config, "separate_encoder_decoder_embeds") or not config.separate_encoder_decoder_embeds:
+            print("WARNING: This model is using   O N E   dictionary both for encoder and decoder.")
+            self.shared = nn.Embedding(config.vocab_size, config.d_model, config.pad_token_id)
+        else:
+            print("WARNING: This model is using   T W O   dictionaries - one for encoder, one for decoder.")
+            self.shared = None
+        self.encoder = BartSpektroEncoder(config, embed_tokens=self.shared)  # Adam - removed creating shared embeddings and passing them to both parts
+        self.decoder = BartDecoder(config, embed_tokens=self.shared)         # Adam - removed creating shared embeddings and passing them to both parts
 
         # Initialize weights and apply final processing
         self.post_init()
