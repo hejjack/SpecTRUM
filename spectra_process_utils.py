@@ -34,8 +34,8 @@ def preprocess_spectrum(s: Spectrum,
                         tokenizer,
                         source_token: str,
                         seq_len=200,
-                        max_mol_repr_len=100,
-                        max_mz=500,
+                        max_smiles_len=100,
+                        max_mz=500,     # NIST min_mz is 1.0, that's why we set it to 500
                         log_base=1.7,
                         log_shift=9,
                         max_cumsum=None,
@@ -104,7 +104,7 @@ def preprocess_spectrum(s: Spectrum,
         # destereothing ???
 
     # filter high MZ
-    if s.peaks.mz[-1] > max_mz:
+    if max(s.peaks.mz) > max_mz:
         goes_out = 1
         error_dict["high_mz"] = True
 
