@@ -16,7 +16,7 @@ data_args:
 model_args:
   tokenizer_path: "selfies_tokenizer" # not a path just for the trainer to know it should use sefies tokenizer 
   seq_len: 200
-  max_mz: 499
+  max_mz: 499    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
