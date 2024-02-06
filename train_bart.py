@@ -134,7 +134,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     example_gen_args = config["example_generation_args"]
     tokenizer_path = model_args["tokenizer_path"]
     use_wandb = hf_training_args["report_to"] == "wandb"
-    
+
     ##################### set bs and gas ###################### # TODO move to a function
     ### set bs and gas    
     gpu_ram = torch.cuda.get_device_properties(0).total_memory
@@ -164,10 +164,10 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         elif bart_size == "base":
             if gpu_ram > 70*1e9:               # 80GB
                 possible_to_fit_on_gpu = 128
-                possible_to_fit_on_gpu_eval = 64
+                possible_to_fit_on_gpu_eval = 64  
             else:                              # 40GB
                 possible_to_fit_on_gpu = 64
-                possible_to_fit_on_gpu_eval = 32
+                possible_to_fit_on_gpu_eval = 32  
         else:
             raise ValueError("bart_size must be provided in hf_training_args if auto_bs is True")    
 
@@ -203,7 +203,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     print(f"> num of GPUs: {num_gpu}")
     print(f"> GPU RAM: {gpu_ram}")
     ###########################################################
-        
+    
+    
     # set the name for metric choosing the best model (add chosen dataset name)
     if dataset_args.get("dataset_for_choosing_best_model", None):
         hf_training_args["metric_for_best_model"] = enrich_best_metric_name(hf_training_args["metric_for_best_model"], 
