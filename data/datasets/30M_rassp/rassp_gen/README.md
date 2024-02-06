@@ -5,7 +5,7 @@ WARNING! : this dataset was used for the initial set of experiments before disco
 
 This dataset is created by the following steps:
 1. Get the 30M_rassp.smi (A.Krenek's filtering method used on a 30M ZINC slice dataset)
-2. feed this to run_neims_preprocess.sh in a following way:
+2. feed this to msp_preprocess_rassp.py in a following way:
 
 ```bash
 python msp_preprocess_rassp.py --input-dir datasets/30M_rassp/rassp_gen/msps \

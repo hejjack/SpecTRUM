@@ -8,15 +8,15 @@
 from spectra_process_utils import msp_file_to_jsonl
 from pathlib import Path
 
-dataset_path = Path("data/datasets/NIST/NIST_split_filip")
-dataset_type = "train"
-source_token = "<nist>"
-msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
-                tokenizer_path,
-                source_token,
-                path_jsonl=dataset_path / f"{dataset_type}.jsonl",
-                keep_spectra=True
-                )
+for dataset_type in ["train", "valid", "test"]:
+    dataset_path = Path("data/datasets/NIST/NIST_split_filip")
+    source_token = "<nist>"
+    msp_file_to_jsonl(dataset_path / f"{dataset_type}.msp",
+                    tokenizer_path,
+                    source_token,
+                    path_jsonl=dataset_path / f"{dataset_type}.jsonl",
+                    keep_spectra=True
+                    )
 ```
 
 # PREPROCESSING STATS
