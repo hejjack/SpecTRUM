@@ -35,6 +35,7 @@ model_args:
   tokenizer_path: "../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model"
   seq_len: 200
   max_mz: 499    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
+  separate_encoder_decoder_embeds: True
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
@@ -63,10 +64,9 @@ hf_training_args:
   warmup_steps: 1000
 
   learning_rate: 0.00005
-  per_device_train_batch_size: 128
-  gradient_accumulation_steps: 1
-  per_device_eval_batch_size: 64
-  eval_accumulation_steps: 1
+  auto_bs: True   # works well for BART base, computes GPU bs and gas based on effective bs, num GPUs and card memory
+  effective_train_batch_size: 128
+  effective_eval_batch_size: 128
 
   dataloader_num_workers: 6
   dataloader_drop_last: False
@@ -86,7 +86,7 @@ hf_training_args:
 
   save_steps: 4896 ### make it match (4896 ~ approx 3*full NIST dataset)
   save_strategy: "steps"
-  save_total_limit: 5
+  save_total_limit: 3
 
   load_best_model_at_end: True
   metric_for_best_model: "eval_cos_simil"
