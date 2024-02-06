@@ -189,13 +189,15 @@ def load_all_datapipes(data_args: Dict[str, Any]) -> Dict[str, IterDataPipe]:
                                                shuffle=False,
                                                buffer_size=buffer_size,
                                                limit=limit)
-                   for name, path, limit in zip(dataset_names, valid_paths, limit_val_splits)}
+                   for name, path, limit in zip(dataset_names, valid_paths, limit_val_splits)
+                   if limit != 0}
     example_pipes = {name: build_single_datapipe(path, 
                                                  shuffle=False,
                                                  buffer_size=buffer_size,
                                                  limit=limit)
-                     for name, path, limit in zip(dataset_names, valid_paths, limit_example_splits)}
-
+                     for name, path, limit in zip(dataset_names, valid_paths, limit_example_splits) 
+                     if limit != 0}
+ 
     datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False, seed=seed)
     datapipes["valid"] = valid_pipes
     datapipes["example"] = example_pipes
