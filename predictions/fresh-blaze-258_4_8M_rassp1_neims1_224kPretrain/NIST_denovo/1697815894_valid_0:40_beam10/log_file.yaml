@@ -27,7 +27,7 @@ tokenizer_path: ../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model
 finished_time_utc: 20/10/2023 15:32:08
 generation_time: 00:00:31
 wall_time_utc: 00:00:34
-evaluation:
+evaluation_0:
   counter_datapoints_tested: '40'
   counter_empty_preds: '0'
   counter_fp_simil_fails_preds: '5'

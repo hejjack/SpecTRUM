@@ -18,8 +18,9 @@ from datetime import datetime
 from collections.abc import Iterator
 
 
-from data_utils import build_single_datapipe, filter_datapoints
+from data_utils import build_single_datapipe, filter_datapoints, range_filter
 from spectra_process_utils import get_fp_generator, get_simil_function
+from general_utils import move_file_pointer, line_count, dummy_generator
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -44,15 +45,6 @@ def parse_predictions_path(predictions_path: pathlib.Path) -> tuple:
     return data_name, data_split, data_range
 
 
-def range_filter(data_range: range) -> Callable[[Any], bool]:
-   count = data_range.start
-   def f(_: Any) -> bool:
-        nonlocal count 
-        count += 1
-        return count <= data_range.stop
-   return f
-
-
 def load_labels_from_dataset(dataset_path: pathlib.Path, 
                              data_range: range, 
                              do_denovo: bool = False,
@@ -62,7 +54,7 @@ def load_labels_from_dataset(dataset_path: pathlib.Path,
     df = pd.read_json(dataset_path, lines=True, orient="records")
     if not data_range:
         data_range = range(len(df))
-    df_ranged = df.iloc[data_range] # TODO
+    df_ranged = df.iloc[data_range.start:data_range.stop] # TODO
     simles_list = df_ranged["smiles"].tolist()
     
     smiles_sim_of_closest = None
@@ -102,31 +94,10 @@ def load_labels_to_datapipe(dataset_path: pathlib.Path,
     return smiles_datapipe, smiles_sim_of_closest_datapipe if do_denovo else None
 
 
-def move_file_pointer(num_lines: int, file_pointer: TextIOWrapper) -> None:
-    """Move the file pointer a specified number of lines forward"""
-    for _ in range(num_lines):
-        file_pointer.readline()
-
-
 def update_counter(sorted_simil: np.ndarray, all_simils: dict) -> None:
     """Add simil values to lists with the same index as their ranking"""
     for i, simil in enumerate(sorted_simil):
         all_simils[i].append(simil)
-
-
-def line_count(file_path: pathlib.Path):
-    """Count number of lines in a file"""
-    f = open(file_path, "r")
-    file_len =  sum(1 for _ in f)
-    f.close()
-    return file_len
-
-
-def dummy_generator():
-    i = 0
-    while True:
-        yield i
-        i += 1
 
 
 def diagram_from_dict(d: dict, title: str): # TODO: rename
@@ -141,6 +112,14 @@ def diagram_from_dict(d: dict, title: str): # TODO: rename
     return fig
 
 
+def get_eval_tag(old_logs: dict) -> str:
+    """Get the evaluation tag for the eval new logs"""
+    if not old_logs.get("evaluation_0", False):
+        return "evaluation_0"
+    else:
+        return f"evaluation_{max([int(key.split('evaluation_')[1]) for key in old_logs.keys() if 'evaluation' in key]) + 1}"
+
+
 @app.command()
 def main(
     predictions_path: pathlib.Path = typer.Option(..., dir_okay=False, file_okay=True, readable=True, help="Path to the jsonl file with caption predictions"),
@@ -153,6 +132,7 @@ def main(
         config = yaml.safe_load(f)
     do_denovo = config["do_denovo"]
     on_the_fly = config["on_the_fly"]
+
 
     data_name, data_split, data_range = parse_predictions_path(predictions_path)
     num_lines_predictions = line_count(predictions_path)
@@ -194,8 +174,9 @@ def main(
 
     
     parent_dir = predictions_path.parent
+    log_file_path = parent_dir / "log_file.yaml"
     pred_f = predictions_path.open("r")
-    log_file = (parent_dir / "log_file.yaml").open("a+")
+    log_file = (log_file_path).open("a+")
     fp_simil_fails_f = (parent_dir / f"fp_simil_fails_{fp_simil_args_info}.csv").open("w+")
     fp_simil_fails_f.write("pred,label\n")
     pred_jsonl = {}
@@ -215,15 +196,19 @@ def main(
     counter_fp_simil_fails_preds = 0 # number of situations when fingerprint similarity is 1 for different molecules
 
 
-    for _ in tqdm(dummy_generator()):  # basically a while True
+    for i in tqdm(dummy_generator()):  # basically a while True
         pred_jsonl = pred_f.readline()
         if not pred_jsonl:
             break
         preds = json.loads(pred_jsonl)
         gt_smiles = next(labels_iterator)
         pred_smiless = list(preds.keys())
+        pred_mols = [Chem.MolFromSmiles(smiles) for smiles in pred_smiless]
+        pred_fps = [fpgen.GetFingerprint(mol) for mol in pred_mols if mol is not None]
 
-        if not preds:
+        if not preds or not pred_fps:
+            if preds and not pred_fps:
+                print(f"WARNING: No valid prediction out of {len(pred_mols)} for {gt_smiles}, line {i}")
             counter_empty_preds += 1
             simil_all_simils[0].append(0)
             prob_all_simils[0].append(0)
@@ -234,22 +219,12 @@ def main(
                 prob_best_smiless.append(None)
             continue
 
-        # original way: daylight fingerprint (path-based) tanimoto similarity
-        # pred_mols = [Chem.MolFromSmiles(smiles) for smiles in preds.keys()]
-        # gt_mol = Chem.MolFromSmiles(gt_smiles)
-        # pred_fps = [Chem.RDKFingerprint(mol) for mol in pred_mols]
-        # gt_fp = Chem.RDKFingerprint(gt_mol)
-        # smiles_simils = [DataStructs.FingerprintSimilarity(fp, gt_fp) for fp in pred_fps]
-
-        # new: adjustable by config
-        pred_mols = [Chem.MolFromSmiles(smiles) for smiles in pred_smiless]
         gt_mol = Chem.MolFromSmiles(gt_smiles)
-        pred_fps = [fpgen.GetFingerprint(mol) for mol in pred_mols]
         gt_fp = fpgen.GetFingerprint(gt_mol)
         smiles_simils = [simil_function(fp, gt_fp) for fp in pred_fps]
 
 
-        prob_simil = np.stack(np.array(list(zip(preds.values(), smiles_simils))))
+        prob_simil = np.stack(list(zip(preds.values(), smiles_simils)))
 
         simil_decreasing_index = np.argsort(-prob_simil[:, 1])
         prob_decreasing_index = np.argsort(-prob_simil[:, 0])
@@ -268,8 +243,8 @@ def main(
         if config["save_best_predictions"]:
             if save_best_to_new_df:
                 all_gt_smiless.append(gt_smiles)
-                simil_best_smiless.append(pred_smiless[simil_decreasing_index[0]])
-                prob_best_smiless.append(pred_smiless[prob_decreasing_index[0]])
+            simil_best_smiless.append(pred_smiless[simil_decreasing_index[0]])
+            prob_best_smiless.append(pred_smiless[prob_decreasing_index[0]])
     
     simil_average_simil_kth = [mean(simil_all_simils[k]) for k in sorted(simil_all_simils.keys())]
     prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
@@ -309,7 +284,10 @@ def main(
         df_best_predictions[f"prob_best_simil_{fp_simil_args_info}"] = prob_all_simils[0]
         df_best_predictions.to_json(parent_dir / "df_best_predictions.jsonl", lines=True, orient="records")
 
-    logs = {"evaluation":
+    with open(log_file_path, "r", encoding="utf-8") as f:
+        old_logs = yaml.safe_load(f)
+    eval_tag = get_eval_tag(old_logs)
+    logs = {eval_tag:
             {"eval_config": config,
              "topk_similsort": str(simil_average_simil_kth),
              "topk_probsort": str(prob_average_simil_kth),
@@ -338,7 +316,7 @@ def main(
         fig_prob_preds_minus_closest = px.histogram(x=prob_preds_minus_closest, nbins=100, labels={'x':'FPSD score (FingerPrintSimilDiff)', 'y':'count'})
         fig_simil_preds_minus_closest.write_image(str(parent_dir / f"fpsd_score_similsort_{fp_simil_args_info}.png"))
         fig_prob_preds_minus_closest.write_image(str(parent_dir / f"fpsd_score_probsort_{fp_simil_args_info}.png"))
-        logs["evaluation"]["denovo"] = {"mean_fpsd_score_similsort": str(simil_preds_minus_closest.mean()),
+        logs[eval_tag]["denovo"] = {"mean_fpsd_score_similsort": str(simil_preds_minus_closest.mean()),
                                         "mean_fpsd_score_probsort": str(prob_preds_minus_closest.mean()),
                                         "mean_db_score": str(smiles_sim_of_closest.mean()),
                                         "percentage_of_BART_wins_similsort": str(sum(simil_preds_minus_closest > 0) / len(simil_preds_minus_closest)),

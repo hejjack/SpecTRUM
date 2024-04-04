@@ -1,5 +1,5 @@
 origin: "taken from predictions/tough-jazz-406_rassp1_neims1_200pt_200ft/NIST_denovo/1711198592_valid_full and filtered to 200peaks with filter_predictions function"
-evaluation:
+evaluation_0:
   counter_datapoints_tested: '26244'
   counter_empty_preds: '4'
   counter_fp_simil_fails_preds: '1854'

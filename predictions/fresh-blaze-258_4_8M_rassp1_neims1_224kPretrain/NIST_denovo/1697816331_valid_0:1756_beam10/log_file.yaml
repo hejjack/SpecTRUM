@@ -23,7 +23,7 @@ generation_args:
   top_p: null
 start_loading_time: 20/10/2023 15:38:50
 tokenizer_path: ../tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model
-evaluation:
+evaluation_0:
   counter_datapoints_tested: '1756'
   counter_empty_preds: '0'
   counter_fp_simil_fails_preds: '155'
@@ -47,7 +47,7 @@ evaluation:
   topk_similsort: '[0.8113947503349535, 0.6808111473473591, 0.6151341581187286, 0.5611693876128468,
     0.5115194801389636, 0.4705767060385639, 0.42673921410092613, 0.3848718150203687,
     0.3475988338085275, 0.31113965390980874]'
-evaluation:
+evaluation_1:
   counter_datapoints_tested: '1756'
   counter_empty_preds: '0'
   counter_fp_simil_fails_preds: '155'
