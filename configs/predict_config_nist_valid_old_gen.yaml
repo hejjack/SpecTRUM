@@ -1,6 +1,6 @@
 general:
   device: cuda # cpu/cuda
-  additional_naming_info: "beam10_peaks200" # optional, st
+  additional_naming_info: "beam10_peaks300" # optional, st
 
 dataset:
   data_path: "../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl" # REQUIRED!
@@ -30,7 +30,7 @@ preprocess_args:
     "restrict_intensities": False
     "inference_mode": False # test.. True
     "keep_all_columns": True # test smaz
-    "max_num_peaks": 200
+    "max_num_peaks": 300
     "max_mol_repr_len": 100
     "max_mz": 500
     "mol_repr": "smiles"

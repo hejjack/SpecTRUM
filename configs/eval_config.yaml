@@ -4,7 +4,7 @@ save_best_predictions: True  # Whether to save df with similarities of all the b
                      # saves a lot of extra data (50MB for NIST valid set)
 
 filtering_args:  # if you don't specify these, default ones are used
-  max_num_peaks: 200
+  max_num_peaks: 300
   max_mz: 500
   max_mol_repr_len: 100
   mol_repr: "smiles"

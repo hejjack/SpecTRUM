@@ -1,6 +1,6 @@
 general:
   device: cuda # cpu/cuda
-  additional_naming_info: "" # optional, st
+  additional_naming_info: "beam10_peaks300" # optional, st
 
 dataset:
   data_path: "../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl" # REQUIRED!

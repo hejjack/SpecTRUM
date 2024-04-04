@@ -10,6 +10,6 @@
 #                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
 #                                   --config-file ../configs/eval_config.yaml \
 
-python ../evaluate_predictions.py --predictions-path ../predictions/tough-jazz-406_rassp1_neims1_200pt_200ft/NIST_denovo/1711198593_valid_full_200peaks/predictions.jsonl \
+python ../evaluate_predictions.py --predictions-path ../predictions/efficient-frog-407_rassp1_neims1_200pt_300ft/NIST_denovo/1711198715_valid_full_beam10_200peaks/predictions.jsonl \
                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
-                                  --config-file ../configs/eval_config.yaml \
+                                  --config-file ../configs/eval_config_200peaks.yaml \

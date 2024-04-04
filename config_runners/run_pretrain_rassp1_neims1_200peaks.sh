@@ -3,3 +3,5 @@ CUDA_VISIBLE_DEVICES=0 python ../train_bart.py --config-file ../configs/train_co
                     --additional-info "_rassp1_neims1_200peaks_masks" \
                     --additional-tags "A100:scratch:RASSP1NEIMS1:meta" \
                     --wandb-group pretrain \
+                    --resume-id rq6i690z \
+                    --checkpoint ../checkpoints/pretrain/eager-sunset-413_rassp1_neims1_200peaks_masks/checkpoint-48000
