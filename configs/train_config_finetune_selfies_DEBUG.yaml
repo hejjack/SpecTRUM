@@ -11,7 +11,7 @@ data_args:
       limit_train_split: null  # null for full; limit of head from valid set chosen for validation split
       limit_val_split: null     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
-      source_token: "[nist]"
+      source_token: "<nist>"
 
 model_args:
   tokenizer_path: "selfies_tokenizer" # not a path just for the trainer to know it should use sefies tokenizer 
