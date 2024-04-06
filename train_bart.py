@@ -1,5 +1,4 @@
 import os
-import time
 import wandb
 from pathlib import Path
 import torch
@@ -19,15 +18,9 @@ from data_utils import SpectroDataCollator, load_all_datapipes
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.selfies_tokenizer import hardcode_build_selfies_tokenizer
-
+from general_utils import get_nice_time, build_tokenizer
 
 app = typer.Typer()
-
-
-def get_nice_time():
-    now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    now = now.replace(":", "_").replace(" ", "-")
-    return now
 
 
 def enrich_best_metric_name(metric_name: str, dataset_name: str) -> str:
@@ -36,17 +29,6 @@ def enrich_best_metric_name(metric_name: str, dataset_name: str) -> str:
     metric_name = "_".join(subnames)
     return metric_name
 
-
-def build_tokenizer(tokenizer_path: str) -> transformers.PreTrainedTokenizerFast:
-    bpe_tokenizer = Tokenizer.from_file(tokenizer_path)
-
-    tokenizer = transformers.PreTrainedTokenizerFast(tokenizer_object=bpe_tokenizer,
-                                        bos_token="<bos>",
-                                        eos_token="<eos>",
-                                        unk_token="<unk>",
-                                        pad_token="<pad>",
-                                        is_split_into_words=True)
-    return tokenizer
 
 def set_batch_size(hf_training_args: Dict):
     """
@@ -136,7 +118,7 @@ def set_batch_size(hf_training_args: Dict):
 
 def freeze_model(model, train_using_peft, train_fc1_only, clever_freeze):
     if train_using_peft:
-        peft_config = peft.get_peft_config(peft_config_dict)
+        peft_config = peft.get_peft_config(peft_config_dict) # not working yet (wasn't tested)
         model = peft.get_peft_model(model, peft_config)
 
     if train_fc1_only:
