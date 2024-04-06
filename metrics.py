@@ -81,6 +81,7 @@ class SpectroMetrics:
         if isinstance(preds_all, tuple):
             preds_all = preds_all[0]
 
+
         pad_token_id = self.tokenizer.pad_token_id
         assert pad_token_id is not None
         preds_all = np.where(preds_all != -100, preds_all, pad_token_id)
@@ -88,6 +89,10 @@ class SpectroMetrics:
 
         preds_str_all = self.tokenizer.batch_decode(preds_all, skip_special_tokens=True)
         trues_str_all = self.tokenizer.batch_decode(trues_all, skip_special_tokens=True)
+
+        if isinstance(self.tokenizer, SelfiesTokenizer):
+            preds_str_all = [sf.decoder(x) for x in preds_str_all]
+            trues_str_all = [sf.decoder(x) for x in trues_str_all]
 
         daylight_tanimoto_simils, pred_mols, gt_mols = compute_fp_simils(preds_str_all, trues_str_all, return_mols=True)
         morgan_tanimoto_simils = compute_fp_simils(pred_mols, gt_mols, fp_type="morgan", fp_kwargs={"radius": 2, "fpSize": 2048}, input_mols=True, return_mols=False)

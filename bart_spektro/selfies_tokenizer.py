@@ -76,12 +76,11 @@ class SelfiesTokenizer(PreTrainedTokenizer):
         return self.vocab_size
 
     def _decode(
-    self,
-    token_ids: Union[int, List[int]],
-    skip_special_tokens: bool = False,
-    clean_up_tokenization_spaces: bool = None, # not implemented
-
-    **kwargs,
+        self,
+        token_ids: Union[int, List[int]],
+        skip_special_tokens: bool = False,
+        clean_up_tokenization_spaces: bool = None, # not implemented
+        **kwargs,
     ) -> str:
         if skip_special_tokens:
             special_ids = list(self.special_tokens.values())

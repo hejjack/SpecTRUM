@@ -1,6 +1,6 @@
 {
   "additional_special_tokens": [
-    "[nist]",
+    "<nist>",
     "[rassp]",
     "[neims]",
     "[trafo]",

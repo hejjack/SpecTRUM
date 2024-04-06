@@ -108,7 +108,7 @@ class PredictionLogger(transformers.TrainerCallback):
                 raw_preds_str = tokenizer.batch_decode(preds, skip_special_tokens=False)
                 preds_str = tokenizer.batch_decode(preds, skip_special_tokens=True)
                 labels = batch["labels"][batch["labels"] == -100] = 2 # replace -100 with pad token
-                gts_str = tokenizer.batch_decode(labels, skip_special_tokens=True)
+                gts_str = tokenizer.batch_decode(batch["labels"], skip_special_tokens=True)
                 
                 all_raw_preds.extend(raw_preds_str)
                 all_preds.extend(preds_str)

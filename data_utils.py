@@ -186,7 +186,11 @@ def filter_datapoints(datadict, preprocess_args) -> bool:
         
     # if selfies, encode it
     if preprocess_args["mol_repr"] == "selfies" and canon_mol_repr is not None:
+        try:    
             canon_mol_repr = sf.encoder(canon_mol_repr)        # TODO?? try block?
+        except:
+            # print(f"datapoint_out: Corrupted SMILES: {datadict['smiles']}")
+            return False
 
     # filter high MZ
     if max(datadict["mz"]) > preprocess_args["max_mz"]:

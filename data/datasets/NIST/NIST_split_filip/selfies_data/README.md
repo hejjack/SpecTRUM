@@ -56,7 +56,7 @@ for datatype in ["train", "valid", "test"]:
     smiles_dataset_to_selfies_dataset(f"../data/datasets/NIST/NIST_split_filip/mf100/{datatype}.jsonl", 
                                     f"../data/datasets/NIST/NIST_split_filip/selfies_data/{datatype}.jsonl", 
                                     sel_tokenizer, 
-                                    sel_tokenizer.encode("[nist]")[0])
+                                    sel_tokenizer.encode("<nist>")[0])
 ```
 
 ### PREPROCESSING STATS
