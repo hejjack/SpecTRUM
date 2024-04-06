@@ -1,6 +1,6 @@
 data_args:
   show_raw_preds: True
-  buffer_size: 1 # for shuffling in dataloader
+  buffer_size: 1000000 # for shuffling in dataloader
   data_seed: 42
   shuffle_train: False # True
   dataset_for_choosing_best_model: "nist"
@@ -86,13 +86,13 @@ hf_training_args:
   generation_num_beams: 1
   generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 10 ### make it match
+  eval_steps: 500 ### make it match
 
-  save_steps: 10 ### make it match
+  save_steps: 500 ### make it match
   save_strategy: "steps"
   save_total_limit: 3
 
   load_best_model_at_end: True
-  metric_for_best_model: "eval_cos_simil"
+  metric_for_best_model: "eval_morgan_tanimoto_simil"
   greater_is_better: True
 

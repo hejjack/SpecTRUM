@@ -15,7 +15,7 @@ import selfies as sf
 
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer
-from metrics import compute_cos_simils
+from metrics import compute_fp_simils
 
 
 class PredictionLogger(transformers.TrainerCallback):
@@ -86,7 +86,8 @@ class PredictionLogger(transformers.TrainerCallback):
         all_decoded_labels = []
         all_pred_molecules = []
         all_gt_molecules = []
-        all_simils = []
+        all_daylight_tanimoto_simils = []
+        all_morgan_tanimoto_simils = []
 
         gen_kwargs = self.generate_kwargs.copy()
         gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.encode(source_token)[0]]]
@@ -107,7 +108,7 @@ class PredictionLogger(transformers.TrainerCallback):
                 raw_preds_str = tokenizer.batch_decode(preds, skip_special_tokens=False)
                 preds_str = tokenizer.batch_decode(preds, skip_special_tokens=True)
                 labels = batch["labels"][batch["labels"] == -100] = 2 # replace -100 with pad token
-                gts_str = tokenizer.batch_decode(batch["labels"], skip_special_tokens=True)
+                gts_str = tokenizer.batch_decode(labels, skip_special_tokens=True)
                 
                 all_raw_preds.extend(raw_preds_str)
                 all_preds.extend(preds_str)
@@ -119,8 +120,11 @@ class PredictionLogger(transformers.TrainerCallback):
                     gts_str = [sf.decoder(x) for x in gts_str]
 
                 # compute SMILES simil
-                smiles_simils, pred_mols, gt_mols = compute_cos_simils(preds_str, gts_str, return_mols=True)        
-                all_simils.extend(smiles_simils) # type: ignore
+                daylight_tanimoto_simils, pred_mols, gt_mols = compute_fp_simils(preds_str, gts_str, return_mols=True)        
+                morgan_tanimoto_simils = compute_fp_simils(pred_mols, gt_mols, fp_type="morgan", fp_kwargs={"radius": 2, "fpSize": 2048}, input_mols=True, return_mols=False)
+
+                all_daylight_tanimoto_simils.extend(daylight_tanimoto_simils) # type: ignore
+                all_morgan_tanimoto_simils.extend(morgan_tanimoto_simils) # type: ignore
                 
                 # create images for logging
                 for mol in pred_mols:
@@ -144,14 +148,15 @@ class PredictionLogger(transformers.TrainerCallback):
                                f"predicted_{mol_repr}": all_preds,
                                "gt_molecule": all_gt_molecules,
                                "predicted_molecule": all_pred_molecules,
-                               "cos_simil": all_simils
+                               "daylight_tanimoto_simil": all_daylight_tanimoto_simils,
+                               "morgan_tanimoto_simil": all_morgan_tanimoto_simils
                                })
         if self.show_raw_preds:
             df_log[f"raw_predicted_{mol_repr}"] = all_raw_preds
         table = wandb.Table(dataframe=df_log)
 
         wandb.log({f"eval_tables/{log_prefix}/global_step_{global_step}": table})
-        wandb.log({f"eval/{log_prefix}/example_similarity": sum(all_simils)/len(all_simils)})
+        wandb.log({f"eval/{log_prefix}/example_DLT_similarity": sum(all_daylight_tanimoto_simils)/len(all_daylight_tanimoto_simils)})
 
     def on_step_end(
         self,

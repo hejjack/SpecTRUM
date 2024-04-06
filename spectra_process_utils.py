@@ -417,11 +417,13 @@ def cumsum_filtering(mz: np.ndarray,
     return mz, i
 
 
-def get_fp_generator(fp_type: str):
+def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
     if fp_type == "morgan":
-        fpgen = Chem.AllChem.GetMorganGenerator(radius=2, fpSize=1024)
+        if not gen_kwargs:
+            gen_kwargs = {"radius": 2, "fpSize": 1024}
+        fpgen = Chem.AllChem.GetMorganGenerator(**gen_kwargs)
     elif fp_type == "daylight":
-        fpgen = Chem.AllChem.GetRDKitFPGenerator()
+        fpgen = Chem.AllChem.GetRDKitFPGenerator(**gen_kwargs)
     else: 
         raise ValueError("fingerprint_type has to be either 'morgan' or 'daylight'")
     return fpgen
