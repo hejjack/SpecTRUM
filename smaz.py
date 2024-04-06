@@ -1,6 +1,6 @@
 from spectra_process_utils import msp_file_to_jsonl
 from pathlib import Path
-from train_bart import build_tokenizer
+from general_utils import build_tokenizer
 import sys
 
 mf = sys.argv[1]

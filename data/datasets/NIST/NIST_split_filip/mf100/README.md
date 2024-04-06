@@ -7,7 +7,7 @@
 ```python
 from spectra_process_utils import msp_file_to_jsonl
 from pathlib import Path
-from train_bart import build_tokenizer
+from general_utils import build_tokenizer
 
 tokenizer_type = "mf100"
 tokenizer_path = f"tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_{tokenizer_type}.model"

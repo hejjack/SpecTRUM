@@ -1,13 +1,11 @@
 # imports
-from io import TextIOWrapper
-from typing import Any, Callable, Optional
 import pandas as pd
 import pathlib
 import typer
 import json
 from statistics import mean
 from tqdm import tqdm
-from rdkit import Chem, DataStructs, RDLogger
+from rdkit import Chem, RDLogger
 import numpy as np
 from collections import defaultdict
 from icecream import ic
@@ -17,10 +15,9 @@ import time
 from datetime import datetime
 from collections.abc import Iterator
 
-
-from data_utils import build_single_datapipe, filter_datapoints, range_filter
 from spectra_process_utils import get_fp_generator, get_simil_function
 from general_utils import move_file_pointer, line_count, dummy_generator
+from eval_utils import load_labels_from_dataset, load_labels_to_datapipe
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -43,55 +40,6 @@ def parse_predictions_path(predictions_path: pathlib.Path) -> tuple:
                          "please hold the file naming convention " +
                          "<dataset_name>/<id>_<data_split>_<data_range>_*/predictions.jsonl") from exc
     return data_name, data_split, data_range
-
-
-def load_labels_from_dataset(dataset_path: pathlib.Path, 
-                             data_range: range, 
-                             do_denovo: bool = False,
-                             fp_type: Optional[str] = None,
-                             simil_func: Optional[str] = None) -> tuple:
-    """Load the labels from the dataset"""
-    df = pd.read_json(dataset_path, lines=True, orient="records")
-    if not data_range:
-        data_range = range(len(df))
-    df_ranged = df.iloc[data_range.start:data_range.stop] # TODO
-    simles_list = df_ranged["smiles"].tolist()
-    
-    smiles_sim_of_closest = None
-    if do_denovo:
-        assert f"smiles_sim_of_closest_{fp_type}_{simil_func}" in df_ranged.columns, "smiles_sim_of_closest column not found in labels, not able to do DENOVO evaluation"
-        smiles_sim_of_closest = df_ranged[f"smiles_sim_of_closest_{fp_type}_{simil_func}"].tolist()
-
-    return iter(simles_list), smiles_sim_of_closest
-
-
-def load_labels_to_datapipe(dataset_path: pathlib.Path, 
-                            data_range: range = range(0, 0), 
-                            do_denovo: bool = False,
-                            fp_type: Optional[str] = None,
-                            simil_func: Optional[str] = None,
-                            filtering_args: dict = {"max_num_peaks": 300, "max_mz": 500, "max_mol_repr_len": 100, "mol_repr": "smiles"}) -> tuple:
-    """Load the labels from the dataset"""
-
-    assert set(["max_num_peaks", "max_mz", "max_mol_repr_len", "mol_repr"]).issubset(filtering_args.keys()), "filtering_args has to contain max_num_peaks, max_mz, max_mol_repr_len and mol_repr"
-
-    datapipe = build_single_datapipe(str(dataset_path), shuffle=False)
-
-    datapipe = datapipe.filter(filter_fn=lambda d: filter_datapoints(d, filtering_args)) # filter out too long data and stuff
-    if data_range:
-        datapipe = datapipe.header(data_range.stop)  # speeding up for slices near to the beginning
-        datapipe = datapipe.filter(filter_fn=range_filter(data_range))  # actual slicing
-    
-    smiles_sim_of_closest_datapipe = None
-    if do_denovo:
-        assert fp_type is not None and simil_func is not None, "fp_type and simil_func have to be specified for denovo evaluation"
-        smiles_datapipe, smiles_sim_of_closest_datapipe = datapipe.fork(num_instances=2, buffer_size=1e6,)  # 'copy' (fork) the datapipe into two 'new' 
-        smiles_sim_of_closest_datapipe = iter(smiles_sim_of_closest_datapipe.map(lambda d: d[f"smiles_sim_of_closest_{fp_type}_{simil_func}"]))
-    else:
-        smiles_datapipe = datapipe
-    smiles_datapipe = iter(smiles_datapipe.map(lambda d: d["smiles"]))
-    
-    return smiles_datapipe, smiles_sim_of_closest_datapipe if do_denovo else None
 
 
 def update_counter(sorted_simil: np.ndarray, all_simils: dict) -> None:

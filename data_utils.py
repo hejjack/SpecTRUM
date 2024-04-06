@@ -6,13 +6,14 @@ import json
 import torch
 from torch.utils.data import Dataset
 from torchdata.datapipes.iter import IterDataPipe, IterableWrapper, SampleMultiplexer, Concater, Header
-from typing import Dict, Sized, Union, Any, Optional, List, Tuple, Iterator, Hashable, TypeVar
+from typing import Callable, Dict, Sized, Union, Any, Optional, List, Tuple, Iterator, Hashable, TypeVar
 import warnings
 import pandas as pd
 import numpy as np
 from pathlib import Path 
 from rdkit import Chem
 import selfies as sf
+import yaml
 from tqdm import tqdm
 from spectra_process_utils import mol_repr_to_labels, cumsum_filtering, remove_stereochemistry_and_canonicalize
 
@@ -206,6 +207,18 @@ def filter_datapoints(datadict, preprocess_args) -> bool:
     return True
 
 
+def range_filter(data_range: range) -> Callable[[Any], bool]:
+   """Filter function for the datapipe based on the range.
+   usage: datapipe.filter(filter_fn=range_filter(range(100)))"""
+
+   count = data_range.start
+   def f(_: Any) -> bool:
+        nonlocal count 
+        count += 1
+        return count <= data_range.stop
+   return f
+
+
 def build_single_datapipe(json_file: str, 
                           shuffle: bool,
                           buffer_size: Optional[int] = None,
@@ -349,58 +362,3 @@ def load_all_datapipes(data_args: Dict[str, Any], preprocess_args: Optional[Dict
     datapipes["valid"] = valid_pipes
     datapipes["example"] = example_pipes
     return datapipes
-
-
-def filter_predictions(old_predictions_path, original_data_path, old_config, new_config, save_path=None):
-    """
-    Function that takes predictions, original data, old and new config and filters the predicitons according to 
-    the new config - be careful, the new predictions will always be a subset of the old predictions. If the new
-    config is not a subset of the old config, the data will be incomplete.
-
-    Parameters
-    ----------
-    old_predictions_path: str
-        Path to the old predictions.
-    original_data_path: str
-        Path to the original data.
-    old_config: Dict[str, Any]
-        Old preprocessing config.
-    new_config: Dict[str, Any]
-        New preprocessing config.
-    save_path: str
-        Path to save the new predictions.
-    
-    Returns
-    -------
-    List[Dict[str: float]]
-        New predictions.
-    """
-    predictions_pipe = build_single_datapipe(old_predictions_path, False)
-
-    # Load original data and filter it with old preprocessing config
-    print(">>> Loading original data")
-    original_data = pd.read_json(original_data_path, lines=True, orient="records")
-    print("Original data len: ", len(original_data))
-
-    # Filter original data with old preprocessing config
-    old_filter_mask = original_data.progress_apply(lambda row: filter_datapoints(row, old_config), axis=1)
-    old_filtered_original_data = original_data[old_filter_mask]
-    print("Filtered original data len: ", len(old_filtered_original_data))
-
-    # Combine filtered original data with loaded predictions
-    old_filtered_original_data["predictions"] = list(iter(predictions_pipe))
-
-    # Filter everything based on the new preprocessing config
-    new_filter_mask = old_filtered_original_data.progress_apply(lambda row: filter_datapoints(row, new_config), axis=1) 
-    new_filtered_combined_data = old_filtered_original_data[new_filter_mask]
-    print("Filtered combined data len: ", len(new_filtered_combined_data))
-
-    new_predictions = new_filtered_combined_data["predictions"]
-
-    # Potentially save the new predictions
-    if save_path is not None:
-        print(">>> Saving new predicitons")
-        with open(save_path, "w") as f:
-            f.write('\n'.join(json.dumps(pred) for pred in new_predictions))
-
-    return new_predictions

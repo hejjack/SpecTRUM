@@ -20,7 +20,7 @@ import pandas as pd
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer, hardcode_build_selfies_tokenizer
 from spectra_process_utils import msp_file_to_jsonl
 
-# from train_bart import build_tokenizer
+# from general_utils import build_tokenizer
 app = typer.Typer()
 
 # copied from train_bart.py, due to import problems

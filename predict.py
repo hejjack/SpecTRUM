@@ -2,25 +2,22 @@ import sys
 import io
 import os
 import time 
-from datetime import datetime
 from pathlib import Path
 import typer
 import yaml
 import torch
 import numpy as np
-import pandas as pd
 import json
-from tokenizers import Tokenizer
 from transformers import PreTrainedTokenizerFast
-from transformers.utils import ModelOutput
 from tqdm import tqdm
 from typing import Dict, Any, Tuple, List
 from icecream import ic
 from rdkit import Chem, RDLogger
-from data_utils import SpectroDataset, SpectroDataCollator, build_single_datapipe
+from data_utils import SpectroDataCollator, build_single_datapipe
 # from bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
-from train_bart import build_tokenizer
+from general_utils import build_tokenizer, get_sequence_probs, timestamp_to_readable, hours_minutes_seconds
+from copy import deepcopy
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -75,28 +72,6 @@ def get_canon_predictions(preds: List[List], idxs: List[List]):
     return canon_preds, canon_idxs
 
 
-def get_sequence_probs(model,
-                       generated_outputs: ModelOutput,
-                       batch_size: int,
-                       is_beam_search: bool):
-    """ collect the generation probability of all generated sequences """
-    transition_scores = model.compute_transition_scores(
-                                generated_outputs.sequences,
-                                generated_outputs.scores,
-                                beam_indices=generated_outputs.beam_indices if is_beam_search else None,
-                                normalize_logits=True)  # type: ignore
-
-    transition_scores = transition_scores.reshape(batch_size, -1, transition_scores.shape[-1])
-    transition_scores[torch.isinf(transition_scores)] = 0
-    if is_beam_search:
-        output_length = (transition_scores < 0).sum(dim=-1)
-        length_penalty = model.generation_config.length_penalty
-        all_probs = transition_scores.sum(dim=2).exp() / output_length**length_penalty
-    else:
-        all_probs = transition_scores.sum(dim=2).exp()
-    return all_probs
-
-
 def prepare_decoder_input(decoder_input_token: str, tokenizer: PreTrainedTokenizerFast, batch_size: int):
     """ prepare forced prefix input for the decoder"""
     if decoder_input_token:  # prepare dataset-specific prefixes for decoding
@@ -105,14 +80,6 @@ def prepare_decoder_input(decoder_input_token: str, tokenizer: PreTrainedTokeniz
     else:
         decoder_input_ids_batch = None
     return decoder_input_ids_batch
-
-
-def timestamp_to_readable(timestamp: float) -> str:    
-    return datetime.utcfromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
-
-
-def hours_minutes_seconds(seconds: float) -> str:
-    return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 
 @app.command()
@@ -133,7 +100,7 @@ def main(
     general_config = config["general"]
     dataloader_config = config["dataloader"]
     dataset_config = config["dataset"]
-    preprocess_args = config["preprocess_args"]
+    preprocess_args = deepcopy(config["preprocess_args"]) # deepcopy so tokenizer is not saved to logs
 
     config["command"] = " ".join(sys.argv)
     config["cuda_visible_devices"] = os.environ.get("CUDA_VISIBLE_DEVICES", None)
