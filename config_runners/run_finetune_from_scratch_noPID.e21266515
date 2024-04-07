@@ -1,0 +1,26 @@
+/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/utils/data/datapipes/utils/common.py:137: UserWarning: Local function is not supported by pickle, please use regular python function or functools.partial instead.
+  warnings.warn(
+/auto/brno2/home/ahajek/Spektro/MassGenie/data_utils.py:261: UserWarning: SHUFFLE and its buffer_size are IGNORED if either not specified
+  warnings.warn("SHUFFLE and its buffer_size are IGNORED if either not specified")
+Traceback (most recent call last):
+
+  File "../train_bart.py", line 374, in <module>
+    app()
+
+  File "../train_bart.py", line 278, in main
+    model = BartSpektroForConditionalGeneration(bart_spectro_config)
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 502, in __init__
+    self.model = BartSpektroModel(config)
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 383, in __init__
+    self.encoder = BartSpektroEncoder(config, embed_tokens=self.shared)  # Adam - removed creating shared embeddings and passing them to both parts
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 184, in __init__
+    self.embed_positions = BartLearnedPositionalEmbedding(
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/models/bart/modeling_bart.py", line 129, in __init__
+    super().__init__(num_embeddings + self.offset, embedding_dim)
+
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
+

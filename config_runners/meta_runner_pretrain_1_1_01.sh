@@ -1,7 +1,7 @@
 #!/bin/bash
-#PBS -q gpu@cerit-pbs.cerit-sc.cz
-#PBS -l walltime=24:0:0
-#PBS -l select=1:ncpus=4:ngpus=1:mem=50gb:cl_zia=True
+#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
+#PBS -l walltime=35:0:0
+#PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
 #PBS -N run_pretrain_rassp1_neims1_nist01
 
 cd /storage/brno2/home/ahajek/Spektro/MassGenie/config_runners
