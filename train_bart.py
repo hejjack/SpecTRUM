@@ -116,7 +116,7 @@ def set_batch_size(hf_training_args: Dict):
     return hf_training_args
 
 
-def freeze_model(model, train_using_peft, train_fc1_only, clever_freeze):
+def freeze_model(model, train_using_peft, train_fc1_only, custom_freeze):
     if train_using_peft:
         peft_config = peft.get_peft_config(peft_config_dict) # not working yet (wasn't tested)
         model = peft.get_peft_model(model, peft_config)
@@ -132,7 +132,7 @@ def freeze_model(model, train_using_peft, train_fc1_only, clever_freeze):
             if "embed" in name:
                 param.requires_grad = True
 
-    if clever_freeze:
+    if custom_freeze:
         for param in model.parameters():
             param.requires_grad = False
 
@@ -232,7 +232,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     # get freeze args
     train_using_peft = model_args.pop("train_using_peft", False)
     train_fc_only = model_args.pop("train_fc_only", False)
-    clever_freeze = model_args.pop("clever_freeze", False)
+    custom_freeze = model_args.pop("custom_freeze", False)
 
 
     hf_training_args = set_batch_size(hf_training_args)
@@ -279,9 +279,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     model.to(device)
 
     # model freezing
-    assert train_using_peft + train_fc_only + clever_freeze <= 1, "Only one of train_using_peft, train_fc_only, clever_freeze can be True"
-    if train_fc_only or clever_freeze or train_using_peft:
-        freeze_model(model, train_using_peft, train_fc_only, clever_freeze)
+    assert train_using_peft + train_fc_only + custom_freeze <= 1, "Only one of train_using_peft, train_fc_only, custom_freeze can be True"
+    if train_fc_only or custom_freeze or train_using_peft:
+        freeze_model(model, train_using_peft, train_fc_only, custom_freeze)
     tuned_params = sum(p.shape.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.shape.numel() for p in model.parameters())
     print(f"Number of trained parameters: {tuned_params}/{total_params} = {tuned_params/total_params*100:.2f}%")
