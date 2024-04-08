@@ -1,13 +1,13 @@
 #!/bin/bash
 #PBS -q gpu_dgx@meta-pbs.metacentrum.cz
-#PBS -l walltime=25:0:0
+#PBS -l walltime=15:0:0
 #PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
-#PBS -N run_finetune_clever_freeze_plus
+#PBS -N run_finetune__1_1_01
 
 cd /storage/brno2/home/ahajek/Spektro/MassGenie/config_runners
 source /storage/brno2/home/ahajek/miniconda3/bin/activate BARTtrainH100
 echo $CONDA_PREFIX
-./run_finetune_clever_freeze_plus.sh
+./run_finetune_1_1_01.sh
 
 exit
 

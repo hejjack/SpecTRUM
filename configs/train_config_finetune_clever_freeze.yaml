@@ -38,7 +38,7 @@ model_args:
   decoder_seq_len: 200
   max_mz: 500    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
   separate_encoder_decoder_embeds: True
-  clever_freeze: True # !
+  custom_freeze: True # !
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16

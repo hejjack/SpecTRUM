@@ -1,13 +1,13 @@
 #!/bin/bash
 #PBS -q gpu_dgx@meta-pbs.metacentrum.cz
-#PBS -l walltime=35:0:0
+#PBS -l walltime=20:0:0
 #PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
-#PBS -N run_pretrain_rassp1_neims1_mf10
+#PBS -N run_finetune_neims_gen
 
 cd /storage/brno2/home/ahajek/Spektro/MassGenie/config_runners
 source /storage/brno2/home/ahajek/miniconda3/bin/activate BARTtrainH100
 echo $CONDA_PREFIX
-./run_pretrain_rassp1_neims1_mf10.sh
+./run_finetune_4_8M_neims_gen.sh
 
 exit
 

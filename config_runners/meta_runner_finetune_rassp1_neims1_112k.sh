@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -q gpu_dgx@meta-pbs.metacentrum.cz
-#PBS -l walltime=25:0:0
+#PBS -l walltime=15:0:0
 #PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
-#PBS -N run_finetune_rassp1_neims1_112k_mf10M
+#PBS -N run_finetune_rassp1_neims1_112k
 
 cd /storage/brno2/home/ahajek/Spektro/MassGenie/config_runners
 source /storage/brno2/home/ahajek/miniconda3/bin/activate BARTtrainH100
