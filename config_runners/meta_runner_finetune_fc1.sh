@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -q gpu@cerit-pbs.cerit-sc.cz
-#PBS -l walltime=24:0:0
-#PBS -l select=1:ncpus=4:ngpus=1:mem=50gb:cl_zia=True
-#PBS -N run_finetune_fc1_only_TESST
+#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
+#PBS -l walltime=25:0:0
+#PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
+#PBS -N run_finetune_fc1_only
 
 cd /storage/brno2/home/ahajek/Spektro/MassGenie/config_runners
 source /storage/brno2/home/ahajek/miniconda3/bin/activate BARTtrainH100
@@ -12,6 +12,9 @@ echo $CONDA_PREFIX
 exit
 
 ##### 1x A100 ######
+#PBS -q gpu@cerit-pbs.cerit-sc.cz
+#PBS -l walltime=24:0:0
+#PBS -l select=1:ncpus=4:ngpus=1:mem=50gb:cl_zia=True
 
 ##### 1x A40 ######
 #PBS -q gpu@meta-pbs.metacentrum.cz
@@ -21,7 +24,4 @@ exit
 
 
 ##### DGXko ########
-#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
-#PBS -l walltime=25:0:0
-#PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
 #PBS -N run_finetune_fc1_only
