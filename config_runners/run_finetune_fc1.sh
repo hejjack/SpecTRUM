@@ -3,4 +3,4 @@ python ../train_bart.py --config-file ../configs/train_config_finetune_fc1.yaml 
                         --checkpoint ../checkpoints/pretrain/blooming-thunder-439_rassp1_neims1/checkpoint-112000 \
                         --additional-info "_fc1" \
                         --wandb-group finetune  \
-                        --additional-tags "fc1" \
+                        --additional-tags "fc1" \ 
