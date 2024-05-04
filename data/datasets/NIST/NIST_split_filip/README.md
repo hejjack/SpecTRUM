@@ -1,5 +1,5 @@
 # NIST dataset
-This dataset made of NIST20 is deduplicated, canonicalized, and split into train, test, and validation sets (with no overlaps). For more info refer to the scripts. 
+This dataset made of NIST20 is destereochemicalized, canonicalized, and split into train, test, and validation sets (with no overlaps). For more info refer to the scripts. 
 It only contains jsonl files with `mz`, `intensity`, and `smiles` fields. The filtering and preprocessing is meant to be done on-the-fly (for more freedom in testing preprocessing methods).
 
 ## This dataset is created by the following steps:

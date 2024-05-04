@@ -1,4 +1,4 @@
-### ZINC15 Statistics ###
+### ZINC20 Statistics ###
 original number of downloaded SMILES: 1,820,661,921
 number of SMILES in 100M_slice: 109,239,397 
 number of SMILES in raw 43M_slice: 43,695,735
