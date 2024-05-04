@@ -281,8 +281,6 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         model = BartSpektroForConditionalGeneration(bart_spectro_config)
 
-    print(model)#####
-    exit()
     model.to(device)
 
     # model freezing
