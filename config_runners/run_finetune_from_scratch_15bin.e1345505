@@ -1,0 +1,153 @@
+/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/utils/data/datapipes/utils/common.py:137: UserWarning: Local function is not supported by pickle, please use regular python function or functools.partial instead.
+  warnings.warn(
+/auto/brno2/home/ahajek/Spektro/MassGenie/data_utils.py:261: UserWarning: SHUFFLE and its buffer_size are IGNORED if either not specified
+  warnings.warn("SHUFFLE and its buffer_size are IGNORED if either not specified")
+wandb: Currently logged in as: hajekad (msgc_boys). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: hajekad. Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.16.6 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.15.9
+wandb: Run data is saved locally in ../wandb/run-20240503_160243-ag08cxyj
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run cosmic-eon-452
+wandb: ⭐️ View project at https://wandb.ai/hajekad/BART_for_gcms
+wandb: 🚀 View run at https://wandb.ai/hajekad/BART_for_gcms/runs/ag08cxyj
+  0%|          | 0/74000 [00:00<?, ?it/s]wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 🚀 View run cosmic-eon-452 at: https://wandb.ai/hajekad/BART_for_gcms/runs/ag08cxyj
+wandb: ️⚡ View job at https://wandb.ai/hajekad/BART_for_gcms/jobs/QXJ0aWZhY3RDb2xsZWN0aW9uOjk2MzgzODQz/version_details/v44
+wandb: Synced 7 W&B file(s), 0 media file(s), 3 artifact file(s) and 2 other file(s)
+wandb: Find logs at: ../wandb/run-20240503_160243-ag08cxyj/logs
+Traceback (most recent call last):
+  File "../train_bart.py", line 374, in <module>
+    app()
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/typer/main.py", line 328, in __call__
+    raise e
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/typer/main.py", line 311, in __call__
+    return get_command(self)(*args, **kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/click/core.py", line 1157, in __call__
+    return self.main(*args, **kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/typer/core.py", line 716, in main
+    return _main(
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/typer/core.py", line 216, in _main
+    rv = self.invoke(ctx)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/click/core.py", line 1434, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/click/core.py", line 783, in invoke
+    return __callback(*args, **kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/typer/main.py", line 683, in wrapper
+    return callback(**use_params)  # type: ignore
+  File "../train_bart.py", line 370, in main
+    trainer.train()
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 1539, in train
+    return inner_training_loop(
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 1809, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 2654, in training_step
+    loss = self.compute_loss(model, inputs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 2679, in compute_loss
+    outputs = model(**inputs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/accelerate/utils/operations.py", line 817, in forward
+    return model_forward(*args, **kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/accelerate/utils/operations.py", line 805, in __call__
+    return convert_to_fp32(self.model_forward(*args, **kwargs))
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/amp/autocast_mode.py", line 14, in decorate_autocast
+    return func(*args, **kwargs)
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 576, in forward
+    outputs = self.model(
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 447, in forward
+    encoder_outputs = self.encoder(
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 275, in forward
+    hidden_states = inputs_embeds + embed_pos
+RuntimeError: CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Traceback (most recent call last):
+
+  File "../train_bart.py", line 374, in <module>
+    app()
+
+  File "../train_bart.py", line 370, in main
+    trainer.train()
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 1539, in train
+    return inner_training_loop(
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 1809, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs)
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 2654, in training_step
+    loss = self.compute_loss(model, inputs)
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/transformers/trainer.py", line 2679, in compute_loss
+    outputs = model(**inputs)
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/accelerate/utils/operations.py", line 817, in forward
+    return model_forward(*args, **kwargs)
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/accelerate/utils/operations.py", line 805, in __call__
+    return convert_to_fp32(self.model_forward(*args, **kwargs))
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/amp/autocast_mode.py", line 14, in decorate_autocast
+    return func(*args, **kwargs)
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 576, in forward
+    outputs = self.model(
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 447, in forward
+    encoder_outputs = self.encoder(
+
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+
+  File "/auto/brno2/home/ahajek/Spektro/MassGenie/bart_spektro/modeling_bart_spektro.py", line 275, in forward
+    hidden_states = inputs_embeds + embed_pos
+
+RuntimeError: CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+
+Exception in thread NetStatThr:
+Traceback (most recent call last):
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 256, in check_network_status
+    self._loop_check_status(
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 212, in _loop_check_status
+    local_handle = request()
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/interface/interface.py", line 864, in deliver_network_status
+    return self._deliver_network_status(status)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/interface/interface_shared.py", line 610, in _deliver_network_status
+    return self._deliver_record(record)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/interface/interface_shared.py", line 569, in _deliver_record
+    handle = mailbox._deliver_record(record, interface=self)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/lib/mailbox.py", line 455, in _deliver_record
+    interface._publish(record)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/interface/interface_sock.py", line 51, in _publish
+    self._sock_client.send_record_publish(record)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/lib/sock_client.py", line 221, in send_record_publish
+    self.send_server_request(server_req)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/lib/sock_client.py", line 155, in send_server_request
+    self._send_message(msg)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/lib/sock_client.py", line 152, in _send_message
+    self._sendall_with_error_handle(header + data)
+  File "/storage/brno2/home/ahajek/miniconda3/envs/BARTtrainH100/lib/python3.8/site-packages/wandb/sdk/lib/sock_client.py", line 130, in _sendall_with_error_handle
+    sent = self._sock.send(data)
+BrokenPipeError: [Errno 32] Broken pipe
