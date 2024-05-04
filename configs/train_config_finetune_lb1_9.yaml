@@ -13,12 +13,28 @@ data_args:
       limit_val_split: null     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       source_token: "<nist>"
+    NEIMS: # NEIMS only for evaluation tracking purposes
+      train_path: "../data/datasets/4_8M/neims_gen/train.jsonl"
+      valid_path: "../data/datasets/4_8M/neims_gen/valid.jsonl"
+      weight: 0.0
+      limit_train_split: 0  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 0  # null for full; limit of head chosen for visualized (generated)
+      source_token: "<neims>"
+    RASSP: # only for evaluation tracking purposes
+      train_path: "../data/datasets/4_8M/rassp_gen/train.jsonl"
+      valid_path: "../data/datasets/4_8M/rassp_gen/valid.jsonl"
+      weight: 0.0
+      limit_train_split: 0  # null for full; limit of head from valid set chosen for validation split
+      limit_val_split: 1000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 0  # null for full; limit of head chosen for visualized (generated)
+      source_token: "<rassp>"
 
-preprocess_args: 
-  log_base: 2.2
+preprocess_args:
+  log_base: 1.9
 
 model_args:
-  tokenizer_path: "selfies_tokenizer"
+  tokenizer_path: "../tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_mf10000000.model"
   decoder_seq_len: 200
   max_mz: 500    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
   separate_encoder_decoder_embeds: True
@@ -78,3 +94,4 @@ hf_training_args:
   load_best_model_at_end: True
   metric_for_best_model: "eval_morgan_tanimoto_simil"
   greater_is_better: True
+

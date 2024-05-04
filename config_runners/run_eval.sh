@@ -10,6 +10,6 @@
 #                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
 #                                   --config-file ../configs/eval_config.yaml \
 
-python ../evaluate_predictions.py --predictions-path ../predictions/legendary-disco-449_rassp1_neims1_nist01_224k/NIST_denovo/1713211032_valid_full_beam10_peaks300/predictions.jsonl \
+python ../evaluate_predictions.py --predictions-path ../predictions/legendary-disco-449_rassp1_neims1_nist01_224k/NIST_denovo/1713340943_valid_full_beam10_peaks300/predictions.jsonl \
                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
                                   --config-file ../configs/eval_config.yaml \
