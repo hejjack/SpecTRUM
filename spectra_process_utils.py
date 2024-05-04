@@ -420,7 +420,7 @@ def cumsum_filtering(mz: np.ndarray,
 def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
     if fp_type == "morgan":
         if not gen_kwargs:
-            gen_kwargs = {"radius": 2, "fpSize": 1024}
+            gen_kwargs = {"radius": 2}
         fpgen = Chem.AllChem.GetMorganGenerator(**gen_kwargs)
     elif fp_type == "daylight":
         fpgen = Chem.AllChem.GetRDKitFPGenerator(**gen_kwargs)

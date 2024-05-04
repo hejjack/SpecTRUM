@@ -10,6 +10,7 @@ import numpy as np
 from collections import defaultdict
 from icecream import ic
 import plotly.express as px
+import plotly.io as pio
 import yaml
 import time
 from datetime import datetime
@@ -20,7 +21,6 @@ from general_utils import move_file_pointer, line_count, dummy_generator
 from eval_utils import load_labels_from_dataset, load_labels_to_datapipe
 
 RDLogger.DisableLog('rdApp.*')
-
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -56,7 +56,7 @@ def diagram_from_dict(d: dict, title: str): # TODO: rename
         simils += s
         ks += [k] * len(s)
     df = pd.DataFrame({"simil": simils, "k": ks})
-    fig = px.box(df, x="k", y="simil", points="all")
+    fig = px.box(df, x="k", y="simil", points="outliers")
     return fig
 
 
@@ -199,6 +199,7 @@ def main(
     num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
 
     # create plots
+    print("INFO: Creating plots...")
     fig_similsort = diagram_from_dict(simil_all_simils, title="Similarity on the k-th position (sorted by ground truth similarity)")
     fig_probsort = diagram_from_dict(prob_all_simils, title="Similarity on the k-th position (sorted by generation probability)")
     df_top1 = pd.DataFrame({"simil": simil_all_simils[0], "prob": prob_all_simils[0]})
@@ -206,6 +207,7 @@ def main(
     fig_top1_prob_simils = px.histogram(df_top1, x="prob", nbins=100, labels={'x':'similarity', 'y':'count'})
 
     # save plots
+    print("INFO: Saving plots...")
     fig_similsort.write_image(str(parent_dir / f"topk_similsort_{fp_simil_args_info}.png"))
     fig_probsort.write_image(str(parent_dir / f"topk_probsort_{fp_simil_args_info}.png"))
     fig_top1_simil_simils.write_image(str(parent_dir / f"top1_simil_simils_{fp_simil_args_info}.png"))
