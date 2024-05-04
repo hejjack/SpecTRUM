@@ -20,6 +20,8 @@ from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.selfies_tokenizer import hardcode_build_selfies_tokenizer
 from general_utils import get_nice_time, build_tokenizer
 
+from torchsummary import summary
+
 app = typer.Typer()
 
 
@@ -184,7 +186,7 @@ def get_spectro_config(model_args: Dict, tokenizer: transformers.PreTrainedToken
                              is_encoder_decoder=True,
                              decoder_start_token_id=3,
                              forced_eos_token_id=0,
-                             max_log_id=9 if not model_args.get("restrict_intensities", False) else None # extremely important, don't change
+                             max_log_id=model_args.get("max_log_id", 9) if not model_args.get("restrict_intensities", False) else None # extremely important, don't change
                              )
  
 
@@ -267,6 +269,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
             "max_cumsum": preprocess_args.get("max_cumsum", None),
             "tokenizer": tokenizer,
         }
+        model_args["max_log_id"] = preprocess_args["log_shift"]
+
     datapipes = load_all_datapipes(dataset_args, preprocess_args)
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
 
@@ -276,6 +280,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
         model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     else:
         model = BartSpektroForConditionalGeneration(bart_spectro_config)
+
+    print(model)#####
+    exit()
     model.to(device)
 
     # model freezing
