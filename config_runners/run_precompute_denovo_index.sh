@@ -1,5 +1,5 @@
-SPLIT_NAME=test
-FP_TYPE=daylight
+SPLIT_NAME=valid
+FP_TYPE=morgan
 SIMIL_FUN=tanimoto
 
 python ../precompute_denovo_index.py \

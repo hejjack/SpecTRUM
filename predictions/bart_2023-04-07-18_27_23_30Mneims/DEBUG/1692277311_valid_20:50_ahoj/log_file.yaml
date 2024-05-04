@@ -25,3 +25,75 @@ generation_args:
 start_loading_time: 17/08/2023 13:01:50
 tokenizer:
   tokenizer_path: tokenizer/bbpe_tokenizer/bart_bbpe_1M_tokenizer.model
+evaluation_0:
+  counter_datapoints_tested: '30'
+  counter_empty_preds: '0'
+  counter_fp_simil_fails_preds: '0'
+  denovo:
+    mean_db_score: '0.33121007358666665'
+    mean_fpsd_score_probsort: '-0.2451356728180297'
+    mean_fpsd_score_similsort: '-0.2451356728180297'
+    percentage_of_BART_wins_probsort: '0.16666666666666666'
+    percentage_of_BART_wins_similsort: '0.16666666666666666'
+  eval_config:
+    do_denovo: true
+    filtering_args:
+      max_mol_repr_len: 100
+      max_mz: 500
+      max_num_peaks: 300
+      mol_repr: smiles
+    fingerprint_type: morgan
+    on_the_fly: true
+    save_best_predictions: true
+    simil_function: tanimoto
+    threshold: 0.85
+  eval_time: 00:00:01
+  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl
+  num_better_than_threshold_probsort: '0'
+  num_better_than_threshold_similsort: '0'
+  num_predictions_at_k_counter: '[30, 1]'
+  num_probsort_precise_preds: '0'
+  num_similsort_precise_preds: '0'
+  percentage_of_better_than_threshold_probsort: '0.0'
+  percentage_of_better_than_threshold_similsort: '0.0'
+  percentage_of_precise_preds_probsort: '0.0'
+  percentage_of_precise_preds_similsort: '0.0'
+  start_time_utc: 20/04/2024 07:18:37
+  topk_probsort: '[0.08607440076863694, 0.06896551724137931]'
+  topk_similsort: '[0.08607440076863694, 0.06896551724137931]'
+evaluation_1:
+  counter_datapoints_tested: '30'
+  counter_empty_preds: '0'
+  counter_fp_simil_fails_preds: '0'
+  denovo:
+    mean_db_score: '0.33121007358666665'
+    mean_fpsd_score_probsort: '-0.2451356728180297'
+    mean_fpsd_score_similsort: '-0.2451356728180297'
+    percentage_of_BART_wins_probsort: '0.16666666666666666'
+    percentage_of_BART_wins_similsort: '0.16666666666666666'
+  eval_config:
+    do_denovo: true
+    filtering_args:
+      max_mol_repr_len: 100
+      max_mz: 500
+      max_num_peaks: 300
+      mol_repr: smiles
+    fingerprint_type: morgan
+    on_the_fly: true
+    save_best_predictions: true
+    simil_function: tanimoto
+    threshold: 0.85
+  eval_time: 00:00:01
+  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl
+  num_better_than_threshold_probsort: '0'
+  num_better_than_threshold_similsort: '0'
+  num_predictions_at_k_counter: '[30, 1]'
+  num_probsort_precise_preds: '0'
+  num_similsort_precise_preds: '0'
+  percentage_of_better_than_threshold_probsort: '0.0'
+  percentage_of_better_than_threshold_similsort: '0.0'
+  percentage_of_precise_preds_probsort: '0.0'
+  percentage_of_precise_preds_similsort: '0.0'
+  start_time_utc: 20/04/2024 10:13:51
+  topk_probsort: '[0.08607440076863694, 0.06896551724137931]'
+  topk_similsort: '[0.08607440076863694, 0.06896551724137931]'
