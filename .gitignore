@@ -33,4 +33,4 @@ tokenizer/training_data/*.txt
 tokenizer/training_data/*
 
 # large notebook
-notebooks/smaz_to_alfa.ipynb
+notebooks/smaz_to_alfa*
