@@ -266,8 +266,16 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
             "log_shift": preprocess_args.get("log_shift", 9),
             "max_cumsum": preprocess_args.get("max_cumsum", None),
             "tokenizer": tokenizer,
+            "do_log_binning": preprocess_args.get("do_log_binning", True),
+            "linear_bin_decimals": preprocess_args.get("linear_bin_decimals", None),
         }
-        model_args["max_log_id"] = preprocess_args["log_shift"]
+
+        if preprocess_args["do_log_binning"]:
+            model_args["max_log_id"] = preprocess_args["log_shift"]
+        else: 
+            if not preprocess_args.get("linear_bin_decimals", None): 
+                raise ValueError("linear_bin_decimals must be provided if do_log_binning is False. It's 2 for 100 bins, 3 for 1000 bins, ...")
+            model_args["max_log_id"] = 10**preprocess_args["linear_bin_decimals"]
 
     datapipes = load_all_datapipes(dataset_args, preprocess_args)
     bart_spectro_config = get_spectro_config(model_args, tokenizer)

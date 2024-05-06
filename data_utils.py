@@ -94,11 +94,17 @@ class SpectroDataCollator:
         return out        
 
 
-def position_ids_creator(intensities, log_base, log_shift):
+def position_ids_creator(intensities, log_base, log_shift, do_log_binning=True, linear_bin_decimals=None):
     """create position ids for the Spectro Transformer model"""
     x = np.array(intensities) / max(intensities)  # normalize
-    x = (np.log(x)/np.log(log_base)).astype(int) + log_shift # log binning
-    x = x * (x > 0) # all the small intensities are mapped to 0
+
+    if do_log_binning:
+        x = (np.log(x)/np.log(log_base)).astype(int) + log_shift # log binning
+        x = x * (x > 0) # all the small intensities are mapped to 0
+    else:
+        x = np.around(x, decimals=linear_bin_decimals) * 10**linear_bin_decimals  # intensity rounded to 2 decimal places
+        print(x)
+
     return list(x.astype("int32"))
 
 
@@ -133,7 +139,9 @@ def preprocess_datapoint(datadict, source_token, preprocess_args):
     if not preprocess_args["restrict_intensities"]:
         out["position_ids"] = position_ids_creator(intensities, 
                                                    preprocess_args["log_base"], 
-                                                   preprocess_args["log_shift"])
+                                                   preprocess_args["log_shift"],
+                                                   do_log_binning=preprocess_args["do_log_binning"],
+                                                   linear_bin_decimals=preprocess_args["linear_bin_decimals"])
 
     if not preprocess_args["inference_mode"]:
         smiles = datadict.pop("smiles")
