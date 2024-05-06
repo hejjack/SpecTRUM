@@ -20,8 +20,6 @@ from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.selfies_tokenizer import hardcode_build_selfies_tokenizer
 from general_utils import get_nice_time, build_tokenizer
 
-from torchsummary import summary
-
 app = typer.Typer()
 
 
