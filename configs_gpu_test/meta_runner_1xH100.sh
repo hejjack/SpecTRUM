@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
+#PBS -q gpu_dgx@pbs-m1.metacentrum.cz
 #PBS -l walltime=18:0:0
 #PBS -l select=1:ncpus=4:ngpus=1:mem=60gb
 #PBS -N GPU_test_ft_scratch_capy_1x

@@ -31,7 +31,8 @@ data_args:
       source_token: "<rassp>"
 
 preprocess_args: 
-  lets_do_this: True # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
+  log_base: 1.2
+  log_shift: 39
   max_num_peaks: 200
 
 model_args:

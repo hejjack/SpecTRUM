@@ -1,4 +1,4 @@
-python ../predict.py --checkpoint ../checkpoints/finetune/legendary-disco-449_rassp1_neims1_nist01_224k/checkpoint-73738 \
+python ../predict.py --checkpoint ../checkpoints/finetune/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/checkpoint-147476 \
                     --output-folder ../predictions \
-                    --config-file ../configs/predict_config_nist_valid_beam50.yaml \
+                    --config-file ../configs/predict_config_nist_test.yaml \
                                             

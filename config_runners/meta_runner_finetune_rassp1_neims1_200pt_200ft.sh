@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
+#PBS -q gpu_dgx@pbs-m1.metacentrum.cz
 #PBS -l walltime=25:0:0
 #PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
 #PBS -N run_finetune_rassp1_neims1_200pt_200ft

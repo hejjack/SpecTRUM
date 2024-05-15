@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -q gpu_dgx@meta-pbs.metacentrum.cz
-#PBS -l walltime=30:0:0
+#PBS -q gpu_dgx@pbs-m1.metacentrum.cz
+#PBS -l walltime=20:0:0
 #PBS -l select=1:ncpus=7:ngpus=1:mem=50gb
 #PBS -N run_finetune_custom_freeze
 

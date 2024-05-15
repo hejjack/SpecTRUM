@@ -31,8 +31,9 @@ data_args:
       source_token: "<rassp>"
 
 preprocess_args: 
-  lets_do_this: True # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
-
+  log_base: 1.2
+  log_shift: 39
+  
 model_args:
   tokenizer_path: "../tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_mf10000.model"
   decoder_seq_len: 200

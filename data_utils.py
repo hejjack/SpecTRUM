@@ -140,8 +140,8 @@ def preprocess_datapoint(datadict, source_token, preprocess_args):
         out["position_ids"] = position_ids_creator(intensities, 
                                                    preprocess_args["log_base"], 
                                                    preprocess_args["log_shift"],
-                                                   do_log_binning=preprocess_args["do_log_binning"],
-                                                   linear_bin_decimals=preprocess_args["linear_bin_decimals"])
+                                                   do_log_binning=preprocess_args.get("do_log_binning", True),
+                                                   linear_bin_decimals=preprocess_args.get("linear_bin_decimals", None))
 
     if not preprocess_args["inference_mode"]:
         smiles = datadict.pop("smiles")
