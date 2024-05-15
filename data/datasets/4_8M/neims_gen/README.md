@@ -31,7 +31,7 @@ output_dir: "../data/datasets/4_8M/neims_gen"
 phases_to_perform: [1,2,3,4,5]   # 1_5, order is not important
 lost_chunks: []  
 data_has_header: False     # whether the input has clean smiles file or csv (with <smiles zinc_id> structure)
-do_preprocess: False
+do_preprocess: False   # !!! after this the preprocess doesnt work
 max_smiles_len: 100
 max_mz: 500
 max_peaks: 300
