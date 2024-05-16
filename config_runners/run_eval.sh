@@ -10,9 +10,9 @@
 #                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
 #                                   --config-file ../configs/eval_config.yaml \
 
-python ../evaluate_predictions.py --predictions-path ../predictions/legendary-disco-449_rassp1_neims1_nist01_224k/NIST_denovo/1713340943_valid_full_beam10_peaks300/predictions.jsonl \
-                                  --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
-                                  --config-file ../configs/eval_config_daylight.yaml \
+# python ../evaluate_predictions.py --predictions-path ../predictions/legendary-disco-449_rassp1_neims1_nist01_224k/NIST_denovo/1713340943_valid_full_beam10_peaks300/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl \
+#                                   --config-file ../configs/eval_config_daylight.yaml \
 
 
 # debug
@@ -21,7 +21,9 @@ python ../evaluate_predictions.py --predictions-path ../predictions/legendary-di
 #                                   --config-file ../configs/eval_config_morgan.yaml \
 
 
-
+python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST_denovo/1715767947_test_full_beam10/predictions.jsonl \
+                                  --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl \
+                                  --config-file ../configs/eval_config_morgan.yaml \
 
 
 
