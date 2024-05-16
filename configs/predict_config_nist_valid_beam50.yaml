@@ -35,5 +35,5 @@ preprocess_args:
     "max_mz": 500
     "mol_repr": "smiles"
     "log_base": 1.2
-    "log_shift": 40
+    "log_shift": 39
     "max_cumsum": null
