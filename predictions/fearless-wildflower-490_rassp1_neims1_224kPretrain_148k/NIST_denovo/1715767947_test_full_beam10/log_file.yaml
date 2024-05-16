@@ -38,3 +38,88 @@ tokenizer_path: ../tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_mf10000000.mo
 finished_time_utc: 15/05/2024 15:34:56
 generation_time: 03:22:26
 wall_time_utc: 03:22:29
+evaluation_0:
+  counter_datapoints_tested: '28267'
+  counter_empty_preds: '1'
+  counter_fp_simil_fails_preds: '2236'
+  denovo:
+    mean_db_score: '0.391845725802349'
+    mean_fpsd_score_probsort: '0.25925609345001627'
+    mean_fpsd_score_similsort: '0.4032522324284453'
+    percentage_of_BART_wins_probsort: '0.751476987299678'
+    percentage_of_BART_wins_similsort: '0.8755085435313262'
+  eval_config:
+    do_denovo: true
+    filtering_args:
+      max_mol_repr_len: 100
+      max_mz: 500
+      max_num_peaks: 300
+      mol_repr: smiles
+    fingerprint_type: morgan
+    on_the_fly: true
+    save_best_predictions: true
+    simil_function: tanimoto
+    threshold: 0.85
+  eval_time: 00:00:57
+  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl
+  num_better_than_threshold_probsort: '11789'
+  num_better_than_threshold_similsort: '17930'
+  num_predictions_at_k_counter: '[28267, 28072, 27655, 26897, 25854, 24434, 22481,
+    19932, 16257, 10611]'
+  num_probsort_precise_preds: '11480'
+  num_similsort_precise_preds: '17754'
+  percentage_of_better_than_threshold_probsort: '0.41705876109951534'
+  percentage_of_better_than_threshold_similsort: '0.6343085576821028'
+  percentage_of_precise_preds_probsort: '0.40612728623483213'
+  percentage_of_precise_preds_similsort: '0.6280822160116036'
+  start_time_utc: 16/05/2024 11:33:16
+  topk_probsort: '[0.6511018192523653, 0.530558224968216, 0.4849807213604347, 0.45882237384532615,
+    0.4370968241913293, 0.4183018616018104, 0.3997928421782623, 0.3786214876613649,
+    0.3561227651643802, 0.33264284264086164]'
+  topk_similsort: '[0.7950979582307944, 0.593636343897292, 0.5158537441019437, 0.4594050986305954,
+    0.4152403268154002, 0.3763881081605056, 0.3405910753434224, 0.3059912164030488,
+    0.27273397560819046, 0.23961643287229908]'
+evaluation_1:
+  counter_datapoints_tested: '28267'
+  counter_empty_preds: '1'
+  counter_fp_simil_fails_preds: '2236'
+  counter_fp_simil_fails_preds_prob: '477'
+  counter_invalid_preds: '0'
+  denovo:
+    mean_db_score: '0.391845725802349'
+    mean_fpsd_score_probsort: '0.25925609345001627'
+    mean_fpsd_score_similsort: '0.4032522324284453'
+    percentage_of_BART_wins_probsort: '0.751476987299678'
+    percentage_of_BART_wins_similsort: '0.8755085435313262'
+  eval_config:
+    do_denovo: true
+    filtering_args:
+      max_mol_repr_len: 100
+      max_mz: 500
+      max_num_peaks: 300
+      mol_repr: smiles
+    fingerprint_type: morgan
+    on_the_fly: true
+    save_best_predictions: true
+    simil_function: tanimoto
+    threshold: 0.85
+  eval_time: 00:00:58
+  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl
+  num_better_than_threshold_probsort: '11789'
+  num_better_than_threshold_similsort: '17930'
+  num_predictions_at_k_counter: '[28267, 28072, 27655, 26897, 25854, 24434, 22481,
+    19932, 16257, 10611]'
+  num_probsort_precise_preds: '11480'
+  num_similsort_precise_preds: '17754'
+  percentage_of_better_than_threshold_probsort: '0.41705876109951534'
+  percentage_of_better_than_threshold_similsort: '0.6343085576821028'
+  percentage_of_invalid_preds: '0.0'
+  percentage_of_precise_preds_probsort: '0.40612728623483213'
+  percentage_of_precise_preds_similsort: '0.6280822160116036'
+  start_time_utc: 16/05/2024 13:45:01
+  topk_probsort: '[0.6511018192523653, 0.530558224968216, 0.4849807213604347, 0.45882237384532615,
+    0.4370968241913293, 0.4183018616018104, 0.3997928421782623, 0.3786214876613649,
+    0.3561227651643802, 0.33264284264086164]'
+  topk_similsort: '[0.7950979582307944, 0.593636343897292, 0.5158537441019437, 0.4594050986305954,
+    0.4152403268154002, 0.3763881081605056, 0.3405910753434224, 0.3059912164030488,
+    0.27273397560819046, 0.23961643287229908]'

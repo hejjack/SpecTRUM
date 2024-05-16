@@ -67,12 +67,20 @@ def get_eval_tag(old_logs: dict) -> str:
     else:
         return f"evaluation_{max([int(key.split('evaluation_')[1]) for key in old_logs.keys() if 'evaluation' in key]) + 1}"
 
+def compute_recall_at_k(simil_all_simils: dict) -> dict:
+    """Compute recall at k for all k"""
+    recall_at_k = {}
+    cumulative_recall = 0
+    total_length = len(simil_all_simils[0])
+    for k in sorted(simil_all_simils.keys()):
+        cumulative_recall += sum(np.array(simil_all_simils[k]) == 1)
+        recall_at_k[k] = cumulative_recall / total_length  # TODO: is this safe? Can't there be more correct predictions than total?
+    return recall_at_k
 
 @app.command()
 def main(
     predictions_path: pathlib.Path = typer.Option(..., dir_okay=False, file_okay=True, readable=True, help="Path to the jsonl file with caption predictions"),
     labels_path: pathlib.Path = typer.Option(None, dir_okay=False, file_okay=True, readable=True, help="either .smi file or .jsonl (DataFrame with 'smiles' column)"),
-    datasets_folder: pathlib.Path = typer.Option("data/datasets", dir_okay=True, file_okay=False, readable=True, help="Path to the folder containing the datasets (used for automatic labels deduction)"),
     config_file: pathlib.Path = typer.Option(..., dir_okay=False, file_okay=True, readable=True, help="Path to the config file"),
 ) -> None:
 
@@ -125,8 +133,10 @@ def main(
     log_file_path = parent_dir / "log_file.yaml"
     pred_f = predictions_path.open("r")
     log_file = (log_file_path).open("a+")
-    fp_simil_fails_f = (parent_dir / f"fp_simil_fails_{fp_simil_args_info}.csv").open("w+")
-    fp_simil_fails_f.write("pred,label\n")
+    fp_simil_fails_simil_f = (parent_dir / f"fp_simil_fails_simil_{fp_simil_args_info}.csv").open("w+")
+    fp_simil_fails_prob_f = (parent_dir / f"fp_simil_fails_prob_{fp_simil_args_info}.csv").open("w+")
+    fp_simil_fails_simil_f.write("pred,label\n")
+    fp_simil_fails_prob_f.write("pred,label\n")
     pred_jsonl = {}
     counter_empty_preds = 0
     start_time = time.time()
@@ -141,7 +151,10 @@ def main(
 
     simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
     prob_all_simils = defaultdict(list)   # all simils sorted by probability (at each ranking)
-    counter_fp_simil_fails_preds = 0 # number of situations when fingerprint similarity is 1 for different molecules
+    counter_fp_simil_fails_preds_simil = 0 # number of situations when fingerprint similarity is 1 for different molecules (similsort)
+    counter_fp_simil_fails_preds_prob = 0 # number of situations when fingerprint similarity is 1 for different molecules (probsort)
+    counter_invalid_preds = 0
+    counter_all_preds = 0
 
 
     for i in tqdm(dummy_generator()):  # basically a while True
@@ -154,6 +167,8 @@ def main(
         pred_mols = [Chem.MolFromSmiles(smiles) for smiles in pred_smiless]
         pred_fps = [fpgen.GetFingerprint(mol) for mol in pred_mols if mol is not None]
 
+
+        # process empty predictions
         if not preds or not pred_fps:
             if preds and not pred_fps:
                 print(f"WARNING: No valid prediction out of {len(pred_mols)} for {gt_smiles}, line {i}")
@@ -170,8 +185,6 @@ def main(
         gt_mol = Chem.MolFromSmiles(gt_smiles)
         gt_fp = fpgen.GetFingerprint(gt_mol)
         smiles_simils = [simil_function(fp, gt_fp) for fp in pred_fps]
-
-
         prob_simil = np.stack(list(zip(preds.values(), smiles_simils)))
 
         simil_decreasing_index = np.argsort(-prob_simil[:, 1])
@@ -179,12 +192,21 @@ def main(
 
         # when simil is 1, check if canon smiles are the same 
         if prob_simil[simil_decreasing_index[0]][1] == 1:
-            best_pred_smiles = Chem.MolToSmiles(pred_mols[simil_decreasing_index[0]])
+            best_pred_simil_smiles = Chem.MolToSmiles(pred_mols[simil_decreasing_index[0]])
             gt_smiles_canon = Chem.MolToSmiles(gt_mol)
-            if best_pred_smiles != gt_smiles_canon:
-                counter_fp_simil_fails_preds += 1
-                fp_simil_fails_f.write(f"{best_pred_smiles},{gt_smiles_canon}\n")
+            if best_pred_simil_smiles != gt_smiles_canon:
+                counter_fp_simil_fails_preds_simil += 1
+                fp_simil_fails_simil_f.write(f"{best_pred_simil_smiles},{gt_smiles_canon}\n")
+        if prob_simil[prob_decreasing_index[0]][1] == 1:
+            best_pred_prob_smiles = Chem.MolToSmiles(pred_mols[prob_decreasing_index[0]])
+            gt_smiles_canon = Chem.MolToSmiles(gt_mol)
+            if best_pred_prob_smiles != gt_smiles_canon:
+                counter_fp_simil_fails_preds_prob += 1
+                fp_simil_fails_prob_f.write(f"{best_pred_prob_smiles},{gt_smiles_canon}\n")
 
+        # update counters
+        counter_invalid_preds += sum([mol is None for mol in pred_mols])
+        counter_all_preds += len(pred_smiless)
         update_counter(prob_simil[simil_decreasing_index][:, 1], simil_all_simils)
         update_counter(prob_simil[prob_decreasing_index][:, 1], prob_all_simils)
 
@@ -198,13 +220,17 @@ def main(
     prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
     num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
 
+    recall_at_k_prob = compute_recall_at_k(simil_all_simils) 
+
     # create plots
     print("INFO: Creating plots...")
     fig_similsort = diagram_from_dict(simil_all_simils, title="Similarity on the k-th position (sorted by ground truth similarity)")
     fig_probsort = diagram_from_dict(prob_all_simils, title="Similarity on the k-th position (sorted by generation probability)")
     df_top1 = pd.DataFrame({"simil": simil_all_simils[0], "prob": prob_all_simils[0]})
-    fig_top1_simil_simils = px.histogram(df_top1, x="simil", nbins=100, labels={'x':'similarity', 'y':'count'})
-    fig_top1_prob_simils = px.histogram(df_top1, x="prob", nbins=100, labels={'x':'similarity', 'y':'count'})
+    fig_top1_simil_simils = px.histogram(df_top1, x="simil", nbins=100, labels={'simil':'similarity', 'y':'count'}, title="Similarity of the top1 prediction (similsort)")
+    fig_top1_prob_simils = px.histogram(df_top1, x="prob", nbins=100, labels={'prob':'similarity', 'y':'count'}, title="Similarity of the top1 prediction (probsort)")
+    fig_recall_at_k = px.line(x=list(recall_at_k_prob.keys()), y=list(recall_at_k_prob.values()), labels={'x':'k', 'y':'recall@k'}, title="Recall at k (probsort)")
+
 
     # save plots
     print("INFO: Saving plots...")
@@ -212,6 +238,7 @@ def main(
     fig_probsort.write_image(str(parent_dir / f"topk_probsort_{fp_simil_args_info}.png"))
     fig_top1_simil_simils.write_image(str(parent_dir / f"top1_simil_simils_{fp_simil_args_info}.png"))
     fig_top1_prob_simils.write_image(str(parent_dir / f"top1_prob_simils_{fp_simil_args_info}.png"))
+    fig_recall_at_k.write_image(str(parent_dir / f"recall_at_k_{fp_simil_args_info}.png"))
 
     finish_time = time.time()
     num_precise_preds_similsort = sum(np.array(simil_all_simils[0]) == 1) 
@@ -243,8 +270,11 @@ def main(
              "topk_probsort": str(prob_average_simil_kth),
              "num_predictions_at_k_counter": str(num_predictions_at_k_counter),
              "counter_empty_preds": str(counter_empty_preds),
+             "counter_invalid_preds": str(counter_invalid_preds),
+             "percentage_of_invalid_preds": str(counter_invalid_preds/counter_all_preds),
              "counter_datapoints_tested": str(num_lines_predictions),
-             "counter_fp_simil_fails_preds": str(counter_fp_simil_fails_preds),
+             "counter_fp_simil_fails_preds": str(counter_fp_simil_fails_preds_simil),
+             "counter_fp_simil_fails_preds_prob": str(counter_fp_simil_fails_preds_prob),
              "labels_path": str(labels_path),
              "num_similsort_precise_preds": str(num_precise_preds_similsort),
              "num_probsort_precise_preds": str(num_precise_preds_probsort),
