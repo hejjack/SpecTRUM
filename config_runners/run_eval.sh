@@ -21,9 +21,18 @@
 #                                   --config-file ../configs/eval_config_morgan.yaml \
 
 
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST_denovo/1715767948_test_full_beam50/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
+
+
 python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST_denovo/1715767947_test_full_beam10/predictions.jsonl \
                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl \
                                   --config-file ../configs/eval_config_morgan.yaml \
+
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST_denovo/1715857966_test_full_greedy/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
 
 
 

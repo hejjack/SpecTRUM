@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from io import TextIOWrapper
 import time
 from tokenizers import Tokenizer
@@ -7,10 +7,6 @@ import pathlib
 import torch
 
 
-def get_nice_time():
-    now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    now = now.replace(":", "_").replace(" ", "-")
-    return now
 
 
 def build_tokenizer(tokenizer_path: str) -> transformers.PreTrainedTokenizerFast:
@@ -75,3 +71,8 @@ def timestamp_to_readable(timestamp: float) -> str:
 def hours_minutes_seconds(seconds: float) -> str:
     return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
+
+def get_nice_time():
+    now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    now = now.replace(":", "_").replace(" ", "-")
+    return now

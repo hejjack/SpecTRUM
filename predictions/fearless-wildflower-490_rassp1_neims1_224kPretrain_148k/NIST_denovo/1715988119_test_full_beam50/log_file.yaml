@@ -1,0 +1,37 @@
+command: ../predict.py --checkpoint ../checkpoints/finetune/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/checkpoint-147476
+  --output-folder ../predictions --config-file ../configs/predict_config_nist_test_beam50.yaml
+cuda_visible_devices: null
+dataloader:
+  batch_size: 1
+  num_workers: 1
+dataset:
+  data_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl
+  data_split: test
+  dataset_name: NIST_denovo
+general:
+  additional_naming_info: beam50
+  device: cuda
+generation_args:
+  do_sample: false
+  length_penalty: 1.0
+  max_length: 200
+  num_beams: 50
+  num_return_sequences: 50
+  penalty_alpha: null
+  temperature: null
+  top_k: null
+  top_p: null
+preprocess_args:
+  inference_mode: false
+  keep_all_columns: true
+  log_base: 1.2
+  log_shift: 39
+  max_cumsum: null
+  max_mol_repr_len: 100
+  max_mz: 500
+  max_num_peaks: 300
+  mol_repr: smiles
+  restrict_intensities: false
+  source_token: <nist>
+start_loading_time: 18/05/2024 01:21:59
+tokenizer_path: ../tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_mf10000000.model
