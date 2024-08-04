@@ -18,7 +18,7 @@ import yaml
 import pandas as pd
 
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer, hardcode_build_selfies_tokenizer
-from spectra_process_utils import msp_file_to_jsonl
+from spectra_process_utils import msp2jsonl
 
 # from general_utils import build_tokenizer
 app = typer.Typer()
@@ -46,7 +46,7 @@ def msp_files_to_jsonl_files(process_id,
     print(f"process {process_id} STARTED, preprocess .. {do_preprocess}")
     for file in tqdm(files): 
         jsonl_file = output_dir / f"{file.stem}.jsonl"
-        msp_file_to_jsonl(file,
+        msp2jsonl(file,
                           tokenizer=tokenizer,
                           path_jsonl=jsonl_file,
                           keep_spectra=keep_spectra,
