@@ -1,7 +1,7 @@
 checkpoints/**
 data/**/*.pkl
-data/**/*.jsonl
-data/**/*.smi
+**/data/**/*.jsonl
+**/data/**/*.smi
 **/data/**/*.msp
 **/data/**/*.sdf
 data/**/*.sel
