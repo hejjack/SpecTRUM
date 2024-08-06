@@ -1,4 +1,8 @@
 from __future__ import annotations
+
+import sys
+sys.path.append("../")
+
 from typing import List, Optional
 from matchms import Spectrum
 from matchms.importing import load_from_msp
@@ -286,10 +290,10 @@ def canonicalize_smiles(smi: str) -> str | None:
 
 def remove_stereochemistry_and_canonicalize(smiles):
     mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:                           # TODO oddelej if else 
-        Chem.RemoveStereochemistry(mol)
-    else: 
-        return None 
+    if mol is None:
+        print(f"Smiles {smiles} is not valid.")
+        return None
+    Chem.RemoveStereochemistry(mol)
     new_smiles = Chem.MolToSmiles(mol)
     return new_smiles
 
