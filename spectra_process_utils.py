@@ -2,6 +2,9 @@ from __future__ import annotations
 from typing import List, Optional
 from matchms import Spectrum
 from matchms.importing import load_from_msp
+from matchms.exporting import save_as_json
+from rdkit.Chem import PandasTools
+import pandas as pd
 from rdkit import Chem, DataStructs
 import numpy as np
 import pandas as pd
@@ -235,7 +238,7 @@ def extract_spectra(spectra: List[Spectrum]) -> pd.DataFrame:
     df_out = pd.DataFrame({"mz": mzs, "intensity": intensities, "smiles": canon_smiless})
     return df_out
 
-def msp_file_to_jsonl(path_msp: Path,
+def msp2jsonl(path_msp: Path,
                       tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer | None,
                       path_jsonl: Path | None = None,
                       keep_spectra: bool = False,
@@ -280,6 +283,7 @@ def canonicalize_smiles(smi: str) -> str | None:
         print("Couldn't be canonicalized due to Exception:", msg) 
     return None
 
+
 def remove_stereochemistry_and_canonicalize(smiles):
     mol = Chem.MolFromSmiles(smiles)
     if mol is not None:                           # TODO oddelej if else 
@@ -290,7 +294,7 @@ def remove_stereochemistry_and_canonicalize(smiles):
     return new_smiles
 
 
-def msp_file_to_smi(path_msp: Path):
+def msp2smi(path_msp: Path):
     """load msp file, canonicalize SMILES and save them to .smi file
     
     Parameters
@@ -307,6 +311,58 @@ def msp_file_to_smi(path_msp: Path):
         if canonical_smiles:
             out.write(canonical_smiles + "\n")
     out.close()
+
+
+def msp2sdf(path_msp: str,
+            path_sdf: str | None = None,
+            separate_replicates: bool = False) -> None:
+    
+    """load msp file and convert it to sdf file without loss of information. 
+    
+    This function is mainly used for preparation of the data for NEIMS training, 
+    therefore to save processing time we add a functionality to separate replicates.
+    If you only want to convert the msp file to sdf file, set separate_replicates to False
+    and ignore it.
+    
+    Parameters
+    ----------
+    path_msp : Path
+        path to the msp file
+    path_sdf : Path
+        path of the output sdf file, if None, the sdf file is saved
+        with the same name as the msp file, but with .sdf extension
+    separate_replicates : bool
+        if True, the replicates are saved in a separate sdf file and are excluded 
+        from the main sdf file. If False, the all molecules are included in the main sdf
+
+    """
+    if not path_sdf:
+        path_sdf = str(Path(path_msp).with_suffix(".sdf"))  # type: ignore
+
+    data_msp = list(load_from_msp(path_msp, metadata_harmonization=False))
+    
+    # convert to json
+    tmp_json_file = "tmp.json"
+    save_as_json(data_msp, tmp_json_file)
+
+    # load json to dataframe
+    df = pd.read_json(tmp_json_file)
+
+    if separate_replicates:
+        unique_df = df.drop_duplicates(subset=['inchikey'], keep='first')
+        replicates_df = df[~df.index.isin(unique_df.index)]
+        PandasTools.AddMoleculeColumnToFrame(replicates_df, smilesCol='smiles', molCol='ROMol')
+        PandasTools.WriteSDF(replicates_df, path_sdf.replace(".sdf", "_replicates.sdf"), idName="id", properties=list(
+            replicates_df.columns))
+        path_sdf = path_sdf.replace(".sdf", "_main.sdf")
+        df = unique_df
+
+    # save dataframe to sdf
+    PandasTools.AddMoleculeColumnToFrame(df, smilesCol='smiles', molCol='ROMol')
+    PandasTools.WriteSDF(df, path_sdf, idName="id", properties=list(
+        df.columns))
+    
+    Path(tmp_json_file).unlink()
 
 
 def process_neims_spec(spec, metadata):
