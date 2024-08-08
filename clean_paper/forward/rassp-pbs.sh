@@ -19,11 +19,14 @@ shift $((OPTIND-1))
 
 [ -z "$1" ] && usage
 
+chunk="$1"
+base=$(basename $chunk)
+
 : ${SCRATCHDIR:=$TMPDIR}
 : ${SCRATCHDIR:=/tmp}
 
 cd "${dir:=$PBS_O_WORKDIR}" || exit 1
-cp "$1" $SCRATCHDIR
+cp "$chunk" $SCRATCHDIR
 
 
 if [ -z "$image" ]; then
@@ -56,10 +59,7 @@ if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
 	nv=--nv
 fi
 
-chunk=$1
-base=$(basename $chunk)
-
-split -d -l 1000 ${chunk} ${base}_
+split -d -l 1000 ${base} ${base}_
 
 # naming hack to keep _NN on two digits only
 #for c in ${chunk}_900*; do
@@ -74,11 +74,12 @@ done
 
 obase=$(echo $chunk | sed 's/\.[^/.]*$//')
 
-cat *.jsonl >"$obase.jsonl"
-cat *-discard.smi >"$obase-discard.smi"
+cd $dir
+cat $SCRATCHDIR/*.jsonl >"$obase.jsonl"
+cat $SCRATCHDIR/*-discard.smi >"$obase-discard.smi"
 
 # cleanup if needed
-# rm -rf *
+# cd $SCRATCHDIR && rm -rf *
 
 
 
