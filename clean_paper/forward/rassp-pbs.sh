@@ -72,11 +72,9 @@ for c in ${base}_*; do
 	singularity exec $nv -B $PWD:/work --pwd /work "$image" /opt/nvidia/nvidia_entrypoint.sh python3 rassp-predict.py -m formulanet.model -e formulanet.meta -w ${PBS_NCPUS:-1} -s "$c" -o "$c.jsonl" -d "$c-discard.smi"
 done
 
-obase=$(echo $chunk | sed 's/\.[^/.]*$//')
-
 cd $dir
-cat $SCRATCHDIR/*.jsonl >"$obase.jsonl"
-cat $SCRATCHDIR/*-discard.smi >"$obase-discard.smi"
+cat $SCRATCHDIR/*.jsonl >"$chunk.jsonl"
+cat $SCRATCHDIR/*-discard.smi >"$chunk-discard.smi"
 
 # cleanup if needed
 # cd $SCRATCHDIR && rm -rf *
