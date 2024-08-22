@@ -19,6 +19,8 @@ from bart_spektro.selfies_tokenizer import SelfiesTokenizer
 from pathlib import Path
 import selfies as sf
 
+tqdm.pandas()
+
 
 def mol_repr_to_labels(mol_repr, tokenizer, source_id: int) -> List[int]:
     """Converts molecular representation (SMILES/SELFIES) to labels for the model"""
@@ -26,6 +28,21 @@ def mol_repr_to_labels(mol_repr, tokenizer, source_id: int) -> List[int]:
     encoded_mol_repr = tokenizer.encode(mol_repr)
     labels = [source_id] + encoded_mol_repr + [eos_token]
     return labels
+
+
+def smiles_to_inchikey(smiles):
+    """Converts smiles to inchikey"""
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is not None:
+            inchikey = Chem.MolToInchiKey(mol)
+            return inchikey
+        else:
+            print("Warning: Smiles could not be converted to InchiKey")
+            return None
+    except:
+        print("Warning: Smiles could not be converted to InchiKey")
+        return None
 
 
 def preprocess_spectrum(s: Spectrum, 
@@ -318,8 +335,7 @@ def msp2smi(path_msp: Path):
 
 
 def msp2sdf(path_msp: str,
-            path_sdf: str | None = None,
-            separate_replicates: bool = False) -> None:
+            path_sdf = None) -> None:
     
     """load msp file and convert it to sdf file without loss of information. 
     
@@ -335,10 +351,6 @@ def msp2sdf(path_msp: str,
     path_sdf : Path
         path of the output sdf file, if None, the sdf file is saved
         with the same name as the msp file, but with .sdf extension
-    separate_replicates : bool
-        if True, the replicates are saved in a separate sdf file and are excluded 
-        from the main sdf file. If False, the all molecules are included in the main sdf
-
     """
     if not path_sdf:
         path_sdf = str(Path(path_msp).with_suffix(".sdf"))  # type: ignore
@@ -352,21 +364,14 @@ def msp2sdf(path_msp: str,
     # load json to dataframe
     df = pd.read_json(tmp_json_file)
 
-    if separate_replicates:
-        unique_df = df.drop_duplicates(subset=['inchikey'], keep='first')
-        replicates_df = df[~df.index.isin(unique_df.index)]
-        PandasTools.AddMoleculeColumnToFrame(replicates_df, smilesCol='smiles', molCol='ROMol')
-        PandasTools.WriteSDF(replicates_df, path_sdf.replace(".sdf", "_replicates.sdf"), idName="id", properties=list(
-            replicates_df.columns))
-        path_sdf = path_sdf.replace(".sdf", "_main.sdf")
-        df = unique_df
-
     # save dataframe to sdf
     PandasTools.AddMoleculeColumnToFrame(df, smilesCol='smiles', molCol='ROMol')
     PandasTools.WriteSDF(df, path_sdf, idName="id", properties=list(
         df.columns))
     
     Path(tmp_json_file).unlink()
+
+
 
 
 def process_neims_spec(spec, metadata):

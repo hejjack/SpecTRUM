@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run NEIMS preprocessing",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "clean_paper/deep-molecular-massspec/make_train_test_split.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "TARGET_PATH_NAME": "tmp/massspec_predictions",
+            },
+            "args": [
+                "--main_sdf_name", "../data/nist/neims_training_data/train_main_neims.sdf",
+                "--replicates_sdf_name", "../data/nist/neims_training_data/train_replicates_neims.sdf",
+                "--output_master_dir", "$TARGET_PATH_NAME/spectra_tf_records",
+            ]
+        },
+        {
             "name": "Run finetuning",
             "type": "debugpy",
             "request": "launch",
