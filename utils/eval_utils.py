@@ -7,7 +7,7 @@ from typing import Optional
 from tqdm import tqdm
 tqdm.pandas()
 
-from  data_utils import build_single_datapipe, filter_datapoints, range_filter
+from  utils.data_utils import build_single_datapipe, filter_datapoints, range_filter
 
 
 def filter_predictions(old_predictions_path, original_data_path, old_config, new_config, save_path=None):
@@ -64,7 +64,7 @@ def filter_predictions(old_predictions_path, original_data_path, old_config, new
             pred_file.write('\n'.join(json.dumps(pred) for pred in new_predictions))
 
         with open(Path(save_path).parent / "log_file.yaml", "w") as log_file:
-            yaml.dump({"created_by": "data_utils/filter_predictions",
+            yaml.dump({"created_by": "utils.data_utils/filter_predictions",
                             "origin_predictions": old_predictions_path,
                             "origin_data": original_data_path,
                             "old_config": old_config,

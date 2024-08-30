@@ -7,7 +7,7 @@
 ```python
 from spectra_process_utils import msp2jsonl
 from pathlib import Path
-from general_utils import build_tokenizer
+from utils.general_utils import build_tokenizer
 
 tokenizer_type = "mf100"
 tokenizer_path = f"tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_{tokenizer_type}.model"
@@ -18,7 +18,7 @@ for dataset_type in ["train", "valid", "test"]:
     dataset_path = Path("data/datasets/NIST/NIST_split_filip")
     source_token = "<nist>"
     msp2jsonl(dataset_path / f"{dataset_type}.msp",
-                    tokenizer,
+                    tokenizer=tokenizer,
                     source_token,
                     path_jsonl=dataset_path / tokenizer_type / f"{dataset_type}.jsonl",
                     keep_spectra=True

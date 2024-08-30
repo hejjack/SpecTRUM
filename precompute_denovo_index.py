@@ -17,7 +17,7 @@ from pathlib import Path
 from tqdm import tqdm
 tqdm.pandas()
 
-from spectra_process_utils import get_fp_generator, get_simil_function
+from utils.spectra_process_utils import get_fp_generator, get_simil_function
 
 
 def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, simil_function, outfile_path, process_id=None):

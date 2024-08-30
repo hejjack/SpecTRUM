@@ -18,6 +18,7 @@ from transformers import PreTrainedTokenizerFast
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer
 from pathlib import Path
 import selfies as sf
+import json
 
 tqdm.pandas()
 
@@ -232,69 +233,6 @@ def preprocess_spectra(spectra: List[Spectrum],
     print(f"discarded {num_spectra - len(df_out)}/{num_spectra} spectra ")
     return df_out
 
-def extract_spectra(spectra: List[Spectrum]) -> pd.DataFrame:
-    """
-    Extracts mz and intensity from spectra and returns a dataframe
-
-    Parameters
-    ----------
-    spectra : List[matchms.Spectrum] or Generator[matchms.Spectrum]
-        list of spectra to be preprocessed
-
-    Returns
-    -------
-    df_out : pd.DataFrame
-        df with canonical smiles and mz, intensity columns
-        a dataframe we are able to feed into datapipeline that does the preprocessing for us
-    """
-    mzs = []
-    intensities = []
-    canon_smiless = []
-    for d in tqdm(spectra):
-        canon_smiles = canonicalize_smiles(d.metadata["smiles"])
-        if canon_smiles:
-            mzs.append(d.peaks.mz)
-            intensities.append(d.peaks.intensities)
-            canon_smiless.append(canon_smiles)
-    df_out = pd.DataFrame({"mz": mzs, "intensity": intensities, "smiles": canon_smiless})
-    return df_out
-
-def msp2jsonl(path_msp: Path,
-                      tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer | None,
-                      path_jsonl: Path | None = None,
-                      keep_spectra: bool = False,
-                      do_preprocess: bool = True,
-                      preprocess_args: dict = {}):
-    """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
-    
-    Parameters
-    ----------
-    path_msp : Path
-        path to the msp file
-    tokenizer : PreTrainedTokenizerFast | SelfiesTokenizer
-        tokenizer used for tokenizing the smiles to fit decoder_input_ids
-    path_jsonl : Path
-        path of the output jsonl file, if None, the jsonl file is saved
-        with the same name as the msp file, but with .jsonl extension
-    keep_spectra : bool
-        whether to keep the spectra (original mz, and intensities) in the output jsonl file along with the preprocessed data
-    do_preprocess : bool
-        whether to preprocess the spectra and prepare BART compatible jsonl file or just extract the spectra from msp to jsonl
-    preprocess_args : dict
-        dictionary of arguments for the preprocess_spectrum function (max_num_peaks, max_mol_repr_len, max_mz, log_base, log_shift, max_cumsum, mol_representation, source_token)
-    """
-    data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
-    if do_preprocess:
-        df = preprocess_spectra(data_msp, tokenizer, keep_spectra=keep_spectra, preprocess_args=preprocess_args)
-    else:
-        df = extract_spectra(data_msp)
-
-    if not path_jsonl:
-        path_jsonl = path_msp.with_suffix(".jsonl")
-    else:
-        path_jsonl.parent.mkdir(parents=True, exist_ok=True)
-    df.to_json(path_jsonl, orient="records", lines=True)
-
 
 def canonicalize_smiles(smi: str) -> str | None:
     """canonicalize SMILES using rdkit"""
@@ -313,6 +251,44 @@ def remove_stereochemistry_and_canonicalize(smiles):
     Chem.RemoveStereochemistry(mol)
     new_smiles = Chem.MolToSmiles(mol)
     return new_smiles
+
+
+def msp2jsonl(path_msp: Path,
+              tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer | None = None,
+              path_jsonl: Path | None = None,
+              keep_spectra: bool = False,
+              do_preprocess: bool = True,
+              preprocess_args: dict = {}):
+    """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
+    
+    Parameters
+    ----------
+    path_msp : Path
+        path to the msp file
+    tokenizer : PreTrainedTokenizerFast | SelfiesTokenizer
+        tokenizer used for tokenizing the smiles to fit decoder_input_ids
+    path_jsonl : Path
+        path of the output jsonl file, if None, the jsonl file is saved
+        with the same name as the msp file, but with .jsonl extension
+    keep_spectra : bool
+        whether to keep the spectra (original mz, and intensities) in the output jsonl file along with the preprocessed data
+    do_preprocess : bool
+        whether to preprocess the spectra and prepare BART compatible jsonl file or just extract the spectra from msp to jsonl
+    preprocess_args : dict
+        dictionary of arguments for the preprocess_spectrum function (max_num_peaks, max_mol_repr_len, max_mz, log_base, log_shift, max_cumsum, mol_representation, source_token)
+    """
+    assert do_preprocess and tokenizer is not None or not do_preprocess, "If do_preprocess is True, tokenizer has to be provided"
+    data_msp = list(load_from_msp(str(path_msp), metadata_harmonization=False))
+    if do_preprocess:
+        df = preprocess_spectra(data_msp, tokenizer, keep_spectra=keep_spectra, preprocess_args=preprocess_args)
+    else:
+        df = extract_spectra(data_msp)
+
+    if not path_jsonl:
+        path_jsonl = path_msp.with_suffix(".jsonl")
+    else:
+        path_jsonl.parent.mkdir(parents=True, exist_ok=True)
+    df.to_json(path_jsonl, orient="records", lines=True)
 
 
 def msp2smi(path_msp: Path):
@@ -372,6 +348,46 @@ def msp2sdf(path_msp: str,
     Path(tmp_json_file).unlink()
 
 
+def jsonl2smi(path_jsonl):
+    """
+    load jsonl file, extract smiles and save them to .smi file
+
+    Parameters
+    ----------
+    path_jsonl : Path
+        path to the jsonl file  
+    """
+    path_smi = Path(path_jsonl).with_suffix(".smi")
+    with open(path_jsonl, "r") as f:
+        with open(path_smi, "w") as f2:
+            for line in f:
+                f2.write(json.loads(line)["smiles"] + "\n")
+
+
+def sdf2jsonl(sdf_path: str) -> None:
+    """
+    load sdf file, extract smiles, mz and intensity and save them to .jsonl file
+
+    Parameters
+    ----------
+    sdf_path : Path
+        path to the sdf file
+    """
+
+    print(f"{sdf_path}: RUNNING"),  # type: ignore
+    df_enriched = PandasTools.LoadSDF(sdf_path, idName="id", molColName='Molecule')
+        
+    # processing spectra (get prefered mz and intensity format)
+    df_enriched = oneD_spectra_to_mz_int(df_enriched)
+
+    df_enriched = df_enriched[["smiles", "mz", "intensity"]]
+
+    # strip potential whitespace from smiles (just to be absolutely sure)
+    df_enriched["smiles"] = df_enriched["smiles"].progress_apply(lambda x: x.strip()) 
+
+    # save the df as jsonl
+    df_enriched.to_json(Path(sdf_path).with_suffix(".jsonl"), orient="records", lines=True)
+    print(f"{sdf_path}: DONE")
 
 
 def process_neims_spec(spec, metadata):
@@ -404,6 +420,34 @@ def process_neims_spec(spec, metadata):
                     metadata_harmonization=False)
 
 
+def extract_spectra(spectra: List[Spectrum]) -> pd.DataFrame:
+    """
+    Extracts mz and intensity from spectra and returns a dataframe
+
+    Parameters
+    ----------
+    spectra : List[matchms.Spectrum] or Generator[matchms.Spectrum]
+        list of spectra to be preprocessed
+
+    Returns
+    -------
+    df_out : pd.DataFrame
+        df with canonical smiles and mz, intensity columns
+        a dataframe we are able to feed into datapipeline that does the preprocessing for us
+    """
+    mzs = []
+    intensities = []
+    canon_smiless = []
+    for d in tqdm(spectra):
+        canon_smiles = canonicalize_smiles(d.metadata["smiles"])
+        if canon_smiles:
+            mzs.append(d.peaks.mz)
+            intensities.append(d.peaks.intensities)
+            canon_smiless.append(canon_smiles)
+    df_out = pd.DataFrame({"mz": mzs, "intensity": intensities, "smiles": canon_smiless})
+    return df_out
+
+
 def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     """
     Function that takes a DF and splits the one-array-representation of spectra into mz and intensity parts
@@ -422,7 +466,7 @@ def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     df2 = df.copy()
     all_i = []
     all_mz = []
-    for row in tqdm(range(len(df2))):
+    for row in range(len(df2)):
         spec = df2["PREDICTED SPECTRUM"][row].split("\n")
         mz = []
         i = []

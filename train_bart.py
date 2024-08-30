@@ -14,11 +14,11 @@ import peft
 # custom code
 from callbacks import PredictionLogger
 from metrics import SpectroMetrics
-from data_utils import SpectroDataCollator, load_all_datapipes
+from utils.data_utils import SpectroDataCollator, load_all_datapipes
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.configuration_bart_spektro import BartSpektroConfig
 from bart_spektro.selfies_tokenizer import hardcode_build_selfies_tokenizer
-from general_utils import get_nice_time, build_tokenizer
+from utils.general_utils import get_nice_time, build_tokenizer
 
 app = typer.Typer()
 
@@ -103,8 +103,16 @@ def set_batch_size(hf_training_args: Dict):
 
     else:
         print("Using   M A N U A L   batch size")
-        hf_training_args.pop("effective_train_batch_size", None)  # these have to be removed
-        hf_training_args.pop("effective_eval_batch_size", None)   # these have to be removed
+        assert hf_training_args.get("per_device_train_batch_size", None) and \
+               hf_training_args.get("per_device_eval_batch_size", None) and \
+               hf_training_args.get("gradient_accumulation_steps", None) is not None and \
+               hf_training_args.get("eval_accumulation_steps", None) is not None, \
+               "You must specify per_device_train_batch_size, per_device_eval_batch_size, \
+               gradient_accumulation_steps and eval_accumulation_steps in config's \
+               hf_training_args when auto_bs is False."
+        
+        hf_training_args.pop("effective_train_batch_size", None)  # these have to be removed if present
+        hf_training_args.pop("effective_eval_batch_size", None)   # these have to be removed if present
 
     print(f"> train batch size per GPU: {hf_training_args['per_device_train_batch_size']}")
     print(f"> eval batch size per GPU: {hf_training_args['per_device_eval_batch_size']}")
@@ -195,10 +203,15 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          checkpoints_dir: Path = typer.Option("../checkpoints", help="Path to the checkpoints directory"),
          additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
          additional_tags: str = typer.Option(None, help="Tags to add to the wandb run, one string, delimited by ':'"),
-         device: str = typer.Option("cuda", help="Device to use for training"),
+         device: str = typer.Option("cuda", help="Device to use for training: 'cuda' or 'cpu' ... CPU currently not available "),
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
     
+    assert device in ["cuda", "cpu"], "ArgumentError: Device must be 'cuda' or 'cpu'"
+    if device == "cpu":
+        print("Training on CPU is currently not supported due to dependency issues.")
+        return
+
     if additional_tags:
         add_tags = additional_tags.split(":")
     else:
@@ -211,9 +224,10 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         add_tags.append("CVD=weird_meta_id")
 
-    for i in range(torch.cuda.device_count()):
-        print(f"device: {device}")
-        print(torch.cuda.get_device_properties(i))
+    if device == "cuda":
+        for i in range(torch.cuda.device_count()):
+            print(f"device: {device}")
+            print(torch.cuda.get_device_properties(i))
 
     # load config
     with open(config_file, "r") as f:
@@ -228,7 +242,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     model_args = config["model_args"]
     example_gen_args = config["example_generation_args"]
     tokenizer_path = model_args["tokenizer_path"]
-    use_wandb = hf_training_args["report_to"] == "wandb"
+    report_to = hf_training_args.pop("report_to", "none")
+    use_wandb = report_to == "wandb"
+
     # get freeze args
     train_using_peft = model_args.pop("train_using_peft", False)
     train_fc_only = model_args.pop("train_fc_only", False)
@@ -262,8 +278,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
             "max_mol_repr_len": preprocess_args.get("max_mol_repr_len", 100),
             "max_mz": model_args["max_mz"],
             "mol_repr": "selfies" if tokenizer_path == "selfies_tokenizer" else "smiles",
-            "log_base": preprocess_args.get("log_base", 1.7),
-            "log_shift": preprocess_args.get("log_shift", 9),
+            "log_base": preprocess_args.get("log_base", 1.2),
+            "log_shift": preprocess_args.get("log_shift", 39),
             "max_cumsum": preprocess_args.get("max_cumsum", None),
             "tokenizer": tokenizer,
             "do_log_binning": preprocess_args.get("do_log_binning", True),
@@ -281,7 +297,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     bart_spectro_config = get_spectro_config(model_args, tokenizer)
 
     print("Loading model...")
-    if checkpoint:
+    if checkpoint is not None:
         print(f"Loading checkpoint from {checkpoint}")
         model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     else:
@@ -351,7 +367,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                                            collator=SpectroDataCollator(restrict_intensities=model_args.get("restrict_intensities", False)),
                                            log_every_n_steps=hf_training_args["eval_steps"],
                                            show_raw_preds=dataset_args["show_raw_preds"],
-                                           log_to_wandb=use_wandb,
+                                        #    log_to_wandb=use_wandb,
                                            generate_kwargs=example_gen_args,
                                         )
 
@@ -359,7 +375,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     seq2seq_training_args = transformers.Seq2SeqTrainingArguments(**hf_training_args,
                                                                     output_dir=str(save_path),
                                                                     run_name=run_name,
-                                                                    data_seed=dataset_args["data_seed"]
+                                                                    data_seed=dataset_args["data_seed"],
+                                                                    report_to=[report_to],
+                                                                    # use_cpu= device == "cpu", # coming in future versions
                                                                     )
     
 

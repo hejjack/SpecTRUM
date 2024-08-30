@@ -11,7 +11,7 @@ data_args:
       weight: 1.0
       limit_train_split: null  # null for full; limit of head from valid set chosen for validation split
       limit_val_split: null     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<nist>"
     NEIMS: # NEIMS only for evaluation tracking purposes
       train_path: "../data/datasets/4_8M/neims_gen/train.jsonl"
@@ -19,7 +19,7 @@ data_args:
       weight: 0.0
       limit_train_split: 0  # null for full; limit of head from valid set chosen for validation split
       limit_val_split: 2000     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<neims>"
     RASSP: # only for evaluation tracking purposes
       train_path: "../data/datasets/4_8M/rassp_gen/train.jsonl"
@@ -27,7 +27,7 @@ data_args:
       weight: 0.0
       limit_train_split: 0  # null for full; limit of head from valid set chosen for validation split
       limit_val_split: 2000     # null for full; limit of head from valid set chosen for validation split
-      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
+      limit_example_split: 100  # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<rassp>"
 
 

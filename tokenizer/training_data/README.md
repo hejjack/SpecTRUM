@@ -29,4 +29,4 @@ random_slice(1000, data_path, slice_save_dir + "/1K.txt")
 
 
 ### 240k_selfies.txt
-created in notebooks/selfies_analysis.ipynb, it should maybe be 
+created in notebooks/selfies_analysis.ipynb

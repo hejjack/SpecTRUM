@@ -1,4 +1,4 @@
-created_by: data_utils/filter_predictions
+created_by: utils.data_utils/filter_predictions
 new_config:
   max_mol_repr_len: 100
   max_mz: 500

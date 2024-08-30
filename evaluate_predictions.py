@@ -18,9 +18,9 @@ import pytz
 from datetime import datetime
 from collections.abc import Iterator
 
-from spectra_process_utils import get_fp_generator, get_simil_function
-from general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds 
-from eval_utils import load_labels_from_dataset, load_labels_to_datapipe
+from utils.spectra_process_utils import get_fp_generator, get_simil_function
+from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds 
+from utils.eval_utils import load_labels_from_dataset, load_labels_to_datapipe
 
 RDLogger.DisableLog('rdApp.*')
 

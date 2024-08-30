@@ -155,8 +155,16 @@ class PredictionLogger(transformers.TrainerCallback):
             df_log[f"raw_predicted_{mol_repr}"] = all_raw_preds
         table = wandb.Table(dataframe=df_log)
 
-        wandb.log({f"eval_tables/{log_prefix}/global_step_{global_step}": table})
-        wandb.log({f"eval/{log_prefix}/example_DLT_similarity": sum(all_daylight_tanimoto_simils)/len(all_daylight_tanimoto_simils)})
+        # log either to WANDB or to STDOUT
+        if args.report_to and "wandb" in args.report_to:
+            wandb.log({f"eval_tables/{log_prefix}/global_step_{global_step}": table})
+            wandb.log({f"eval/{log_prefix}/example_DLT_similarity": sum(all_daylight_tanimoto_simils)/len(all_daylight_tanimoto_simils)})
+        else:
+            print(f"Log {log_prefix} at global step {global_step}")
+            df_log.pop("gt_molecule")
+            df_log.pop("predicted_molecule")
+            print(df_log)
+
 
     def on_step_end(
         self,

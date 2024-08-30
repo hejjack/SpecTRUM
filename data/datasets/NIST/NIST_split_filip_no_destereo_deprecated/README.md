@@ -2,10 +2,10 @@
 - NIST20 without unidentifiable spectra (~60k)
 
 ## This dataset is created by the following steps:
-1. Create jsonl files by the function msp2jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
+1. Create jsonl files by the function msp2jsonl from utils.spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
 
 ```python
-from spectra_process_utils import msp2jsonl
+from utils.spectra_process_utils import msp2jsonl
 from pathlib import Path
 
 dataset_path = Path("data/datasets/NIST/NIST_split_filip")

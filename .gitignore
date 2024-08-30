@@ -7,6 +7,7 @@ data/**/*.pkl
 data/**/*.sel
 data/**/*.SIF
 data/**/*.log
+data/**/*.zip
 data/deprecated/*
 
 data/categorized
@@ -25,6 +26,7 @@ RLHF/**
 data/categorized_michal.csv
 # predictions/**/*.jsonl
 tokenizer/training_data/*.txt
+clean_paper/deep-molecular-massspec/tmp
 
 # temporary files
 **/.ipynb_checkpoints/**

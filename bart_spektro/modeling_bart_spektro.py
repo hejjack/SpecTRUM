@@ -375,10 +375,10 @@ class BartSpektroModel(BartPretrainedModel):
         # separate_encoder_decoder_embeds is None - old models
         # separate_encoder_decoder_embeds is False - new models that don't want to be separated
         if not hasattr(config, "separate_encoder_decoder_embeds") or not config.separate_encoder_decoder_embeds:
-            print("WARNING: This model is using   O N E   dictionary both for encoder and decoder.")
+            print("This model is using   O N E   dictionary both for encoder and decoder.")
             self.shared = nn.Embedding(config.vocab_size, config.d_model, config.pad_token_id)
         else:
-            print("WARNING: This model is using   T W O   dictionaries - one for encoder, one for decoder.")
+            print("This model is using   T W O   dictionaries - one for encoder, one for decoder.")
             self.shared = None
         self.encoder = BartSpektroEncoder(config, embed_tokens=self.shared)  # Adam - removed creating shared embeddings and passing them to both parts
         self.decoder = BartSpektroDecoder(config, embed_tokens=self.shared)         # Adam - removed creating shared embeddings and passing them to both parts

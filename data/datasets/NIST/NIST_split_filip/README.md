@@ -6,12 +6,12 @@ It only contains jsonl files with `mz`, `intensity`, and `smiles` fields. The fi
 1. Create msp splits using my updated version of FILIP JOZEFOV's notebook data/nist_cleaning_splitting.ipynb
    - it dorps ~60k spectra that don't have some form of proper identifier (smiles, inchikey)
    - split 0.8:0.1:0.1
-2. Create jsonl files by the function msp2jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
+2. Create jsonl files by the function msp2jsonl from utils.spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
 
 ```python
 import sys
 sys.path.append("..")
-from spectra_process_utils import msp2jsonl
+from utils.spectra_process_utils import msp2jsonl
 from pathlib import Path
 
 tokenizer = None

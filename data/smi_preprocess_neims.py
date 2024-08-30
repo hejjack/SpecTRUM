@@ -154,7 +154,7 @@ def cumsum_filtering(mz: np.ndarray,
     return mz_sorted, i_sorted
 
 
-# copied from data_utils (import problems)
+# copied from utils.data_utils (import problems)
 def position_ids_creator(intensities, log_log_base, log_shift):
     """create position ids for the Spectro Transformer model"""
     x = np.array(intensities) / max(intensities)  # normalize

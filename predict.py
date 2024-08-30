@@ -13,10 +13,10 @@ from tqdm import tqdm
 from typing import Dict, Any, Tuple, List
 from icecream import ic
 from rdkit import Chem, RDLogger
-from data_utils import SpectroDataCollator, build_single_datapipe
+from utils.data_utils import SpectroDataCollator, build_single_datapipe
 # from bart_spektro import BartSpektroForConditionalGeneration
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
-from general_utils import build_tokenizer, get_sequence_probs, timestamp_to_readable, hours_minutes_seconds
+from utils.general_utils import build_tokenizer, get_sequence_probs, timestamp_to_readable, hours_minutes_seconds
 from copy import deepcopy
 
 RDLogger.DisableLog('rdApp.*')

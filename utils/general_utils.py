@@ -17,7 +17,8 @@ def build_tokenizer(tokenizer_path: str) -> transformers.PreTrainedTokenizerFast
                                         eos_token="<eos>",
                                         unk_token="<unk>",
                                         pad_token="<pad>",
-                                        is_split_into_words=True)
+                                        is_split_into_words=True,
+                                        clean_up_tokenization_spaces=True)
     return tokenizer
 
 

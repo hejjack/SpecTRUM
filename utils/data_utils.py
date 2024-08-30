@@ -13,9 +13,8 @@ import numpy as np
 from pathlib import Path 
 from rdkit import Chem
 import selfies as sf
-import yaml
 from tqdm import tqdm
-from spectra_process_utils import mol_repr_to_labels, cumsum_filtering, remove_stereochemistry_and_canonicalize
+from utils.spectra_process_utils import mol_repr_to_labels, cumsum_filtering, remove_stereochemistry_and_canonicalize
 
 tqdm.pandas()
 T_co = TypeVar("T_co", covariant=True)

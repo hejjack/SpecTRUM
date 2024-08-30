@@ -2,12 +2,12 @@
 1. Create msp splits using my updated version of FILIP JOZEFOV's notebook data/nist_cleaning_splitting.ipynb
    - it dorps ~60k spectra that don't have some form of proper identifier (smiles, inchikey)
    - split 0.8:0.1:0.1
-2. Create jsonl files by the function msp2jsonl from spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
+2. Create jsonl files by the function msp2jsonl from utils.spectra_process_utils.py (for 'train' and then 'test' and 'valid'):
 
 ```python
-from spectra_process_utils import msp2jsonl
+from utils.spectra_process_utils import msp2jsonl
 from pathlib import Path
-from general_utils import build_tokenizer
+from utils.general_utils import build_tokenizer
 
 tokenizer_type = "mf10"
 tokenizer_path = f"tokenizer/bbpe_tokenizer/bart_bbpe_tokenizer_1M_{tokenizer_type}.model"
@@ -18,7 +18,7 @@ for dataset_type in ["train", "valid", "test"]:
     dataset_path = Path("data/datasets/NIST/NIST_split_filip")
     source_token = "<nist>"
     msp2jsonl(dataset_path / f"{dataset_type}.msp",
-                    tokenizer,
+                    tokenizer=tokenizer,
                     source_token,
                     path_jsonl=dataset_path / tokenizer_type / f"{dataset_type}.jsonl",
                     keep_spectra=True

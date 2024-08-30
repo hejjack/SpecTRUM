@@ -1,0 +1,1 @@
+This data was created using the 3_data_preprocessing.ipynb notebook. The notebook describes the process of aquiring slice of ZINC dataset, spectra generation using NEIMS model and splitting in cooperation with the RASSP-gen dataset.
