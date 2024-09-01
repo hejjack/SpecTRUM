@@ -4,10 +4,11 @@ data/**/*.pkl
 **/data/**/*.smi
 **/data/**/*.msp
 **/data/**/*.sdf
+**/data/**/*.zip
+**/data/**/*.mace
 data/**/*.sel
 data/**/*.SIF
 data/**/*.log
-data/**/*.zip
 data/deprecated/*
 
 data/categorized
