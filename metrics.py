@@ -33,6 +33,12 @@ def compute_fp_simils(preds: list[str] | list[Chem.rdchem.Mol],
         Whether the inputs are lists of RDKit molecules or not
     return_mols : bool
         Whether to return the predicted and true molecules as well
+    
+    Returns
+    -------
+    list[float] | tuple[list[float], list[Chem.rdchem.Mol], list[Chem.rdchem.Mol]]
+        List of cosine similarities between the predicted and true SMILES strings 
+        If return_mols is set to True, returns also the predicted and true RDKit molecules
     """
 
     assert len(preds) == len(trues)

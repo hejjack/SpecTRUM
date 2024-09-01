@@ -110,6 +110,7 @@ def position_ids_creator(intensities, log_base, log_shift, do_log_binning=True, 
 def preprocess_datapoint(datadict, source_token, preprocess_args):
     """
     Preprocess a single datapoint.
+
     Parameters
     ----------
     datapoint: Dict[str, Any]
@@ -161,12 +162,13 @@ def preprocess_datapoint(datadict, source_token, preprocess_args):
 def filter_datapoints(datadict, preprocess_args) -> bool:
     """
     Filter out datapoints that are too long.
+
     Parameters
     ----------
     datapoint: Dict[str, Any]
         A single datapoint - dictionary containing mzs, intensities and SMILES.
     preprocess_args: Dict[str, Any]
-        max_num_peaks, max_mz, max_mol_repr_len, max_cumsum - parameters for filtering.
+        max_num_peaks, max_mz, max_mol_repr_len, mol_repr, max_cumsum (optional) - parameters for filtering.
 
     Returns
     -------
@@ -239,6 +241,7 @@ def build_single_datapipe(json_file: str,
                         ):
     """
     Build a single datapipe from a json file.
+
     Parameters
     ----------
     json_file: str
@@ -284,6 +287,7 @@ def build_datapipe_mixture(datapipes: List[IterDataPipe],
                            seed: Optional[int] = 42):
     """
     Build a datapipe that samples from a mixture of datapipes.
+
     Parameters
     ----------
     datapipes: List[IterDataPipe]
@@ -313,6 +317,7 @@ def build_datapipe_mixture(datapipes: List[IterDataPipe],
 def load_all_datapipes(data_args: Dict[str, Any], preprocess_args: Optional[Dict[str, Any]] = None) -> Dict[str, IterDataPipe]:
     """
     Load all datapipes from a dict of json files.
+
     Parameters
     ----------
     data_args: Dict[str,Dict]

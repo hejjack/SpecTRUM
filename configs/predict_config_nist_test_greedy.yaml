@@ -3,8 +3,8 @@ general:
   additional_naming_info: "greedy" # optional, st
 
 dataset:
-  data_path: "../data/datasets/NIST/NIST_split_filip/denovo_data/test_with_denovo_info.jsonl" # REQUIRED!
-  dataset_name: NIST_denovo # rcx/ZINC/NIST/...    REQUIRED! (for naming)
+  data_path: "../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl" # REQUIRED!
+  dataset_name: NIST # rcx/ZINC/NIST/...    REQUIRED! (for naming)
   data_split: test # train/test/valid/... REQUIRED! (for naming)
 
 dataloader:

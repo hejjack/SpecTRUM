@@ -29,14 +29,14 @@ evaluation_0:
   counter_datapoints_tested: '30'
   counter_empty_preds: '0'
   counter_fp_simil_fails_preds: '0'
-  denovo:
+  db_search:
     mean_db_score: '0.33121007358666665'
     mean_fpsd_score_probsort: '-0.2451356728180297'
     mean_fpsd_score_similsort: '-0.2451356728180297'
     percentage_of_BART_wins_probsort: '0.16666666666666666'
     percentage_of_BART_wins_similsort: '0.16666666666666666'
   eval_config:
-    do_denovo: true
+    do_db_search: true
     filtering_args:
       max_mol_repr_len: 100
       max_mz: 500
@@ -48,7 +48,7 @@ evaluation_0:
     simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:01
-  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl
+  labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/valid_with_db_index.jsonl
   num_better_than_threshold_probsort: '0'
   num_better_than_threshold_similsort: '0'
   num_predictions_at_k_counter: '[30, 1]'
@@ -65,14 +65,14 @@ evaluation_1:
   counter_datapoints_tested: '30'
   counter_empty_preds: '0'
   counter_fp_simil_fails_preds: '0'
-  denovo:
+  db_search:
     mean_db_score: '0.33121007358666665'
     mean_fpsd_score_probsort: '-0.2451356728180297'
     mean_fpsd_score_similsort: '-0.2451356728180297'
     percentage_of_BART_wins_probsort: '0.16666666666666666'
     percentage_of_BART_wins_similsort: '0.16666666666666666'
   eval_config:
-    do_denovo: true
+    do_db_search: true
     filtering_args:
       max_mol_repr_len: 100
       max_mz: 500
@@ -84,7 +84,7 @@ evaluation_1:
     simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:01
-  labels_path: ../data/datasets/NIST/NIST_split_filip/denovo_data/valid_with_denovo_info.jsonl
+  labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/valid_with_db_index.jsonl
   num_better_than_threshold_probsort: '0'
   num_better_than_threshold_similsort: '0'
   num_predictions_at_k_counter: '[30, 1]'

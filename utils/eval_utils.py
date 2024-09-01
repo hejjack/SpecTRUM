@@ -78,10 +78,29 @@ def filter_predictions(old_predictions_path, original_data_path, old_config, new
 
 def load_labels_from_dataset(dataset_path: Path, 
                              data_range: range, 
-                             do_denovo: bool = False,
+                             do_db_search: bool = False,
                              fp_type: str | None = None,
                              simil_func: str | None = None) -> tuple:
-    """Load the labels from the dataset"""
+    """Load the labels from the dataset without on the fly filtering
+    
+    Parameters
+    ----------
+    dataset_path: Path
+        Path to the dataset.
+    data_range: range
+        Range of the data to load.
+    do_db_search: bool
+        Whether we want to do db_search evaluation and thus load the fingerprint similarities too.
+        For this you need a precomputed index of the closest spectrum from the reference library.
+    fp_type: str
+        Fingerprint type. In case of db_search evaluation specifies which metric to choose.
+    simil_func: str
+        Similarity function. In case of db_search evaluation specifies which metric to choose.
+    
+    Returns
+    -------
+    tuple
+        Tuple of (1) the labels (SMILES strings) and (2) if do_db_search is True it returns the precomputed fingerprint similarities of the closest spectrum from the reference library"""
     df = pd.read_json(dataset_path, lines=True, orient="records")
     if not data_range:
         data_range = range(len(df))
@@ -89,7 +108,7 @@ def load_labels_from_dataset(dataset_path: Path,
     simles_list = df_ranged["smiles"].tolist()
     
     smiles_sim_of_closest = None
-    if do_denovo:
+    if do_db_search:
         assert f"smiles_sim_of_closest_{fp_type}_{simil_func}" in df_ranged.columns, "smiles_sim_of_closest column not found in labels, not able to do DENOVO evaluation"
         smiles_sim_of_closest = df_ranged[f"smiles_sim_of_closest_{fp_type}_{simil_func}"].tolist()
 
@@ -98,11 +117,31 @@ def load_labels_from_dataset(dataset_path: Path,
 
 def load_labels_to_datapipe(dataset_path: Path, 
                             data_range: range = range(0, 0), 
-                            do_denovo: bool = False,
+                            do_db_search: bool = False,
                             fp_type: str | None = None,
                             simil_func: str | None = None,
                             filtering_args: dict = {"max_num_peaks": 300, "max_mz": 500, "max_mol_repr_len": 100, "mol_repr": "smiles"}) -> tuple:
-    """Load the labels from the dataset"""
+    """Load the labels from the dataset with on the fly filtering
+    
+    Parameters
+    ----------
+    dataset_path: Path
+        Path to the dataset.
+    data_range: range
+        Range of the data to load.
+    do_db_search: bool
+        Whether we want to do db_search evaluation and thus load the fingerprint similarities too.
+        For this you need a precomputed index of the closest spectrum from the reference library.
+    fp_type: str
+        Fingerprint type. In case of db_search evaluation specifies which metric to choose.
+    simil_func: str
+        Similarity function. In case of db_search evaluation specifies which metric to choose.
+
+    Returns
+    -------
+    tuple
+        Tuple of (1) the labels (SMILES strings) and (2) if do_db_search is True it returns the precomputed fingerprint similarities of the closest spectrum from the reference library
+    """
 
     assert set(["max_num_peaks", "max_mz", "max_mol_repr_len", "mol_repr"]).issubset(filtering_args.keys()), "filtering_args has to contain max_num_peaks, max_mz, max_mol_repr_len and mol_repr"
 
@@ -114,12 +153,12 @@ def load_labels_to_datapipe(dataset_path: Path,
         datapipe = datapipe.filter(filter_fn=range_filter(data_range))  # actual slicing
     
     smiles_sim_of_closest_datapipe = None
-    if do_denovo:
-        assert fp_type is not None and simil_func is not None, "fp_type and simil_func have to be specified for denovo evaluation"
+    if do_db_search:
+        assert fp_type is not None and simil_func is not None, "fp_type and simil_func have to be specified for db_search evaluation"
         smiles_datapipe, smiles_sim_of_closest_datapipe = datapipe.fork(num_instances=2, buffer_size=1e6,)  # 'copy' (fork) the datapipe into two 'new' 
         smiles_sim_of_closest_datapipe = iter(smiles_sim_of_closest_datapipe.map(lambda d: d[f"smiles_sim_of_closest_{fp_type}_{simil_func}"]))
     else:
         smiles_datapipe = datapipe
     smiles_datapipe = iter(smiles_datapipe.map(lambda d: d["smiles"]))
     
-    return smiles_datapipe, smiles_sim_of_closest_datapipe if do_denovo else None
+    return smiles_datapipe, smiles_sim_of_closest_datapipe if do_db_search else None

@@ -1,0 +1,1 @@
+../precompute_denovo_index.py

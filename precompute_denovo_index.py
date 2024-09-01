@@ -1,6 +1,6 @@
-# Precompute index of similarities with reference library for denovo evaluation
-# For every sample in dataset find the most similar molecule in the reference library,
-# and save its index, spectral imilarity and SMILES similarity.
+# Precompute index of similarities with reference library for db_search evaluation
+# For every sample in query dataset find the most similar molecule in the reference library,
+# and save its index, spectral similarity and SMILES similarity.
 # It takes a lot of time => we utilize parallelization. 
 
 
@@ -89,7 +89,7 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
     return pd.Series(best_indexes), pd.Series(best_spec_simils, dtype=np.float64), pd.Series(best_smiles_simils, dtype=np.float64)
 
 
-def denovo_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, fpgen, simil_function, args, num_processes=1):
+def db_search_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, fpgen, simil_function, args, num_processes=1):
     # create fingerprints and spectra fo reference dataset
     ref_spectra = [Spectrum(mz=np.array(ref_row.mz),
                             intensities=np.array(ref_row.intensity),
@@ -116,7 +116,6 @@ def denovo_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, 
                                                                  ref_fps,
                                                                  fpgen,
                                                                  simil_function,
-                                                                 args,
                                                                  tmp_paths[i]),
                                                            kwargs=dict(process_id=i))
     for process in processes.values():
@@ -141,7 +140,7 @@ def compute_simil_of_closest(row, df_reference, fpgen, sim_function) -> float:
     return sim_function(fp, closest_fp)
 
 
-def add_simils_to_existing_denovo_df(df_precomputed: pd.DataFrame, df_reference: pd.DataFrame, fp_type, simil_type) -> pd.DataFrame:
+def add_simils_to_existing_db_search_df(df_precomputed: pd.DataFrame, df_reference: pd.DataFrame, fp_type, simil_type) -> pd.DataFrame:
     fpgen = get_fp_generator(fp_type)
     sim_function = get_simil_function(simil_type)
     df_enriched = df_precomputed.copy()
@@ -179,7 +178,7 @@ if __name__ == "__main__":
             raise ValueError(f"The precomputed file already contains the smiles_sim_of_closest_{args.fingerprint_type}_{args.simil_function} column. Please choose a different fp-simil combination or manually remove the existing column to recompute it.")
         else:
             print(f"The precomputed file does not contain the smiles_sim_of_closest_{args.fingerprint_type}_{args.simil_function} column yet. We'll add it.")
-            df_precomputed_enriched = add_simils_to_existing_denovo_df(df_precomputed, df_reference, args.fingerprint_type, args.simil_function)
+            df_precomputed_enriched = add_simils_to_existing_db_search_df(df_precomputed, df_reference, args.fingerprint_type, args.simil_function)
             print("SAVING the updated query dataset to the original location.")
             df_precomputed_enriched.to_json(args.outfile, orient="records", lines=True)
             exit(0)
@@ -194,7 +193,7 @@ if __name__ == "__main__":
 
 
     # run precompute
-    denovo_preprocess_mp(df_reference, 
+    db_search_preprocess_mp(df_reference, 
                          df_query,
                          outfile_path,
                          tmp_folder_path,

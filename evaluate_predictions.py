@@ -110,7 +110,7 @@ def main(
 
     with open(config_file, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    do_denovo = config["do_denovo"]
+    do_db_search = config["do_db_search"]
     on_the_fly = config["on_the_fly"]
 
 
@@ -128,7 +128,7 @@ def main(
         if on_the_fly:
             labels_iterator, smiles_sim_of_closest = load_labels_to_datapipe(labels_path, 
                                                                              data_range, 
-                                                                             do_denovo=do_denovo, 
+                                                                             do_db_search=do_db_search, 
                                                                              fp_type=config["fingerprint_type"], 
                                                                              simil_func=config["simil_function"],
                                                                              filtering_args=config["filtering_args"]
@@ -136,7 +136,7 @@ def main(
         else:
             labels_iterator, smiles_sim_of_closest = load_labels_from_dataset(labels_path, 
                                                                               data_range, 
-                                                                              do_denovo=do_denovo, 
+                                                                              do_db_search=do_db_search, 
                                                                               fp_type=config["fingerprint_type"], 
                                                                               simil_func=config["simil_function"])
     elif labels_path.suffix == ".smi":
@@ -385,8 +385,11 @@ def main(
                 }
             }
             
-    if do_denovo:
-        smiles_sim_of_closest = np.array(list(smiles_sim_of_closest))
+    if do_db_search:
+        try:
+            smiles_sim_of_closest = np.array(list(smiles_sim_of_closest))
+        except KeyError as exc:
+            raise ValueError("smiles_sim_of_closest missing in labels: precompute the similarity index with precompute_db_index.py before you run db_search evaluation or set do_db_search in config file to False") from exc
         simil_preds_minus_closest = np.array(simil_all_simils[0]) - smiles_sim_of_closest
         prob_preds_minus_closest = np.array(prob_all_simils[0]) - smiles_sim_of_closest
         simil_fpsd_tie_simils = np.array(simil_all_simils[0])[simil_preds_minus_closest == 0]
@@ -420,7 +423,7 @@ def main(
         fig_simil_fpsd_ties.write_image(str(parent_dir / f"fpsd_ties_similsort_{fp_simil_args_info}.png"), scale=scale)
         fig_prob_fpsd_ties.write_image(str(parent_dir / f"fpsd_ties_probsort_{fp_simil_args_info}.png"), scale=scale)
 
-        logs[eval_tag]["denovo"] = {"mean_fpsd_score_similsort": str(simil_preds_minus_closest.mean()),
+        logs[eval_tag]["db_search"] = {"mean_fpsd_score_similsort": str(simil_preds_minus_closest.mean()),
                                         "mean_fpsd_score_probsort": str(prob_preds_minus_closest.mean()),
                                         "mean_db_score": str(smiles_sim_of_closest.mean()),
                                         "percentage_of_BART_wins_similsort": str(sum(simil_preds_minus_closest > 0) / len(simil_preds_minus_closest)),

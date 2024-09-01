@@ -534,7 +534,7 @@ def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
     elif fp_type == "daylight":
         fpgen = Chem.AllChem.GetRDKitFPGenerator(**gen_kwargs)
     else: 
-        raise ValueError("fingerprint_type has to be either 'morgan' or 'daylight'")
+        raise ValueError("fp_type has to be either 'morgan' or 'daylight'")
     return fpgen
 
 
@@ -545,5 +545,5 @@ def get_simil_function(simil_type: str):
     elif simil_type == "cosine":
         simil_function = DataStructs.CosineSimilarity
     else: 
-        raise ValueError("similarity_type has to be either 'tanimoto' or 'cosine'")
+        raise ValueError("simil_type has to be either 'tanimoto' or 'cosine'")
     return simil_function

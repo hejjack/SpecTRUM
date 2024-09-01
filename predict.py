@@ -127,7 +127,6 @@ def main(
 
     # set output files
     log_file, predictions_file = open_files(output_folder, checkpoint, dataset_config, data_range, additional_info)
-    gt_smiles_file = open("TEST_SMILES_GT_LABELS_PREDICT.smi", "w+")   # TEST
 
     model = BartSpektroForConditionalGeneration.from_pretrained(checkpoint)
     model.generation_config.length_penalty = generation_config["length_penalty"]
@@ -152,7 +151,6 @@ def main(
                 break
             
             # proceed with generation
-            gt_smiless = batch.pop("mol_repr")    ################ !!!!!!!!!!!!!!!!!!!!! test
             model_input = {key: value.to(device) for key, value in batch.items() if key in ["input_ids", "position_ids"]} # move tensors from batch to device
             generated_outputs = model.generate( # type: ignore
                 decoder_input_ids=decoder_input_ids.to(device),
@@ -177,7 +175,6 @@ def main(
                     for j, canon_idx in enumerate(canon_idxs[i])}) + "\n"
             
             predictions_file.write(result_jsonl)
-            gt_smiles_file.write(gt_smiless[0] + "\n")   ############## test
 
     finished_time = time.time()
     
