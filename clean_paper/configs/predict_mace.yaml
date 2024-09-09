@@ -17,10 +17,10 @@ generation_args:
   "top_k": null
   "top_p": null
   "do_sample": False
-  "num_beams": 10
+  "num_beams": 10                 # change this for beam search (make it match)
   "temperature": null
   "penalty_alpha": null
-  "num_return_sequences": 10
+  "num_return_sequences": 10      # change this for beam search (make it match)
   "max_length": 200
   "decoder_input_token": "<nist>"
   "length_penalty": 1.0 # (use for beam search otherwise set to 0)
@@ -28,8 +28,8 @@ generation_args:
 preprocess_args:
     "source_token": "<nist>"
     "restrict_intensities": False
-    "inference_mode": True # test.. True
-    "keep_all_columns": True # test smaz
+    "inference_mode": True 
+    "keep_all_columns": True
     "max_num_peaks": 300
     "max_mol_repr_len": 100
     "max_mz": 500

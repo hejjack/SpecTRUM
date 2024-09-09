@@ -393,7 +393,7 @@ def main(
         simil_preds_minus_closest = np.array(simil_all_simils[0]) - smiles_sim_of_closest
         prob_preds_minus_closest = np.array(prob_all_simils[0]) - smiles_sim_of_closest
         simil_fpsd_tie_simils = np.array(simil_all_simils[0])[simil_preds_minus_closest == 0]
-        prob_fpsd_tie_simils = np.array(prob_all_simils[0])[(prob_preds_minus_closest >= -0.005) & (prob_preds_minus_closest <= 0.005)]
+        prob_fpsd_tie_simils = np.array(prob_all_simils[0])[simil_preds_minus_closest == 0]
 
 
         fig_simil_preds_minus_closest = px.histogram(x=simil_preds_minus_closest, 
