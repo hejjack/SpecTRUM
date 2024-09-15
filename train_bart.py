@@ -303,6 +303,11 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         model = BartSpektroForConditionalGeneration(bart_spectro_config)
 
+    print("max_log_id:", model.config.max_log_id)
+    print("log_shift:", preprocess_args.get("log_shift", None))
+    print("log_base:", preprocess_args.get("log_base", None))
+    print("report_to:", report_to)
+    
     model.to(device)
 
     # model freezing
@@ -392,7 +397,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                     data_collator = SpectroDataCollator(restrict_intensities=model_args.get("restrict_intensities", False)),
                 )
     
-    
+
     if checkpoint and resume_id:
         trainer.train(resume_from_checkpoint=str(checkpoint))
     else:

@@ -1,1 +1,1 @@
-/home/xhajek9/gc-ms_bart/utils/general_utils.py
+../../utils/general_utils.py

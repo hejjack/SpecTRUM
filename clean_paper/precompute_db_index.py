@@ -1,1 +1,1 @@
-../precompute_denovo_index.py
+../precompute_db_index.py
