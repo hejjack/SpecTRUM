@@ -10,5 +10,5 @@ filtering_args:  # if you don't specify these, default ones are used
   mol_repr: "smiles"
 
 fingerprint_type: "daylight"  # "morgan" or "daylight"
-simil_function: "tanimoto"  # "cosine" or "tanimoto"
+fp_simil_function: "tanimoto"  # "cosine" or "tanimoto"
 threshold: 0.85 # threshold for a good similarity hit

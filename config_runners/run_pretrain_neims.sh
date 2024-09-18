@@ -1,6 +1,4 @@
-
-python ../train_bart.py --config-file ../configs/train_config_pretrain_neims_40bin.yaml \
-                                               --additional-info "_neims_scratch_40bin" \
-                                               --additional-tags "H100:NEIMS:scratch:meta" \
-                                               --wandb-group pretrain \
-
+python ../train_bart.py --config-file ../clean_paper/configs/pretrain_exp4_neims.yaml \
+                        --additional-info "_exp4_neims" \
+                        --additional-tags "exp4:neims:from_scratch" \
+                        --wandb-group pretrain_clean \

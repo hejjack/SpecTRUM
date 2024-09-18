@@ -26,14 +26,37 @@
 #                                   --config-file ../configs/eval_config_morgan.yaml \
 
 
-python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST/1715767947_test_full_beam10/predictions.jsonl \
-                                  --labels-path ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl \
-                                  --config-file ../configs/eval_config_morgan.yaml \
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST/1715767947_test_full_beam10/predictions.jsonl \
+#                                   --labels-path ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
 
 # python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/NIST/1715857966_test_full_greedy/predictions.jsonl \
 #                                   --labels-path ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl \
 #                                   --config-file ../configs/eval_config_morgan.yaml \
 
+# swgdrug
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/SWGDRUG/1726432120_test_full_greedy/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
 
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/SWGDRUG/1726433172_test_full_beam10/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
 
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/SWGDRUG/1726435306_test_full_beam50/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
+
+#noD
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/SWGDRUG/1726499003_noD_full_greedy/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_noD_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
+
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/Cayman/1726519724_test_full_greedy/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/Cayman_library/Cayman_library_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
+
+python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/Cayman/1726521813_test_full_beam50/predictions.jsonl \
+                                  --labels-path ../data/datasets/extra_libraries/Cayman_library/Cayman_library_with_db_index.jsonl \
+                                  --config-file ../configs/eval_config_morgan.yaml \
                                   
