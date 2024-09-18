@@ -57,7 +57,7 @@ evaluation_0:
       mol_repr: smiles
     fingerprint_type: morgan
     on_the_fly: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:01
   num_better_than_threshold_probsort: '48'
@@ -95,7 +95,7 @@ evaluation_1:
       mol_repr: smiles
     fingerprint_type: daylight
     on_the_fly: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:03
   num_better_than_threshold_probsort: '68'
@@ -133,7 +133,7 @@ evaluation_2:
       mol_repr: smiles
     fingerprint_type: morgan
     on_the_fly: true
-    simil_function: cosine
+    fp_simil_function: cosine
     threshold: 0.85
   eval_time: 00:00:01
   num_better_than_threshold_probsort: '56'
@@ -171,7 +171,7 @@ evaluation_3:
       mol_repr: smiles
     fingerprint_type: daylight
     on_the_fly: true
-    simil_function: cosine
+    fp_simil_function: cosine
     threshold: 0.85
   eval_time: 00:00:03
   num_better_than_threshold_probsort: '86'
@@ -209,7 +209,7 @@ evaluation_4:
       mol_repr: smiles
     fingerprint_type: daylight
     on_the_fly: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:03
   num_better_than_threshold_probsort: '68'

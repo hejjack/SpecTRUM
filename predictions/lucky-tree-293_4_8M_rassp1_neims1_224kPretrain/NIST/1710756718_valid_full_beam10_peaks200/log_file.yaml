@@ -57,7 +57,7 @@ evaluation_0:
     fingerprint_type: daylight
     on_the_fly: true
     save_best_predictions: false
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:04:37
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/valid_with_db_index.jsonl

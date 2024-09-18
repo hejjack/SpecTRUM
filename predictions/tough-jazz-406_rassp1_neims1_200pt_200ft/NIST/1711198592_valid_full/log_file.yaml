@@ -57,7 +57,7 @@ evaluation_0:
     fingerprint_type: daylight
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:04:45
   num_better_than_threshold_probsort: '8567'

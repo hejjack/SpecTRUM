@@ -41,7 +41,7 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
           path to the output file
       process_id : int, optional
           id of the process to print when multiprocessing, by default None"""
-    
+
     if process_id is not None:
         print(f"process {process_id} started")
 
@@ -64,11 +64,11 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
                 best_spec_simil = spec_score
                 best_index = index
         smiles_score = simil_function(query_fp, ref_fps[best_index])
-        
+
         best_spec_simils.append(best_spec_simil)
-        best_indexes.append(best_index)  
+        best_indexes.append(best_index)
         best_smiles_simils.append(smiles_score)
-        
+
         # update row and write it to file
         query_row["index_of_closest"] = best_index
         query_row["spectra_sim_of_closest"] = best_spec_simil

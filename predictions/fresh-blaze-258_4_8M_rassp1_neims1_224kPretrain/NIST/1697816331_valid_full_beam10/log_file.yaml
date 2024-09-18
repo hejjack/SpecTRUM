@@ -63,7 +63,7 @@ evaluation_1:
       mol_repr: smiles
     fingerprint_type: daylight
     on_the_fly: false
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:03:30
   num_better_than_threshold_probsort: '10319'

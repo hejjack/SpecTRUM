@@ -58,7 +58,7 @@ evaluation_0:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:03:10
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -121,7 +121,7 @@ evaluation_1:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:03:18
     formula_stats:
@@ -222,7 +222,7 @@ evaluation_2:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:03:17
     formula_stats:
@@ -322,7 +322,7 @@ evaluation_3:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:03:19
     formula_stats:
@@ -435,7 +435,7 @@ evaluation_4:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:03:19
     formula_stats:

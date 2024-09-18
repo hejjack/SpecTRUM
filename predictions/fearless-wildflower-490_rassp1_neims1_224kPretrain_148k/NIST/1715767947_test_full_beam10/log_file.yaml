@@ -61,7 +61,7 @@ evaluation_0:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -109,7 +109,7 @@ evaluation_1:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -156,7 +156,7 @@ evaluation_2:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:57
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -203,7 +203,7 @@ evaluation_3:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -250,7 +250,7 @@ evaluation_4:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -297,7 +297,7 @@ evaluation_5:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:59
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -344,7 +344,7 @@ evaluation_6:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:59
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -391,7 +391,7 @@ evaluation_7:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -438,7 +438,7 @@ evaluation_8:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 00:00:58
   labels_path: ../data/datasets/NIST/NIST_split_filip/db_index/test_with_db_index.jsonl
@@ -481,7 +481,7 @@ evaluation_9:
     fingerprint_type: morgan
     on_the_fly: true
     save_best_predictions: true
-    simil_function: tanimoto
+    fp_simil_function: tanimoto
     threshold: 0.85
   eval_time: 01/01/1970 01:01:00
   formula_stats:
@@ -544,7 +544,7 @@ evaluation_10:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:01:00
     formula_stats:
@@ -610,7 +610,7 @@ evaluation_11:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:01:00
     formula_stats:
@@ -675,7 +675,7 @@ evaluation_12:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:01:00
     formula_stats:
@@ -741,7 +741,7 @@ evaluation_13:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 01/01/1970 01:01:00
     formula_stats:
@@ -807,7 +807,7 @@ evaluation_14:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -873,7 +873,7 @@ evaluation_15:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -939,7 +939,7 @@ evaluation_16:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -1005,7 +1005,7 @@ evaluation_17:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -1071,7 +1071,7 @@ evaluation_18:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -1148,7 +1148,7 @@ evaluation_19:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:00
     formula_stats:
@@ -1225,7 +1225,7 @@ evaluation_20:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:03
     formula_stats:
@@ -1302,7 +1302,7 @@ evaluation_21:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:03
     formula_stats:
@@ -1379,7 +1379,7 @@ evaluation_22:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:22
     formula_stats:
@@ -1456,7 +1456,7 @@ evaluation_23:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:13
     formula_stats:
@@ -1533,7 +1533,7 @@ evaluation_24:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:01:14
     formula_stats:
