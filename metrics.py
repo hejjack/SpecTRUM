@@ -4,15 +4,15 @@ import transformers
 from rdkit import Chem, DataStructs
 from rdkit.Chem import rdMolDescriptors
 import numpy as np
-from icecream import ic
+
 import selfies as sf
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer
-from utils.spectra_process_utils import get_fp_generator, get_simil_function
+from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
 
 def compute_fp_simils(preds: list[str] | list[Chem.rdchem.Mol], 
                       trues: list[str] | list[Chem.rdchem.Mol],
                       fp_type: str = "daylight",
-                      simil_function_type: str = "tanimoto",
+                      fp_simil_function_type: str = "tanimoto",
                       fp_kwargs: dict = {},
                       input_mols: bool = False, 
                       return_mols: bool = False):
@@ -27,7 +27,7 @@ def compute_fp_simils(preds: list[str] | list[Chem.rdchem.Mol],
         List of ground truth SMILES strings RDKit molecules (if input mols flag is set)
     fp_type : str
         The type of fingerprint to use
-    simil_function_type : str
+    fp_simil_function_type : str
         The type of similarity function to use
     input_mols : bool
         Whether the inputs are lists of RDKit molecules or not
@@ -43,7 +43,7 @@ def compute_fp_simils(preds: list[str] | list[Chem.rdchem.Mol],
 
     assert len(preds) == len(trues)
     fpgen = get_fp_generator(fp_type, fp_kwargs)
-    simil_function = get_simil_function(simil_function_type)
+    fp_simil_function = get_fp_simil_function(fp_simil_function_type)
     simils = []
     pred_mols = []
     true_mols = []
@@ -61,7 +61,7 @@ def compute_fp_simils(preds: list[str] | list[Chem.rdchem.Mol],
             continue
         pred_fp = fpgen.GetFingerprint(pred_mol)
         true_fp = fpgen.GetFingerprint(true_mol)
-        simil = simil_function(pred_fp, true_fp)
+        simil = fp_simil_function(pred_fp, true_fp)
         simils.append(simil)
         pred_mols.append(pred_mol)
         true_mols.append(true_mol)

@@ -10,7 +10,7 @@ import wandb
 import torch
 import torch.utils.data
 from rdkit.Chem import Draw
-from icecream import ic
+
 import selfies as sf
 
 from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration

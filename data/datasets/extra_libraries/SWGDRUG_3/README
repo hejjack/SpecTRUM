@@ -1,0 +1,17 @@
+Origin of the files (maybe make nicer later)
+
+- SWGDRUG_3.MSP and SWGDRUG_3.SFD files were converted from the originalNIST format files using LIB2NIST (see README in parent folder)
+- SWGDRUG_3_annotated.MSP and SWGDRUG_3.jsonl were created with the notebook data/extra_libraries_analysis.ipynb
+- SWGDRUG_3_with_db_index.jsonl was created with the following command:
+```bash
+FP_TYPE=morgan
+SIMIL_FUN=tanimoto
+
+python ../precompute_db_index.py \
+           --reference ../data/datasets/NIST/NIST_split_filip/train.jsonl \
+           --query ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3.jsonl \
+           --outfile ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_with_db_index.jsonl \
+           --fingerprint_type ${FP_TYPE} \
+           --fp_simil_function ${SIMIL_FUN} \
+           --num_processes 32
+```

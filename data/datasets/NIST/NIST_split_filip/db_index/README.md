@@ -16,7 +16,7 @@ It took 4:48:41 to run on 32 processes.
 THOUGH!
 In the newer script version this is equivalent to:
 ```bash
-SPLIT_NAME=valid
+SPLIT_NAME=test
 FP_TYPE=morgan
 SIMIL_FUN=cosine
 
@@ -25,7 +25,7 @@ python ../precompute_db_index.py \
            --query ../data/datasets/NIST/NIST_split_filip/${SPLIT_NAME}.jsonl \
            --outfile ../data/datasets/NIST/NIST_split_filip/db_index/${SPLIT_NAME}_with_db_index.jsonl \
            --fingerprint_type ${FP_TYPE} \
-           --simil_function ${SIMIL_FUN}
+           --fp_simil_function ${SIMIL_FUN}
            --num_processes 32
 ```
 
@@ -41,6 +41,6 @@ python ../precompute_db_index.py \
            --query ../data/datasets/NIST/NIST_split_filip/${SPLIT_NAME}.jsonl \
            --outfile ../data/datasets/NIST/NIST_split_filip/db_index/${SPLIT_NAME}_with_db_index.jsonl \
            --fingerprint_type ${FP_TYPE} \
-           --simil_function ${SIMIL_FUN}
+           --fp_simil_function ${SIMIL_FUN}
            --num_processes 32
 ```

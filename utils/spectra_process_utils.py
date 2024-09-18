@@ -13,7 +13,7 @@ from rdkit import Chem, DataStructs
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from icecream import ic
+
 from transformers import PreTrainedTokenizerFast
 from bart_spektro.selfies_tokenizer import SelfiesTokenizer
 from pathlib import Path
@@ -538,12 +538,12 @@ def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
     return fpgen
 
 
-def get_simil_function(simil_type: str):
-    simil_function = None
+def get_fp_simil_function(simil_type: str):
+    fp_simil_function = None
     if simil_type == "tanimoto":
-        simil_function = DataStructs.FingerprintSimilarity
+        fp_simil_function = DataStructs.FingerprintSimilarity
     elif simil_type == "cosine":
-        simil_function = DataStructs.CosineSimilarity
+        fp_simil_function = DataStructs.CosineSimilarity
     else: 
         raise ValueError("simil_type has to be either 'tanimoto' or 'cosine'")
-    return simil_function
+    return fp_simil_function

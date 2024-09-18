@@ -67,7 +67,7 @@ evaluation_0:
         fingerprint_type: morgan
         on_the_fly: true
         save_best_predictions: true
-        simil_function: tanimoto
+        fp_simil_function: tanimoto
         threshold: 0.85
     eval_time: 00:00:02
     formula_stats:

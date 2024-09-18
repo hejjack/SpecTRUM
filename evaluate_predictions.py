@@ -9,7 +9,7 @@ from rdkit import Chem, RDLogger
 from rdkit.Chem import rdMolDescriptors
 import numpy as np
 from collections import defaultdict
-from icecream import ic
+
 import plotly.express as px
 import plotly.io as pio
 import yaml
@@ -18,7 +18,7 @@ import pytz
 from datetime import datetime
 from collections.abc import Iterator
 
-from utils.spectra_process_utils import get_fp_generator, get_simil_function
+from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
 from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds 
 from utils.eval_utils import load_labels_from_dataset, load_labels_to_datapipe
 
@@ -130,7 +130,7 @@ def main(
                                                                              data_range, 
                                                                              do_db_search=do_db_search, 
                                                                              fp_type=config["fingerprint_type"], 
-                                                                             simil_func=config["simil_function"],
+                                                                             simil_func=config["fp_simil_function"],
                                                                              filtering_args=config["filtering_args"]
                                                                              )
         else:
@@ -138,7 +138,7 @@ def main(
                                                                               data_range, 
                                                                               do_db_search=do_db_search, 
                                                                               fp_type=config["fingerprint_type"], 
-                                                                              simil_func=config["simil_function"])
+                                                                              simil_func=config["fp_simil_function"])
     elif labels_path.suffix == ".smi":
         labels_iterator = labels_path.open("r")
         move_file_pointer(data_range.start, labels_iterator)
@@ -146,11 +146,11 @@ def main(
         raise ValueError("Labels have to be either .jsonl or .smi file")
     
     # set up fingerprint generator and similarity function
-    fp_simil_args_info = f"{config['fingerprint_type']}_{config['simil_function']}"
+    fp_simil_args_info = f"{config['fingerprint_type']}_{config['fp_simil_function']}"
     fpgen = get_fp_generator(config["fingerprint_type"])
-    simil_function = get_simil_function(config["simil_function"])
+    fp_simil_function = get_fp_simil_function(config["fp_simil_function"])
     print(f">> Setting up   {config['fingerprint_type']}   fingerprint generator. Do your data CORRESPOND?")
-    print(f">> Setting up   {config['simil_function']}   similarity function. Do your data CORRESPOND?")
+    print(f">> Setting up   {config['fp_simil_function']}   similarity function. Do your data CORRESPOND?")
 
     
     parent_dir = predictions_path.parent
@@ -185,6 +185,12 @@ def main(
     counter_correct_formulas_best_prob = 0
     counter_at_least_one_correct_formula = 0
 
+    ### test
+    labels_iterator = list(labels_iterator)
+    print("num_labels", len(labels_iterator))
+    labels_iterator = iter(labels_iterator)
+    ###
+
     for line in tqdm(dummy_generator()):  # basically a while True      
         pred_jsonl = pred_f.readline()
         if not pred_jsonl:
@@ -214,7 +220,7 @@ def main(
             continue
         
         # SMILES simils
-        smiles_simils = [simil_function(fp, gt_fp) for fp in pred_fps]
+        smiles_simils = [fp_simil_function(fp, gt_fp) for fp in pred_fps]
         prob_simil = np.stack(list(zip(preds.values(), smiles_simils)))
 
         simil_decreasing_index = np.argsort(-prob_simil[:, 1])

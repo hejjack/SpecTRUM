@@ -1,14 +1,14 @@
 # Precompute index of similarities with reference library for db_search evaluation
 # For every sample in query dataset find the most similar molecule in the reference library,
 # and save its index, spectral similarity and SMILES similarity.
-# It takes a lot of time => we utilize parallelization. 
+# It takes a lot of time => we utilize parallelization.
 
 
 import argparse
 import json
 import pandas as pd
 import numpy as np
-from matchms.similarity import CosineGreedy
+from matchms.similarity import CosineGreedy, ModifiedCosine
 from matchms import Spectrum
 from tqdm import tqdm
 from rdkit import Chem, DataStructs
@@ -17,14 +17,14 @@ from pathlib import Path
 from tqdm import tqdm
 tqdm.pandas()
 
-from utils.spectra_process_utils import get_fp_generator, get_simil_function
+from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
 
 
 def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, simil_function, outfile_path, process_id=None):
     """find the best match (according to spectra similarity) for every sample in df_query
-      and add its index, spectral similarity and SMILES similarity to the row. 
+      and add its index, spectral similarity and SMILES similarity to the row.
       Write the row immediately to a new file.
-      
+
       Parameters
       ----------
       df_query : pd.DataFrame
@@ -35,8 +35,12 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
           list of reference fingerprints
       fpgen : rdkit.Chem.rdFingerprintGenerator.FingeprintGenerator64
           fingerprint generator
-      simil_function : function
+      fp_simil_function : function
           fction taking two fingerprints and returning their similarity
+      spectra_simil_functions : list
+          list of tuples (name, function) of spectra similarity functions
+      num_db_candidates : int
+          number of candidates to return when searching for the closest molecule in the database
       outfile_path : str
           path to the output file
       process_id : int, optional
@@ -47,14 +51,10 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
 
     outfile = open(outfile_path, "w+")
 
-    cosine_greedy = CosineGreedy()
-    best_spec_simils = []
-    best_smiles_simils = []
-    best_indexes = []
     for _, query_row in tqdm(df_query.iterrows(), desc="outer loop"):
         query_spec = Spectrum(mz=np.array(query_row.mz),
-                        intensities=np.array(query_row.intensity),
-                        metadata_harmonization=False)
+                                intensities=np.array(query_row.intensity),
+                                metadata_harmonization=False)
         query_fp = fpgen.GetFingerprint(Chem.MolFromSmiles(query_row.smiles))
         best_spec_simil = 0
         best_index = 0
@@ -77,32 +77,26 @@ def find_best_indexes_and_similarities(df_query, ref_spectra, ref_fps, fpgen, si
         outfile.write(json.dumps(query_row))
         outfile.write("\n")
 
-    assert len(best_spec_simils) == len(df_query), "best_simils and df have different lengths"
-    assert len(best_indexes) == len(df_query), "best_indexes and df have different lengths"
-    assert len(best_smiles_simils) == len(df_query), "best_smiles_simils and df have different lengths"
-
     outfile.close()
 
     if process_id is not None:
         print(f"process {process_id} finished")
-
-    return pd.Series(best_indexes), pd.Series(best_spec_simils, dtype=np.float64), pd.Series(best_smiles_simils, dtype=np.float64)
 
 
 def db_search_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_path, fpgen, simil_function, args, num_processes=1):
     # create fingerprints and spectra fo reference dataset
     ref_spectra = [Spectrum(mz=np.array(ref_row.mz),
                             intensities=np.array(ref_row.intensity),
-                            metadata_harmonization=False) 
+                            metadata_harmonization=False)
                             for _, ref_row in tqdm(df_reference.iterrows(), desc="precomputing ref_spectra")]
-    ref_fps = [fpgen.GetFingerprint(Chem.MolFromSmiles(ref_row.smiles)) 
+    ref_fps = [fpgen.GetFingerprint(Chem.MolFromSmiles(ref_row.smiles))
                for _, ref_row in tqdm(df_reference.iterrows(), desc="precomputing ref_fps")]
     assert len(ref_spectra) == len(df_reference), "ref_spectra and df have different lengths"
     assert len(ref_fps) == len(df_reference), "ref_fps and df have different lengths"
 
-    # split data 
+    # split data
     idxs = np.array_split(np.arange(len(df_query)), num_processes)
-    
+
     # create file names
     tmp_paths = [tmp_folder_path / f"{outfile_path.stem}_{i}{outfile_path.suffix}" for i in range(num_processes)]
 
@@ -110,8 +104,8 @@ def db_search_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_pat
     print("STARTING MULTIPROCESSING")
     processes = {}
     for i in range(num_processes):
-        processes[f"process{i}"] = multiprocessing.Process(target=find_best_indexes_and_similarities, 
-                                                           args=(df_query.iloc[idxs[i]], 
+        processes[f"process{i}"] = multiprocessing.Process(target=find_best_indexes_and_similarities,
+                                                           args=(df_query.iloc[idxs[i]],
                                                                  ref_spectra,
                                                                  ref_fps,
                                                                  fpgen,
@@ -132,19 +126,22 @@ def db_search_preprocess_mp(df_reference, df_query, outfile_path, tmp_folder_pat
                         outfile.write(line)
 
 
-def compute_simil_of_closest(row, df_reference, fpgen, sim_function) -> float:
-    smiles = row["smiles"]
-    closest_smiles = df_reference["smiles"][row["index_of_closest"]]
-    closest_fp = fpgen.GetFingerprint(Chem.MolFromSmiles(closest_smiles))
-    fp = fpgen.GetFingerprint(Chem.MolFromSmiles(smiles))
-    return sim_function(fp, closest_fp)
+def compute_simil_of_closest(row, df_reference, fpgen, sim_function, spectra_simil_type) -> list:
+    gt_smiles = row["smiles"]
+    closest_smiless = df_reference["smiles"][row[f"index_of_closest_{spectra_simil_type}"]]
+    closest_fps = [fpgen.GetFingerprint(Chem.MolFromSmiles(smi)) for smi in closest_smiless]
+    gt_fp = fpgen.GetFingerprint(Chem.MolFromSmiles(gt_smiles))
+    simils_of_closest = [sim_function(gt_fp, closest_fp) for closest_fp in closest_fps]
+    simils_of_closest = np.array(simils_of_closest).round(5)
+    return simils_of_closest.tolist()
 
 
 def add_simils_to_existing_db_index_df(df_precomputed: pd.DataFrame, df_reference: pd.DataFrame, fp_type, simil_type) -> pd.DataFrame:
     fpgen = get_fp_generator(fp_type)
-    sim_function = get_simil_function(simil_type)
+    sim_function = get_fp_simil_function(fp_simil_type)
     df_enriched = df_precomputed.copy()
-    df_enriched[f"smiles_sim_of_closest_{fp_type}_{simil_type}"] = df_enriched.progress_apply(lambda row: compute_simil_of_closest(row, df_reference, fpgen, sim_function), axis=1)
+    simils = df_enriched.progress_apply(lambda row: compute_simil_of_closest(row, df_reference, fpgen, sim_function, spectra_simil_type), axis=1)
+    df_enriched[f"smiles_sim_of_closest_{spectra_simil_type}_{fp_type}_{fp_simil_type}"] = simils
     return df_enriched
 
 
@@ -156,9 +153,11 @@ if __name__ == "__main__":
     parser.add_argument("--outfile", type=str, required=True, help="path to the output file")
     parser.add_argument("--num_processes", type=int, default=1, help="number of processes to use")
     parser.add_argument("--fingerprint_type", type=str, required=True, help="daylight or morgan - type of fingerpirnts to do the database search and compute simil of closest")
-    parser.add_argument("--simil_function", type=str, required=True, help="cosine or tanimoto - simil function to do the database search and compute simil of closest")
+    parser.add_argument("--fp_simil_function", type=str, required=True, help="cosine or tanimoto - FP simil function to compute similarity of the closest candidates")
+    parser.add_argument("--spectra_simil_functions", type=str, default="cosine", help="cosine and/or modified_cosine - list of spectra similarity functions to find the closest candidates in format: 'func1&func2'")
+    parser.add_argument("--num_db_candidates", type=int, default=1, help="number of candidates to return when searching for the closest molecule in the database")
     args = parser.parse_args()
-    
+
     # set FP generator and simil function
     fpgen = get_fp_generator(args.fingerprint_type)
     simil_function = get_simil_function(args.simil_function)
@@ -171,6 +170,7 @@ if __name__ == "__main__":
     df_query = pd.read_json(args.query, lines=True, orient="records")
 
     # if precomputed available, check for the appropriate column, if it's present, throw an error, if not, print a message and add the new fp-simil column
+    precomputed_changed = False
     if Path(args.outfile).exists():
         print("The   outfile   already exists -> LOADING PRECOMPUTED DATA")
         df_precomputed = pd.read_json(args.outfile, lines=True, orient="records")
@@ -184,6 +184,18 @@ if __name__ == "__main__":
             exit(0)
 
 
+    # set FP generator and simil functions
+    fpgen = get_fp_generator(args.fingerprint_type)
+    fp_simil_function = get_fp_simil_function(args.fp_simil_function)
+    spectra_simil_functions = [("cosine", CosineGreedy())] if "cosine" in args.spectra_simil_functions else []
+    if "modified_cosine" in args.spectra_simil_functions:
+        spectra_simil_functions.append(("modified_cosine", ModifiedCosine()))
+    print(f">> Setting up   {args.fingerprint_type}   fingerprint generator.")
+    print(f">> Setting up   {args.fp_simil_function}   similarity function.")
+    print(f">> Setting up   {args.spectra_simil_functions}   spectra similarity functions.")
+    print(f">> Num workers:   {args.num_processes}")
+
+
     # create dirs
     outfile_path = Path(args.outfile)
     query_path = Path(args.query)
@@ -193,11 +205,12 @@ if __name__ == "__main__":
 
 
     # run precompute
-    db_search_preprocess_mp(df_reference, 
+    db_search_preprocess_mp(df_reference,
                          df_query,
                          outfile_path,
                          tmp_folder_path,
                          fpgen,
-                         simil_function,
+                         fp_simil_function,
+                         spectra_simil_functions,
                          args,
                          num_processes=args.num_processes)
