@@ -5,12 +5,14 @@ data_args:
   shuffle_train: True
   dataset_for_choosing_best_model: "RASSP"
   datasets:
+  datasets:
     NEIMS:
       train_path: "data/synth/neims_gen/train.jsonl"
       valid_path: "data/synth/neims_gen/valid.jsonl"
       weight: 1.0
       limit_train_split: null    # null for full; limit of head from train set chosen for training split
       limit_val_split: 10000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 100     # null for full; limit of head chosen for visualized (generated) molecules
       limit_example_split: 100     # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<neims>"
     RASSP:
@@ -22,11 +24,13 @@ data_args:
       limit_example_split: 100   # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<rassp>"
     NIST:
+    NIST:
       train_path: "data/nist/train.jsonl"
       valid_path: "data/nist/valid.jsonl"
       weight: 0.1
       limit_train_split: null    # null for full; limit of head from valid set chosen for validation split
       limit_val_split: 10000     # null for full; limit of head from valid set chosen for validation split
+      limit_example_split: 100     # null for full; limit of head chosen for visualized (generated) molecules
       limit_example_split: 100     # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<nist>"
 
@@ -45,6 +49,7 @@ model_args:
   decoder_layers: 12
   decoder_ffn_dim: 4096
   decoder_attention_heads: 16
+  decoder_attention_heads: 16
 
 
 example_generation_args:
@@ -55,6 +60,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
+  "length_penalty": 1.0      # (use for beam search otherwise set to 0)
   "length_penalty": 1.0      # (use for beam search otherwise set to 0)
 
 
@@ -87,9 +93,11 @@ hf_training_args:
   generation_max_length: 200
   evaluation_strategy: "steps"
   eval_steps: 8000 ### make it match
+  eval_steps: 8000 ### make it match
 
   save_steps: 8000 ### make it match
   save_strategy: "steps"
+  save_total_limit: 3
   save_total_limit: 3
 
   load_best_model_at_end: True

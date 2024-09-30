@@ -56,7 +56,11 @@
 #                                   --labels-path ../data/datasets/extra_libraries/Cayman_library/Cayman_library_with_db_index.jsonl \
 #                                   --config-file ../configs/eval_config_morgan.yaml \
 
-python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/Cayman/1726521813_test_full_beam50/predictions.jsonl \
-                                  --labels-path ../data/datasets/extra_libraries/Cayman_library/Cayman_library_with_db_index.jsonl \
+# python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/Cayman/1726521813_test_full_beam50/predictions.jsonl \
+#                                   --labels-path ../data/datasets/extra_libraries/Cayman_library/Cayman_library_with_db_index.jsonl \
+#                                   --config-file ../configs/eval_config_morgan.yaml \
+
+# DEBUG
+python ../evaluate_predictions.py --predictions-path ../predictions/fearless-wildflower-490_rassp1_neims1_224kPretrain_148k/SWGDRUG/1726432121_test_full_greedy_DEBUG/predictions.jsonl \
+                                  --labels-path ../data/datasets/extra_libraries/SWGDRUG_3/SWGDRUG_3_with_db_index.jsonl \
                                   --config-file ../configs/eval_config_morgan.yaml \
-                                  

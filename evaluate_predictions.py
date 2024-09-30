@@ -1,4 +1,7 @@
 # imports
+import os
+import sys
+from contextlib import redirect_stdout
 import pandas as pd
 import pathlib
 import typer
@@ -11,16 +14,15 @@ import numpy as np
 from collections import defaultdict
 
 import plotly.express as px
-import plotly.io as pio
 import yaml
 import time
-import pytz
-from datetime import datetime
-from collections.abc import Iterator
+from myopic_mces import MCES
+
 
 from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
-from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds 
+from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds
 from utils.eval_utils import load_labels_from_dataset, load_labels_to_datapipe
+from utils.general_utils import suppress_subprocess_output
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -68,12 +70,12 @@ def get_eval_tag(old_logs: dict) -> str:
     else:
         return f"evaluation_{max([int(key.split('evaluation_')[1]) for key in old_logs.keys() if 'evaluation' in key]) + 1}"
 
-def compute_hit_at_k(councounter_first_hit_index_probsort: dict, num_datapoints: int) -> dict:
+def compute_hit_at_k(counter_first_hit_index_probsort: dict, num_datapoints: int) -> dict:
     """Compute hit at k for all k"""
     hit_at_k = {}
     cumulative_hit = 0
-    for k in sorted(councounter_first_hit_index_probsort.keys()):
-        cumulative_hit += councounter_first_hit_index_probsort[k]
+    for k in sorted(counter_first_hit_index_probsort.keys()):
+        cumulative_hit += counter_first_hit_index_probsort[k]
         hit_at_k[k+1] = cumulative_hit / num_datapoints
     return hit_at_k
 
@@ -123,28 +125,28 @@ def main(
             print("WARNING: on-the-fly preprocessing is enabled, data_range is not specified, be sure to have exactly the same preprocessing setup as for generation, otherwise will return incorrrect results")
         else: # expecting full range, already preprocessed - has to have the same number of lines
             assert num_lines_predictions == line_count(labels_path), "No data_range specified, num of predictions does not match num of labels "
-    
+
     if labels_path.suffix == ".jsonl":
         if on_the_fly:
-            labels_iterator, smiles_sim_of_closest = load_labels_to_datapipe(labels_path, 
-                                                                             data_range, 
-                                                                             do_db_search=do_db_search, 
-                                                                             fp_type=config["fingerprint_type"], 
+            labels_iterator, smiles_sim_of_closest = load_labels_to_datapipe(labels_path,
+                                                                             data_range,
+                                                                             do_db_search=do_db_search,
+                                                                             fp_type=config["fingerprint_type"],
                                                                              simil_func=config["fp_simil_function"],
                                                                              filtering_args=config["filtering_args"]
                                                                              )
         else:
-            labels_iterator, smiles_sim_of_closest = load_labels_from_dataset(labels_path, 
-                                                                              data_range, 
-                                                                              do_db_search=do_db_search, 
-                                                                              fp_type=config["fingerprint_type"], 
+            labels_iterator, smiles_sim_of_closest = load_labels_from_dataset(labels_path,
+                                                                              data_range,
+                                                                              do_db_search=do_db_search,
+                                                                              fp_type=config["fingerprint_type"],
                                                                               simil_func=config["fp_simil_function"])
     elif labels_path.suffix == ".smi":
         labels_iterator = labels_path.open("r")
         move_file_pointer(data_range.start, labels_iterator)
-    else: 
+    else:
         raise ValueError("Labels have to be either .jsonl or .smi file")
-    
+
     # set up fingerprint generator and similarity function
     fp_simil_args_info = f"{config['fingerprint_type']}_{config['fp_simil_function']}"
     fpgen = get_fp_generator(config["fingerprint_type"])
@@ -152,7 +154,7 @@ def main(
     print(f">> Setting up   {config['fingerprint_type']}   fingerprint generator. Do your data CORRESPOND?")
     print(f">> Setting up   {config['fp_simil_function']}   similarity function. Do your data CORRESPOND?")
 
-    
+
     parent_dir = predictions_path.parent
     log_file_path = parent_dir / "log_file.yaml"
     pred_f = predictions_path.open("r")
@@ -173,6 +175,12 @@ def main(
         simil_best_smiless = []
         prob_best_smiless = []
 
+    if config["do_mces"]:
+        best_mcess = []
+        best_prob_mcess = []
+        counter_first_hit_index_probsort = defaultdict(lambda: 0) # number of situations when the first hit has
+
+
     simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
     prob_all_simils = defaultdict(list)   # all simils sorted by probability (at each ranking)
     counter_fp_simil_fail_simil = 0 # number of situations when fingerprint similarity is 1 for different molecules (similsort)
@@ -185,13 +193,8 @@ def main(
     counter_correct_formulas_best_prob = 0
     counter_at_least_one_correct_formula = 0
 
-    ### test
-    labels_iterator = list(labels_iterator)
-    print("num_labels", len(labels_iterator))
-    labels_iterator = iter(labels_iterator)
-    ###
 
-    for line in tqdm(dummy_generator()):  # basically a while True      
+    for line in tqdm(dummy_generator()):  # basically a while True
         pred_jsonl = pred_f.readline()
         if not pred_jsonl:
             break
@@ -199,8 +202,8 @@ def main(
 
         pred_smiless = list(preds.keys())
         gt_smiles = next(labels_iterator)
-        
-        pred_mols, pred_fps, pred_formulas = get_descriptors(pred_smiless, fpgen)      
+
+        pred_mols, pred_fps, pred_formulas = get_descriptors(pred_smiless, fpgen)
         [gt_mol], [gt_fp], [gt_formula] = get_descriptors([gt_smiles], fpgen)
 
         counter_all_predictions += len(pred_mols)
@@ -218,7 +221,7 @@ def main(
                 simil_best_smiless.append(None)
                 prob_best_smiless.append(None)
             continue
-        
+
         # SMILES simils
         smiles_simils = [fp_simil_function(fp, gt_fp) for fp in pred_fps]
         prob_simil = np.stack(list(zip(preds.values(), smiles_simils)))
@@ -229,32 +232,26 @@ def main(
 
         # when simil is 1, check if there's a true match
         if prob_simil[simil_decreasing_index[0]][1] == 1:
-            ### test
-            # if len(simil_decreasing_index) > 1 and prob_simil[simil_decreasing_index[1]][1] == 1:
-            #     all_hits = {"gt": gt_smiles, "hits": [pred_smiless[i] for i in simil_decreasing_index if prob_simil[i][1] == 1]}
-            #     print(f"{line}: {all_hits}")
-            ### 
-
             # update hit@k counter
             first_hit_index = np.where(prob_simil[:, 1][prob_decreasing_index] == 1)[0][0]
-            counter_first_hit_index_probsort[first_hit_index] += 1 
+            counter_first_hit_index_probsort[first_hit_index] += 1
 
             num_of_hits = sum(prob_simil[:, 1] == 1)
             counter_multiple_hits[num_of_hits] += 1
 
             gt_smiles_canon = Chem.MolToSmiles(gt_mol)
             we_hit_correct_smiles = did_we_hit_corrrect(gt_smiles_canon, pred_smiless, simil_decreasing_index, prob_simil)
-            
+
             if not we_hit_correct_smiles:
                 counter_fp_simil_fail_simil += 1
         else:
             we_hit_correct_smiles = False
 
-        # check for precise match if highest prob similarity is 1. Further match checking doesn't make sense here 
+        # check for precise match if highest prob similarity is 1. Further match checking doesn't make sense here
         if prob_simil[prob_decreasing_index[0]][1] == 1:
             best_pred_prob_smiles = Chem.MolToSmiles(pred_mols[prob_decreasing_index[0]])
             gt_smiles_canon = Chem.MolToSmiles(gt_mol)
-            if best_pred_prob_smiles != gt_smiles_canon:
+            if best_pred_prob_smiles != gt_smiles_canon: # save the failed FP similarity pair in a file
                 counter_fp_simil_fail_prob += 1
                 fp_simil_fails_prob_f.write(f"{best_pred_prob_smiles},{gt_smiles_canon}\n")
 
@@ -267,7 +264,7 @@ def main(
                 all_gt_smiless.append(gt_smiles)
             simil_best_smiless.append(gt_smiles if we_hit_correct_smiles else pred_smiless[simil_decreasing_index[0]])
             prob_best_smiless.append(pred_smiless[prob_decreasing_index[0]])
-    
+
         # FORMULA stats
         is_correct_formula = [gt_formula == formula for formula in pred_formulas]
         counter_all_correct_formulas += sum(is_correct_formula)
@@ -276,6 +273,14 @@ def main(
         counter_correct_formulas_best_simil += 1 if we_hit_correct_formula else gt_formula == pred_formulas[prob_decreasing_index[0]]
         counter_correct_formulas_best_prob += 1 if gt_formula == pred_formulas[prob_decreasing_index[0]] else 0
 
+        # MCES
+        if config["do_mces"]:
+            with suppress_subprocess_output():  # mute MCES output
+                candidates_mces = [MCES(smiles, gt_smiles)[1] for smiles in pred_smiless]
+                best_mces = min(min(candidates_mces), 10)  # min MCES or a default value of threshold 10 (not similar)
+                best_mcess.append(best_mces)
+                best_prob_mces = min(candidates_mces[prob_decreasing_index[0]], 10) # min MCES or a default value of threshold 10 (not similar)
+                best_prob_mcess.append(best_prob_mces)
 
 
 
@@ -283,7 +288,7 @@ def main(
     prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
     num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
 
-    hit_at_k_prob = compute_hit_at_k(counter_first_hit_index_probsort, num_lines_predictions) 
+    hit_at_k_prob = compute_hit_at_k(counter_first_hit_index_probsort, num_lines_predictions)
 
     # create plots
     print("INFO: Creating plots...")
@@ -330,16 +335,16 @@ def main(
     num_better_than_threshold_similsort = sum(np.array(simil_all_simils[0]) > config["threshold"])
     num_better_than_threshold_probsort = sum(np.array(prob_all_simils[0]) > config["threshold"])
 
-    
+
     if config["save_best_predictions"]:
         print("INFO: Saving best predictions")
         if save_best_to_new_df:
-            # create a dataframe 
+            # create a dataframe
             df_best_predictions = pd.DataFrame({"gt_smiles": all_gt_smiless})
         else:
             # open the dataframe and add columns to it
             df_best_predictions = pd.read_json(parent_dir / "df_best_predictions.jsonl", lines=True, orient="records")
-        df_best_predictions[f"simil_best_smiless_{fp_simil_args_info}"] = simil_best_smiless 
+        df_best_predictions[f"simil_best_smiless_{fp_simil_args_info}"] = simil_best_smiless
         df_best_predictions[f"prob_best_smiless_{fp_simil_args_info}"] = prob_best_smiless
         df_best_predictions[f"simil_best_simil_{fp_simil_args_info}"] = simil_all_simils[0]
         df_best_predictions[f"prob_best_simil_{fp_simil_args_info}"] = prob_all_simils[0]
@@ -390,7 +395,7 @@ def main(
                                  }
                 }
             }
-            
+
     if do_db_search:
         try:
             smiles_sim_of_closest = np.array(list(smiles_sim_of_closest))
@@ -402,21 +407,21 @@ def main(
         prob_fpsd_tie_simils = np.array(prob_all_simils[0])[simil_preds_minus_closest == 0]
 
 
-        fig_simil_preds_minus_closest = px.histogram(x=simil_preds_minus_closest, 
-                                                     nbins=100, 
-                                                     labels={'x':'FPSD score', 'y':'count'}, 
+        fig_simil_preds_minus_closest = px.histogram(x=simil_preds_minus_closest,
+                                                     nbins=100,
+                                                     labels={'x':'FPSD score', 'y':'count'},
                                                      title="FPSD: SpecTRUM vs. database search (similsort)")
-        fig_prob_preds_minus_closest = px.histogram(x=prob_preds_minus_closest, 
-                                                    nbins=100, 
-                                                    labels={'x':'FPSD score', 'y':'count'}, 
+        fig_prob_preds_minus_closest = px.histogram(x=prob_preds_minus_closest,
+                                                    nbins=100,
+                                                    labels={'x':'FPSD score', 'y':'count'},
                                                     title="FPSD: SpecTRUM vs. database search (probsort)")
-        fig_simil_fpsd_ties = px.histogram(x=simil_fpsd_tie_simils, 
-                                                     nbins=100, 
-                                                     labels={'x':'similarity', 'y':'count'}, 
+        fig_simil_fpsd_ties = px.histogram(x=simil_fpsd_tie_simils,
+                                                     nbins=100,
+                                                     labels={'x':'similarity', 'y':'count'},
                                                      title="FPSD ties: SpecTRUM vs. database search (similsort)")
         fig_prob_fpsd_ties = px.histogram(x=prob_fpsd_tie_simils,
-                                                    nbins=100, 
-                                                    labels={'x':'similarity', 'y':'count'}, 
+                                                    nbins=100,
+                                                    labels={'x':'similarity', 'y':'count'},
                                                     title="FPSD ties: SpecTRUM vs. database search (probsort)")
 
         for fig in [fig_simil_preds_minus_closest, fig_prob_preds_minus_closest, fig_simil_fpsd_ties, fig_prob_fpsd_ties]:
@@ -446,12 +451,31 @@ def main(
                                                   "mean_tie_simils_probsort": str(prob_fpsd_tie_simils.mean()),
                                                   }
                                     }
-            
+
+    if config["do_mces"]:
+        best_mcess = np.array(best_mcess)
+        best_prob_mcess = np.array(best_prob_mcess)
+        logs[eval_tag]["mces: graph edit distance"] = {"top-k mces (~ similsort without fp simil)": str(best_mcess.mean()),
+                                                       "mean_best_probsort_mces": str(best_prob_mcess.mean()),
+                                                       "percentage_mces_over_10": best
+                                                      }
+        # TODO: jenom 10 binu (11?) a ne 100
+        fig_top1_mces = px.histogram(x=best_mcess, nbins=100, labels={'x':'MCES', 'y':'count'}, title="Top-k MCES histogram (MCESsort)")
+        fig_top1_prob_mces = px.histogram(x=best_prob_mcess, nbins=100, labels={'x':'MCES', 'y':'count'}, title="Top-k MCES histogram (probsort)")
+
+        for fig in [fig_top1_mces, fig_top1_prob_mces]:
+            fig.update_layout(title_font_size=title_font_size, title_x=0.5, title_y=0.9, title_xanchor='center', title_yanchor='top', font=dict(size=general_font_size))
+            fig.update_xaxes(title_font_size=axis_title_font_size, tickfont_size=tickfont_size)
+            fig.update_yaxes(title_font_size=axis_title_font_size, tickfont_size=tickfont_size)
+
+        fig_top1_mces.write_image(str(parent_dir / f"top1_mces.png"), scale=scale)
+        fig_top1_prob_mces.write_image(str(parent_dir / f"top1_prob_mces.png"), scale=scale)
+
     yaml.dump(logs, log_file, indent=4)
     print(logs)
     log_file.close()
     pred_f.close()
-    
+
 
 if __name__ == "__main__":
     app()

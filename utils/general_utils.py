@@ -1,3 +1,6 @@
+import os
+import subprocess
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from io import TextIOWrapper
 import time
@@ -65,7 +68,7 @@ def get_sequence_probs(model,
     return all_probs
 
 
-def timestamp_to_readable(timestamp: float) -> str:    
+def timestamp_to_readable(timestamp: float) -> str:
     return datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
 
 
@@ -77,3 +80,21 @@ def get_nice_time():
     now = str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     now = now.replace(":", "_").replace(" ", "-")
     return now
+
+
+@contextmanager
+def suppress_subprocess_output():
+    with open(os.devnull, 'w') as fnull:
+        original_popen = subprocess.Popen
+        try:
+            # Override subprocess.Popen to redirect stdout and stderr
+            def custom_popen(*args, **kwargs):
+                kwargs['stdout'] = fnull
+                kwargs['stderr'] = fnull
+                return original_popen(*args, **kwargs)
+
+            subprocess.Popen = custom_popen
+            yield
+        finally:
+            # Restore the original Popen function
+            subprocess.Popen = original_popen

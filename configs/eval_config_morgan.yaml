@@ -3,6 +3,7 @@ on_the_fly: True  # Whether to evaluate the predictions with on-the-fly filterin
 save_best_predictions: True  # Whether to save df with similarities of all the best predictions (probsort and similsort)
                              # saves a lot of extra data (50MB for NIST valid set)
                              # can be used for further analysis
+do_mces: True  # TIME CONSUMING: Whether to evaluate the predictions using the MCES metric - Max common edge subgraph
 
 filtering_args:  # if you don't specify these, default ones are used
   max_num_peaks: 300
