@@ -4,7 +4,7 @@ data_args:
   data_seed: 42
   shuffle_train: True
   dataset_for_choosing_best_model: "RASSP"
-  datasets: 
+  datasets:
     NEIMS:
       train_path: "data/synth/neims_gen/train.jsonl"
       valid_path: "data/synth/neims_gen/valid.jsonl"
@@ -21,7 +21,7 @@ data_args:
       limit_val_split: 10000     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100   # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<rassp>"
-    NIST: 
+    NIST:
       train_path: "data/nist/train.jsonl"
       valid_path: "data/nist/valid.jsonl"
       weight: 0.0                # do not use for training
@@ -30,9 +30,10 @@ data_args:
       limit_example_split: 0     # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<rassp>"    # rassp bcs it's a bit better (more similar to nist) than neims
 
-preprocess_args: 
-  lets_do_this: True             # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
-  
+preprocess_args:
+  log_base: 1.28
+  log_shift: 29             # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
+
 model_args:
   tokenizer_path: "tokenizer/tokenizer_mf10M.model"
   decoder_seq_len: 200
@@ -43,7 +44,7 @@ model_args:
   encoder_attention_heads: 16
   decoder_layers: 12
   decoder_ffn_dim: 4096
-  decoder_attention_heads: 16  
+  decoder_attention_heads: 16
 
 
 example_generation_args:
@@ -54,7 +55,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0      # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0      # (use for beam search otherwise set to 0)
 
 
 hf_training_args:
@@ -85,11 +86,11 @@ hf_training_args:
   generation_num_beams: 1
   generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 8000 ### make it match 
+  eval_steps: 8000 ### make it match
 
   save_steps: 8000 ### make it match
   save_strategy: "steps"
-  save_total_limit: 3 
+  save_total_limit: 3
 
   load_best_model_at_end: True
   metric_for_best_model: "eval_morgan_tanimoto_simil"

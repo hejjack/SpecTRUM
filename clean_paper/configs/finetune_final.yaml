@@ -4,8 +4,8 @@ data_args:
   data_seed: 42
   shuffle_train: True
   dataset_for_choosing_best_model: "NIST"
-  datasets: 
-    NIST: 
+  datasets:
+    NIST:
       train_path: "data/nist/train.jsonl"
       valid_path: "data/nist/valid.jsonl"
       weight: 1.0
@@ -13,7 +13,7 @@ data_args:
       limit_val_split: null      # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100   # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<nist>"
-    NEIMS:                       
+    NEIMS:
       train_path: "data/synth/neims_gen/train.jsonl"
       valid_path: "data/synth/neims_gen/valid.jsonl"
       weight: 0.0                # do not use for training
@@ -21,7 +21,7 @@ data_args:
       limit_val_split: 1000      # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 0     # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<neims>"
-    RASSP:                       
+    RASSP:
       train_path: "data/synth/rassp_gen/train.jsonl"
       valid_path: "data/synth/rassp_gen/valid.jsonl"
       weight: 0.0                # do not use for training
@@ -31,8 +31,8 @@ data_args:
       source_token: "<rassp>"
 
 preprocess_args:
-  log_base: 1.2
-  log_shift: 39
+  log_base: 1.28
+  log_shift: 29
 
 model_args:
   tokenizer_path: "tokenizer/tokenizer_mf10M.model"
@@ -55,7 +55,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0      # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0      # (use for beam search otherwise set to 0)
 
 
 hf_training_args:
