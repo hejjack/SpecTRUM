@@ -179,6 +179,11 @@ def main(
         best_mcess = []
         best_prob_mcess = []
         counter_first_hit_index_probsort = defaultdict(lambda: 0) # number of situations when the first hit has
+        # create a tmp/mces_input.csv file
+        mces_input_file_path = parent_dir / "tmp/mces_input.csv" # new variant
+        mces_input_file_path.parent.mkdir(exist_ok=True, parents=True) # new variant
+        mces_input = open(mces_input_file_path, "w") # new variant
+        best_prob_flagss = []   # new variant
 
 
     simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
@@ -194,7 +199,7 @@ def main(
     counter_at_least_one_correct_formula = 0
 
 
-    for line in tqdm(dummy_generator()):  # basically a while True
+    for i, line in tqdm(enumerate(dummy_generator())):  # basically a while True
         pred_jsonl = pred_f.readline()
         if not pred_jsonl:
             break
@@ -273,16 +278,45 @@ def main(
         counter_correct_formulas_best_simil += 1 if we_hit_correct_formula else gt_formula == pred_formulas[prob_decreasing_index[0]]
         counter_correct_formulas_best_prob += 1 if gt_formula == pred_formulas[prob_decreasing_index[0]] else 0
 
-        # MCES
-        if config["do_mces"]:
-            with suppress_subprocess_output():  # mute MCES output
-                candidates_mces = [MCES(smiles, gt_smiles)[1] for smiles in pred_smiless]
-                best_mces = min(min(candidates_mces), 10)  # min MCES or a default value of threshold 10 (not similar)
-                best_mcess.append(best_mces)
-                best_prob_mces = min(candidates_mces[prob_decreasing_index[0]], 10) # min MCES or a default value of threshold 10 (not similar)
-                best_prob_mcess.append(best_prob_mces)
+        # if config["do_mces"]:
+        #     with suppress_subprocess_output():  # mute MCES output
+        #         candidates_mces = [MCES(smiles, gt_smiles)[1] for smiles in pred_smiless]
+        #         best_mces = min(min(candidates_mces), 10)  # min MCES or a default value of threshold 10 (not similar)
+        #         best_mcess.append(best_mces)
+        #         best_prob_mces = min(candidates_mces[prob_decreasing_index[0]], 10) # min MCES or a default value of threshold 10 (not similar)
+        #         best_prob_mcess.append(best_prob_mces)
+
+        if config["do_mces"]: # new variant block
+            if len(pred_smiless) > 0:
+                best_prob_flags = [0] * len(pred_smiless)
+                best_prob_flags[prob_decreasing_index[0]] = 1
+                best_prob_flagss += best_prob_flags # type: ignore
+                tuples_for_mces = [f"{i},{gt_smiles},{smiles}" for smiles in pred_smiless]
+                str_for_mces = "\n".join(tuples_for_mces)
+                mces_input.write(str_for_mces + "\n")
 
 
+    # MCES
+    # compute all
+    # TODO: not working properly (not all predictions are processed)
+    if config["do_mces"]: # new variant block
+        mces_out_file_path = mces_input_file_path.with_suffix(".out")
+        command = f"{sys.executable} -m myopic_mces.myopic_mces " + \
+                                            "--threshold 10 " + \
+                                            "--num_jobs 32 " + \
+                                            "--solver_onethreaded " + \
+                                            "--solver_no_msg " + \
+                                            str(mces_input_file_path) + " " + \
+                                            str(mces_out_file_path)
+        pd.Series(best_prob_flagss).to_csv(path_or_buf=mces_input_file_path.with_suffix(".flags"))  # debug
+        os.system(command)
+        df_out = pd.read_csv(mces_out_file_path, header=None, names=["i", "time", "mces", "status"])
+        df_out["prob_flag"] = best_prob_flagss
+        # TODO: aggregate the results
+
+
+        mces_input.close()
+        # TODO: delete tmp files
 
     simil_average_simil_kth = [mean(simil_all_simils[k]) for k in sorted(simil_all_simils.keys())]
     prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
