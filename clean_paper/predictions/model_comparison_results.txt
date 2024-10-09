@@ -1,0 +1,16 @@
+Statistical significance of model comparison
+
+|    | Model                                                   |   probsort_mean_simil |   similsort_mean_simil |
+|---:|:--------------------------------------------------------|----------------------:|-----------------------:|
+|  0 | hopeful-rain-557_exp4_rassp_neims_nist                  |              0.27729  |               0.357521 |
+|  1 | fearless-wildflower-490_rassp1_neims1_224kPretrain_148k |              0.285163 |               0.375629 |
+|  2 | autumn-dawn-564_exp5_one_src_token                      |              0.271504 |               0.360998 |
+
+Friedman test (probsort): statistic=0.8524137931039301, p-value=0.6529812285792036   not significant
+Friedman test (similsort): statistic=6.713715046604489, p-value=0.03484458537447387   * significant
+
+SIGNIFICANT -> Nemenyi post-hoc test (similsort):
+                                                         hopeful-rain-557_exp4_rassp_neims_nist  fearless-wildflower-490_rassp1_neims1_224kPretrain_148k  autumn-dawn-564_exp5_one_src_token
+hopeful-rain-557_exp4_rassp_neims_nist                                                 1.000000                                                 0.071993                            0.806870
+fearless-wildflower-490_rassp1_neims1_224kPretrain_148k                                0.071993                                                 1.000000                            0.242888
+autumn-dawn-564_exp5_one_src_token                                                     0.806870                                                 0.242888                            1.000000

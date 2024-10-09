@@ -1,0 +1,39 @@
+command: predict.py --checkpoint ../checkpoints/finetune_clean/absurd-wildflower-536_exp2_lin_1000/checkpoint-73738
+  --output-folder predictions --config-file configs/predict_nist_valid_beam10_exp2_lin_1000.yaml
+cuda_visible_devices: '0'
+dataloader:
+  batch_size: 1
+  num_workers: 1
+dataset:
+  data_path: data/nist/valid.jsonl
+  data_split: valid
+  dataset_name: NIST
+general:
+  additional_naming_info: beam10
+  device: cuda
+generation_args:
+  do_sample: false
+  length_penalty: 1.0
+  max_length: 200
+  num_beams: 10
+  num_return_sequences: 10
+  penalty_alpha: null
+  temperature: null
+  top_k: null
+  top_p: null
+preprocess_args:
+  do_log_binning: false
+  inference_mode: true
+  linear_bin_decimals: 3
+  max_cumsum: null
+  max_mol_repr_len: 100
+  max_mz: 500
+  max_num_peaks: 300
+  mol_repr: smiles
+  restrict_intensities: false
+  source_token: <nist>
+start_loading_time: 07/10/2024 00:15:13
+tokenizer_path: tokenizer/tokenizer_mf10M.model
+finished_time_utc: 09/10/2024 03:46:26
+generation_time: 03:31:07
+wall_time_utc: 03:31:12

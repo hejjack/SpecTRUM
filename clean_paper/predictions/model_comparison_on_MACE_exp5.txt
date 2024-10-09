@@ -1,0 +1,9 @@
+Statistical significance of model comparison
+
+|    | Model                                  |   probsort_mean_simil |   similsort_mean_simil |
+|---:|:---------------------------------------|----------------------:|-----------------------:|
+|  0 | hopeful-rain-557_exp4_rassp_neims_nist |              0.27729  |               0.357521 |
+|  1 | autumn-dawn-564_exp5_one_src_token     |              0.271504 |               0.360998 |
+
+Wilcoxon signed-rank test (probsort): statistic=6907.5, p-value=0.4164091279538823   not significant
+Wilcoxon signed-rank test (similsort): statistic=8344.0, p-value=0.7230123966465902   not significant
