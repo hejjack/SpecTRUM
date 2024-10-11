@@ -4,8 +4,8 @@ data_args:
   data_seed: 42
   shuffle_train: False # True
   dataset_for_choosing_best_model: "nist"
-  datasets: 
-  datasets: 
+  datasets:
+  datasets:
     nist:    # 208908 + 26000
       train_path: "../data/datasets/NIST/NIST_split_filip/train.jsonl"
       valid_path: "../data/datasets/NIST/NIST_split_filip/valid.jsonl"
@@ -31,7 +31,7 @@ data_args:
     #   limit_example_split: 0  # null for full; limit of head chosen for visualized (generated)
     #   source_token: "<rassp>"
 
-preprocess_args: 
+preprocess_args:
   lets_do_this: True # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
   do_log_binning: False
   linear_bin_decimals: 3
@@ -57,7 +57,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0 # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0 # (use for beam search otherwise set to 0)
 
 
 hf_training_args:

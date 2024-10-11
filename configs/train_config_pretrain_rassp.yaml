@@ -4,7 +4,7 @@ data_args:
   data_seed: 42
   shuffle_train: True
   dataset_for_choosing_best_model: "RASSP"  # !!!!!!!!!!!!
-  datasets: 
+  datasets:
     NEIMS: # only for evaluation tracking purposes
       train_path: "../data/datasets/4_8M/neims_gen/train.jsonl"
       valid_path: "../data/datasets/4_8M/neims_gen/valid.jsonl"
@@ -30,7 +30,7 @@ data_args:
       limit_example_split: 0  # null for full; limit of head chosen for visualized (generated)
       source_token: "<rassp>"
 
-preprocess_args: 
+preprocess_args:
   lets_do_this: True # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
 
 model_args:
@@ -43,7 +43,7 @@ model_args:
   encoder_attention_heads: 16
   decoder_layers: 12 # 24
   decoder_ffn_dim: 4096
-  decoder_attention_heads: 16  
+  decoder_attention_heads: 16
 
 
 example_generation_args:
@@ -54,7 +54,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0 # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0 # (use for beam search otherwise set to 0)
 
 
 hf_training_args:
@@ -85,9 +85,9 @@ hf_training_args:
   generation_num_beams: 1
   generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 8000 
+  eval_steps: 8000
 
-  save_steps: 8000 
+  save_steps: 8000
   save_strategy: "steps"
   save_total_limit: 3
 

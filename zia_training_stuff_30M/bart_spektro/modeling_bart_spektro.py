@@ -98,7 +98,7 @@ class BartSpektroEncoder(BartPretrainedModel):
             self.embed_tokens = embed_tokens
         else:
             self.embed_tokens = nn.Embedding(config.vocab_size, embed_dim, self.padding_idx)
-        
+
         if config.max_log_id:
             self.embed_positions = BartSpektroLearnedPositionalEmbedding(
                 config.max_log_id + 1,  # size of the dict for all max+1 values
@@ -115,7 +115,7 @@ class BartSpektroEncoder(BartPretrainedModel):
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
         self.post_init()
-        
+
     def get_input_embeddings(self):
         return self.embed_tokens
 
@@ -190,7 +190,7 @@ class BartSpektroEncoder(BartPretrainedModel):
 
         if inputs_embeds is None:
             inputs_embeds = self.embed_tokens(input_ids) * self.embed_scale
-        
+
         if position_ids != None: # Adam customization
             embed_pos = self.embed_positions(position_ids)
         else:

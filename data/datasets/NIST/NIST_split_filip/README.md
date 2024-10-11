@@ -1,5 +1,5 @@
 # NIST dataset
-This dataset made of NIST20 is destereochemicalized, canonicalized, and split into train, test, and validation sets (with no overlaps). For more info refer to the scripts. 
+This dataset made of NIST20 is destereochemicalized, canonicalized, and split into train, test, and validation sets (with no overlaps). For more info refer to the scripts.
 It only contains jsonl files with `mz`, `intensity`, and `smiles` fields. The filtering and preprocessing is meant to be done on-the-fly (for more freedom in testing preprocessing methods).
 
 ## This dataset is created by the following steps:
@@ -38,7 +38,7 @@ for dataset_type in ["train", "valid", "test"]:
    780 spectra w/ too high mz
    2463 spectra w/ too many peaks
    totally 3295 issues
-   discarded 2957/29218 spectra 
+   discarded 2957/29218 spectra
    LENGTH: 26261
  - valid.jsonl
    0 no smiles
@@ -47,7 +47,7 @@ for dataset_type in ["train", "valid", "test"]:
    709 spectra w/ too high mz
    2339 spectra w/ too many peaks
    totally 3103 issues
-   discarded 2809/29053 spectra 
+   discarded 2809/29053 spectra
    LENGTH: 26244
  - train.jsonl
     0 no smiles
@@ -57,4 +57,4 @@ for dataset_type in ["train", "valid", "test"]:
     20226 spectra w/ too many peaks  ??? deprecated
     totally 26650 issues             ??? deprecated
     discarded 24049/237455 spectra   ??? deprecated
-    LENGTH: 208448                   CORRECT       
+    LENGTH: 208448                   CORRECT

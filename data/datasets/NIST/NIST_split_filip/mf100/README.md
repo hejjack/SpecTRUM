@@ -33,8 +33,8 @@ for dataset_type in ["train", "valid", "test"]:
    5873 spectra w/ too high mz
    2344 spectra w/ too many peaks
    totally 8580 issues
-   discarded 7292/232025 spectra 
-  LENGTH: 224733 
+   discarded 7292/232025 spectra
+  LENGTH: 224733
 
  - valid.jsonl
    0 no mol_repr
@@ -43,7 +43,7 @@ for dataset_type in ["train", "valid", "test"]:
    709 spectra w/ too high mz
    283 spectra w/ too many peaks
    totally 1047 issues
-   discarded 876/29053 spectra 
+   discarded 876/29053 spectra
   LENGTH: 28177
 
  - test.jsonl
@@ -53,5 +53,5 @@ for dataset_type in ["train", "valid", "test"]:
    780 spectra w/ too high mz
    302 spectra w/ too many peaks
    totally 1134 issues
-   discarded 951/29218 spectra 
-  LENGTH: 28267                          
+   discarded 951/29218 spectra
+  LENGTH: 28267

@@ -17,7 +17,7 @@ def print_args(args):
         print(line, flush=True)
         all_args = all_args + line + "\n"
     return all_args
-        
+
 def clean_smiles(data_path):
     data_path_clean = data_path + ".clean"
     with open(data_path, "r") as dirty, open(data_path_clean, "w") as clean:
@@ -29,7 +29,7 @@ def clean_smiles(data_path):
                 clean.write(line)
     os.remove(data_path)
     os.rename(data_path_clean, data_path)
-    
+
 
 def main():
     parser = argparse.ArgumentParser(description="Parse data preparation args")
@@ -40,39 +40,38 @@ def main():
                         help="absolute path for saving a dataframe before destereochemicalization")
     parser.add_argument("--save-canon-path", type=str, required=True,
                         help="absolute path for saving canon smiles prepared for obabel destereochemicalization")
-   
+
 
     args = parser.parse_args()
 
     print_args(args)
-    
-    print("\n\n##### PHASE 1 #####")        
+
+    print("\n\n##### PHASE 1 #####")
     # clean_smiles(args.data_path) # change or don't use, depending on the data file
 
-    print("##### READING CSV #####")  
+    print("##### READING CSV #####")
     df = pd.read_csv(args.data_path, sep=" ")
-    print("##### READING DONE #####")  
-    
-    print("##### CANONICALIZATION #####")  
+    print("##### READING DONE #####")
+
+    print("##### CANONICALIZATION #####")
     cans = [Chem.MolToSmiles(Chem.MolFromSmiles(smi),True) for smi in df["smiles"]]
     df["canon_smiles"] = cans
     df = df[["zinc_id", "smiles", "canon_smiles"]]
-    print("##### CANONICALIZATION DONE #####")  
+    print("##### CANONICALIZATION DONE #####")
 
-    print("##### SAVING CANON SMILES ALONE #####")  
+    print("##### SAVING CANON SMILES ALONE #####")
     sms = df["canon_smiles"].tolist()
     with open(args.save_canon_path, "w+") as out:
         for s in sms:
             out.write(s + "\n")
-    
+
     # save to pickle after first phase
-    print("##### PICKELING DATA AFTER INIT PHASE #####")        
+    print("##### PICKELING DATA AFTER INIT PHASE #####")
     print(f"##### len after PHASE1: {len(df)}")
-    df.to_pickle(args.save_pickle_path) 
+    df.to_pickle(args.save_pickle_path)
 
 if __name__ == "__main__":
     main()
-        
-    
-    
-    
+
+
+

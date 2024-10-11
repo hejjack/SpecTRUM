@@ -36,15 +36,15 @@ def build_tokenizer(tokenizer_path: str) -> PreTrainedTokenizerFast:
     return tokenizer
 
 
-def msp_files_to_jsonl_files(process_id, 
-                             files, 
-                             output_dir, 
-                             tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer, 
+def msp_files_to_jsonl_files(process_id,
+                             files,
+                             output_dir,
+                             tokenizer: PreTrainedTokenizerFast | SelfiesTokenizer,
                              keep_spectra,
                              do_preprocess: bool = True,
                              preprocess_args: dict = {}):
     print(f"process {process_id} STARTED, preprocess .. {do_preprocess}")
-    for file in tqdm(files): 
+    for file in tqdm(files):
         jsonl_file = output_dir / f"{file.stem}.jsonl"
         msp2jsonl(file,
                   path_jsonl=jsonl_file,
@@ -75,8 +75,8 @@ def data_split(df, train_test_valid_ratio: list):
 
 
 @app.command()
-def main(input_dir: Path = typer.Option(..., help="input directory containing the msp files"), 
-         output_dir: Path = typer.Option(..., help="output directory to store the preprocessed jsonl files"), 
+def main(input_dir: Path = typer.Option(..., help="input directory containing the msp files"),
+         output_dir: Path = typer.Option(..., help="output directory to store the preprocessed jsonl files"),
          config_file: Path = typer.Option(..., help="config file containing important parameters"),
          keep_spectra: bool = typer.Option(False, help="keep the mz/intensity values in the jsonl files (for evaluation)"),
          num_processes: int = typer.Option(1, help="number of processes to use for parallelization"),
@@ -88,7 +88,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
     The output is a folder containing the preprocessed jsonl files (optionaly concatenated into one file).
     The jsonl can be used directly to feed to BartSpektro.
     """
-    
+
     # unpack config file
     with open(config_file, "r") as f:
         try:
@@ -119,18 +119,18 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
         print("files len is not divisable by num_processes. Padding with None to divisable length")
         pad_len = num_processes - (len(files)%num_processes)
         files += [None] * pad_len
-    
+
     grouped_files = np.array(files).reshape(num_processes, -1)
     processes = {}
     for i in range(num_processes):
-        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i, 
-                                                                                     grouped_files[i], 
-                                                                                     output_dir, 
+        processes[f"process{i}"] = mp.Process(target=msp_files_to_jsonl_files, args=(i,
+                                                                                     grouped_files[i],
+                                                                                     output_dir,
                                                                                      tokenizer,
                                                                                      keep_spectra,
                                                                                      config["do_preprocess"],
                                                                                      config.get("preprocess_args", {})))
-        
+
     for process in processes.values():
         process.start()
     for process in processes.values():
@@ -150,7 +150,7 @@ def main(input_dir: Path = typer.Option(..., help="input directory containing th
             for jsonl_file in jsonl_files:
                 jsonl_file.unlink()
         print("Concatenation DONE")
-    
+
     if config["train_split_ratio"] or config["test_split_ratio"] or config["valid_split_ratio"]:
         print("Splitting the data into train, test and valid sets")
         df = pd.read_json(output_dir / "all.jsonl", lines=True)

@@ -1,11 +1,11 @@
 SING_IMAGE=/storage/brno6/home/ahajek/singularity/ngc_image/Pytorch-21.SIF
-SING_IMAGE=/cvmfs/singularity.metacentrum.cz/NGC/PyTorch:22.04.SIF 
+SING_IMAGE=/cvmfs/singularity.metacentrum.cz/NGC/PyTorch:22.04.SIF
 
 HOMEDIR=/scratch.ssd/ahajek  # substitute username and path to to your real username and path
 IMAGE_BASE=`basename $SING_IMAGE`
 export PYTHONUSERBASE=$HOMEDIR/.local-${IMAGE_BASE}
 
-mkdir -p ${PYTHONUSERBASE}/lib/python3.6/site-packages 
+mkdir -p ${PYTHONUSERBASE}/lib/python3.6/site-packages
 
 #set SINGULARITY variables for runtime data
 export SINGULARITY_CACHEDIR=$HOMEDIR

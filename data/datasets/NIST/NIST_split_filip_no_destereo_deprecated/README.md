@@ -29,7 +29,7 @@ msp2jsonl(dataset_path / f"{dataset_type}.msp",
     totally 3013 issues
     discarded 2693/26365 spectra
     LENGTH: 23870
- - valid 
+ - valid
     0 no smiles
     39 smiles too long
     1 spectra corrupted
@@ -94,8 +94,8 @@ def smiles_dataset_to_selfies_dataset(smiles_dataset_path, selfies_dataset_save_
             f_sel.write(sel_line + "\n")
 
 for datatype in ["train", "valid", "test"]:
-    smiles_dataset_to_selfies_dataset(f"data/datasets/NIST/NIST_split_filip/{datatype}.jsonl", 
-                                    f"data/datasets/NIST/NIST_split_filip/sel_{datatype}.jsonl", 
-                                    sel_tokenizer, 
+    smiles_dataset_to_selfies_dataset(f"data/datasets/NIST/NIST_split_filip/{datatype}.jsonl",
+                                    f"data/datasets/NIST/NIST_split_filip/sel_{datatype}.jsonl",
+                                    sel_tokenizer,
                                     sel_tokenizer.encode("<nist>")[0])
 ```

@@ -3,9 +3,9 @@ data_args:
   buffer_size: 100000 # for shuffling in dataloader
   data_seed: 42
   shuffle_train: True
-  dataset_for_choosing_best_model: "RASSP"  
-  datasets: 
-    NEIMS: 
+  dataset_for_choosing_best_model: "RASSP"
+  datasets:
+    NEIMS:
       train_path: "data/synth/neims_gen/train.jsonl"
       valid_path: "data/synth/neims_gen/valid.jsonl"
       weight: 1.0
@@ -13,7 +13,7 @@ data_args:
       limit_val_split: 10000     # null for full; limit of head from valid set chosen for validation split
       limit_example_split: 100   # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<neims>"
-    RASSP:                       
+    RASSP:
       train_path: "data/synth/rassp_gen/train.jsonl"
       valid_path: "data/synth/rassp_gen/valid.jsonl"
       weight: 1.0
@@ -30,7 +30,7 @@ data_args:
       limit_example_split: 0     # null for full; limit of head chosen for visualized (generated) molecules
       source_token: "<rassp>"    # rassp bcs it's a bit better (more similar to nist) than neims
 
-preprocess_args: 
+preprocess_args:
   log_base: 1.2
   log_shift: 39
 
@@ -39,12 +39,12 @@ model_args:
   decoder_seq_len: 200
   max_mz: 500                    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
   separate_encoder_decoder_embeds: True
-  encoder_layers: 12 
+  encoder_layers: 12
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
-  decoder_layers: 12 
+  decoder_layers: 12
   decoder_ffn_dim: 4096
-  decoder_attention_heads: 16  
+  decoder_attention_heads: 16
 
 
 example_generation_args:
@@ -55,7 +55,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0      # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0      # (use for beam search otherwise set to 0)
 
 
 hf_training_args:
@@ -86,11 +86,11 @@ hf_training_args:
   generation_num_beams: 1
   generation_max_length: 200
   evaluation_strategy: "steps"
-  eval_steps: 16000 ### make it match 
+  eval_steps: 16000 ### make it match
 
   save_steps: 16000 ### make it match
   save_strategy: "steps"
-  save_total_limit: 3 
+  save_total_limit: 3
 
   load_best_model_at_end: True
   metric_for_best_model: "eval_morgan_tanimoto_simil"

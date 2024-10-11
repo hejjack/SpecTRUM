@@ -37,7 +37,7 @@
                 "--wandb-group", "debug",
                 "--additional-tags", "'A100:alfa:selfies'"
             ]
-        }, 
+        },
         {
             "name": "Run rassp preprocessing",
             "type": "debugpy",
@@ -55,7 +55,7 @@
                 "--num-processes 32",
                 "--concat"
             ]
-        },        
+        },
         {
             "name": "Run pretraining",
             "type": "debugpy",
@@ -73,7 +73,7 @@
                 "--wandb-group", "debug",
                 "--additional-tags", "'A100:alfa:RASSP'"
             ]
-        },   
+        },
         {
             "name": "Run evaluation",
             "type": "debugpy",

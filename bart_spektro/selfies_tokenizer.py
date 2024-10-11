@@ -37,7 +37,7 @@ class SelfiesTokenizer(PreTrainedTokenizer):
         self.__token_ids: Dict[str, int] = vocab
         self.__id_tokens: Dict[int, str] = {value: key for key, value in vocab.items()}
         self.special_tokens = {}
-    
+
     def add_special_tokens(self, *args, **kwargs):
         """The functionality stays the same, we just want to have the special tokens
         explicitly saved
@@ -49,7 +49,7 @@ class SelfiesTokenizer(PreTrainedTokenizer):
                 special_keys.extend(value)
             else:
                 special_keys.append(value)
-    
+
         self.special_tokens = {key: self.__token_ids[key] for key in special_keys}
         return out
 
@@ -93,7 +93,7 @@ class SelfiesTokenizer(PreTrainedTokenizer):
                 return self._convert_id_to_token(token_ids)
             tokens = [self._convert_id_to_token(token_id) for token_id in token_ids]
         return "".join(tokens)
-    
+
     @property
     def vocab_size(self) -> int:
         return len(self.__token_ids)
@@ -111,7 +111,7 @@ def hardcode_build_selfies_tokenizer() -> SelfiesTokenizer:
 
 
     vocab_dict = {key: i for i, key in enumerate(vocab)}
-        
+
     sel_tokenizer = SelfiesTokenizer(vocab_dict, max_len=200)
 
     # tell your tokenizer about your special tokens

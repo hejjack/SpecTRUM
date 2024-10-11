@@ -13,15 +13,14 @@ For every dataset in the `data/datasets` folder, there is a README file that pro
 
 
 ## Pretraining & Finetuning
-Pretraining and finetuning can be conducted using the `train_bart.py` script. The script needs a couple of arguments to run, most importantly the `config_file`, which is a YAML file that contains all the necessary hyperparameters for the training. 
-
-All the run scripts we used for our experiments are in the run_scripts folder and don't need any additional parameters. The scripts are named `run_pretrain*` and `run_finetune*`. Their corresponding config files are in the `configs` folder, again named `train_config_pretrain*` and `train_config_finetune*`. 
+Pretraining and finetuning can be conducted using the `train_bart.py` script. The script needs a couple of arguments to run, most importantly the `config_file`, which is a YAML file that contains all the necessary hyperparameters for the training.
+All the run scripts we used for our experiments are in the run_scripts folder and don't need any additional parameters. The scripts are named `run_pretrain*` and `run_finetune*`. Their corresponding config files are in the `configs` folder, again named `train_config_pretrain*` and `train_config_finetune*`.
 
 
 ## Prediction & Evaluation
-Prediciton and evaluation are two separate steps. The prediction process on NIST valid/test splits takes depending on the used hardware from 4 hours to infinity. Once you have the predictions, you can run multiple evaluation runs each taking around a minute. 
+Prediciton and evaluation are two separate steps. The prediction process on NIST valid/test splits takes depending on the used hardware from 4 hours to infinity. Once you have the predictions, you can run multiple evaluation runs each taking around a minute.
 
-The prediction script, `predict.py` has its runner in the `run_scripts` folder (`run_predict.sh`) and corresponding config files in the `configs` folder (`predict_config*`). The evaluation script, `evaluate_predicitons.py` has also its runner in the `run_scripts` folder (`run_eval.sh`) and corresponding config files in the `configs` folder (`eval_config*`). 
+The prediction script, `predict.py` has its runner in the `run_scripts` folder (`run_predict.sh`) and corresponding config files in the `configs` folder (`predict_config*`). The evaluation script, `evaluate_predicitons.py` has also its runner in the `run_scripts` folder (`run_eval.sh`) and corresponding config files in the `configs` folder (`eval_config*`).
 
 
 

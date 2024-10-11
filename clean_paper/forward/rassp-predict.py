@@ -50,11 +50,11 @@ ffe = FragmentFormulaPeakEnumerator(sorted(valid_atoms), use_highres=True, max_p
 def goodmol(mol):
     if len(mol.GetAtoms()) > 48:
         return False
-        
+
     atoms = { a.GetAtomicNum() for a in mol.GetAtoms() }
     if not atoms < valid_atoms:
         return False
-            
+
     f,m = ffe.get_frag_formulae(mol)
     if len(f) > max_formulae:
         return False

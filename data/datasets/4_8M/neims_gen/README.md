@@ -1,8 +1,8 @@
-This dataset was created by filtering 30M ZINC slice dataset. The filtering process 
+This dataset was created by filtering 30M ZINC slice dataset. The filtering process
 suits the RASSP model trained by Ales Krenek (following the official RASSP model repo)
 
-The data went through: CANONICALIZATION, DESTEREOCHEMICALIZATION, DEDUPLICATION, LONG SMILES FILTERING (100), CORRUPTED SMILES FILTERING (done on the original 30M ZINC slice dataset). 
-During the NEIMS generation, the data was further filtered based on `max_mz` and `max_peaks` 
+The data went through: CANONICALIZATION, DESTEREOCHEMICALIZATION, DEDUPLICATION, LONG SMILES FILTERING (100), CORRUPTED SMILES FILTERING (done on the original 30M ZINC slice dataset).
+During the NEIMS generation, the data was further filtered based on `max_mz` and `max_peaks`
 The data consists of json dicts on each line containing "smiles", "mz" and "intensity". Further preprocessing is done on-the-fly.
 
 
@@ -29,7 +29,7 @@ tmp_dir: "../data/datasets/tmp"
 log_dir: "../data/datasets/log"
 output_dir: "../data/datasets/4_8M/neims_gen"
 phases_to_perform: [1,2,3,4,5]   # 1_5, order is not important
-lost_chunks: []  
+lost_chunks: []
 data_has_header: False     # whether the input has clean smiles file or csv (with <smiles zinc_id> structure)
 do_preprocess: False   # !!! after this the preprocess doesnt work
 max_smiles_len: 100
@@ -46,7 +46,7 @@ seed: 42
 ```
 
 ## RAM overflow
-Be careful about RAM overflow (500GB machine wasn't enough for the NEIMS generation in phase3). If some of the processes fail, you can use a combination of `lost_chunks` and `phases_to_perform` parameters to rerun only the failed chunks from a saved checkpoint. Remember to keep the `num-workers` parameter the same so the program finds all the right chunk checkpoints. 
+Be careful about RAM overflow (500GB machine wasn't enough for the NEIMS generation in phase3). If some of the processes fail, you can use a combination of `lost_chunks` and `phases_to_perform` parameters to rerun only the failed chunks from a saved checkpoint. Remember to keep the `num-workers` parameter the same so the program finds all the right chunk checkpoints.
 
 In the end, there is 4.8M SMILES in the dataset. The preprocessing further cut the number of molecules,
 finally the lengths of splits are:

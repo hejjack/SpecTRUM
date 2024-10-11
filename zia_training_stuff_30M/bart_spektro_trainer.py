@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict
 import math
-import time 
+import time
 import copy
 
 import torch
@@ -21,7 +21,7 @@ class BartSpectroTrainer(Trainer):
                  generate_kwargs: Dict = {},
                  eval_log_predictions_size: int = None,
                  eval_tokenizer = None,
-                 w_run = None, 
+                 w_run = None,
                  **kwargs):
         """
         Customized Trainer class for BartSpectro model.
@@ -36,7 +36,7 @@ class BartSpectroTrainer(Trainer):
             number of predictions to log to wandb. If None, don't log predicitons.
         eval_tokenizer: tokenizers.Tokenizer
             tokenizer to use for decoding predictions. If None, use self.tokenizer.
-            we add it, because when the normal trainer.tokenizer is present the behavior changes in 
+            we add it, because when the normal trainer.tokenizer is present the behavior changes in
             many different ways, not compatible with tokenizers.Tokenizer
         w_run: wandb.run instance for loogging
         """

@@ -3,9 +3,9 @@
 ### 1M.txt, 1K.txt
 These files are the training data for BBPE tokenizer, created on 8.2.2024. They replaced the original files that had no deterministic history (and from the beginning were meant to be just random set to try things). The original files and the original trained tokenizer can be found in the deprecated/tokenizer directory (server alfa).
 
-These new sets are random subsets of 30M_slice dataset from ZINC15 with a deterministic origin. The subsetting procedure was performed in the notebooks/tokenizer_bbpe_train.ipynb notebook. 
+These new sets are random subsets of 30M_slice dataset from ZINC15 with a deterministic origin. The subsetting procedure was performed in the notebooks/tokenizer_bbpe_train.ipynb notebook.
 
-```python 
+```python
 import numpy as np
 from pathlib import Path
 
@@ -22,7 +22,7 @@ def random_slice(size, data_path, slice_save_path):
     with open(slice_save_path, 'w') as f:
         for item in choice:
             f.write(item + " ")
-    
+
 random_slice(1000000, data_path, slice_save_dir + "/1M.txt")
 random_slice(1000, data_path, slice_save_dir + "/1K.txt")
 ```

@@ -3,9 +3,9 @@ data_args:
   buffer_size: 100000 # for shuffling in dataloader
   data_seed: 42
   dataset_for_choosing_best_model: "nist"  # !!!!!!!!!!!!
-  datasets: 
+  datasets:
     nist:    # 208908 + 26000
-      train_path: "data/datasets/NIST/NIST_split_filip/sel_train.jsonl"   # removed '../' for DEBUGGING 
+      train_path: "data/datasets/NIST/NIST_split_filip/sel_train.jsonl"   # removed '../' for DEBUGGING
       valid_path: "data/datasets/NIST/NIST_split_filip/sel_valid.jsonl"   # removed '../' for DEBUGGING
       weight: 1.0
       limit_train_split: null  # null for full; limit of head from valid set chosen for validation split
@@ -14,15 +14,15 @@ data_args:
       source_token: "<nist>"
 
 model_args:
-  tokenizer_path: "selfies_tokenizer" # not a path just for the trainer to know it should use sefies tokenizer 
-  decoder_seq_len: 200 
+  tokenizer_path: "selfies_tokenizer" # not a path just for the trainer to know it should use sefies tokenizer
+  decoder_seq_len: 200
   max_mz: 500    # controls vocab size for encoder, if separate_encoder_decoder_embeds=True
   encoder_layers: 12 # 24
   encoder_ffn_dim: 4096
   encoder_attention_heads: 16
   decoder_layers: 12 # 24
   decoder_ffn_dim: 4096
-  decoder_attention_heads: 16  
+  decoder_attention_heads: 16
 
 
 example_generation_args:
@@ -34,7 +34,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0 # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0 # (use for beam search otherwise set to 0)
 
 
 hf_training_args:

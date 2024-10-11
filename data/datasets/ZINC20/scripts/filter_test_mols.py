@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # canonization of forbidden smiles
     forbidden_cans = []
     for smi in tqdm(forbidden_smiles):
-        try: 
+        try:
             forbidden_cans.append(Chem.MolToSmiles(Chem.MolFromSmiles(smi),True))
         except:
             forbidden_cans.append(smi)

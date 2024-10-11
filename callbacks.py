@@ -43,7 +43,7 @@ class PredictionLogger(transformers.TrainerCallback):
             generate_kwargs = {}
         self.generate_kwargs = generate_kwargs
 
-        self.num_examples = [sum(1 for _ in dataset) for dataset in self.datasets]        
+        self.num_examples = [sum(1 for _ in dataset) for dataset in self.datasets]
 
     def log_example_prediction(self,
                                dataset: torch.utils.data.Dataset | torch.utils.data.IterableDataset,
@@ -55,7 +55,7 @@ class PredictionLogger(transformers.TrainerCallback):
                                kwargs: dict) -> None:
         """
         Log predictions and stats of one valid dataset to wandb.
-        
+
         Parameters
         ----------
         dataset : torch.utils.data.Dataset | torch.utils.data.IterableDataset
@@ -77,10 +77,10 @@ class PredictionLogger(transformers.TrainerCallback):
         )
 
         model.eval()
-        
+
         num_batches = math.ceil(num_examples / batch_size)
         progress = tqdm(dataloader, total=num_batches, desc="Generating preds for logging", leave=False)
-        
+
         all_raw_preds = []
         all_preds = []
         all_decoded_labels = []
@@ -91,16 +91,16 @@ class PredictionLogger(transformers.TrainerCallback):
 
         gen_kwargs = self.generate_kwargs.copy()
         gen_kwargs["forced_decoder_ids"] = [[1, tokenizer.encode(source_token)[0]]]
-        
+
         # decide wether to use selfies or smiles
         if isinstance(tokenizer, SelfiesTokenizer):
             mol_repr = "selfies"
             assert sf.get_semantic_constraints()["I"] == 5, "Selfies tokenizer constraints are not set properly!"
-        else: 
+        else:
             mol_repr = "smiles"
 
         with torch.no_grad():
-            for batch in progress:  
+            for batch in progress:
                 model_input = {key: value.to(args.device) for key, value in batch.items()} # move tensors from batch to device
                 preds = model.generate(**model_input,
                                        **gen_kwargs)
@@ -109,7 +109,7 @@ class PredictionLogger(transformers.TrainerCallback):
                 preds_str = tokenizer.batch_decode(preds, skip_special_tokens=True)
                 labels = batch["labels"][batch["labels"] == -100] = 2 # replace -100 with pad token
                 gts_str = tokenizer.batch_decode(batch["labels"], skip_special_tokens=True)
-                
+
                 all_raw_preds.extend(raw_preds_str)
                 all_preds.extend(preds_str)
                 all_decoded_labels.extend(gts_str)
@@ -120,12 +120,12 @@ class PredictionLogger(transformers.TrainerCallback):
                     gts_str = [sf.decoder(x) for x in gts_str]
 
                 # compute SMILES simil
-                daylight_tanimoto_simils, pred_mols, gt_mols = compute_fp_simils(preds_str, gts_str, return_mols=True)        
+                daylight_tanimoto_simils, pred_mols, gt_mols = compute_fp_simils(preds_str, gts_str, return_mols=True)
                 morgan_tanimoto_simils = compute_fp_simils(pred_mols, gt_mols, fp_type="morgan", fp_kwargs={"radius": 2, "fpSize": 2048}, input_mols=True, return_mols=False)
 
                 all_daylight_tanimoto_simils.extend(daylight_tanimoto_simils) # type: ignore
                 all_morgan_tanimoto_simils.extend(morgan_tanimoto_simils) # type: ignore
-                
+
                 # create images for logging
                 for mol in pred_mols:
                     try:
@@ -133,7 +133,7 @@ class PredictionLogger(transformers.TrainerCallback):
                     except ValueError:
                         img = None
                     all_pred_molecules.append(img)
-                    
+
                 # create a mol for labels if it's valid, otherwise None (it should be, but things can happen)
                 for mol in gt_mols:
                     try:
@@ -173,17 +173,17 @@ class PredictionLogger(transformers.TrainerCallback):
         control: transformers.TrainerControl,
         **kwargs
     ) -> None:
-        
+
         if state.global_step % self.logging_steps != 0:
             return
-        
+
         for dataset, source_token, log_prefix, num_examples in zip(self.datasets, self.source_tokens, self.log_prefixes, self.num_examples):
-            self.log_example_prediction(dataset, 
+            self.log_example_prediction(dataset,
                                         source_token,
                                         log_prefix,
                                         num_examples,
                                         state.global_step,
                                         args,
                                         kwargs)
-        
-        
+
+

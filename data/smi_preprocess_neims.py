@@ -57,7 +57,7 @@ def create_logging(log_dir: pathlib.Path, dataset_id: str):
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-    
+
     return logging
 
 # copied from spectro_process_utils (env import problems)
@@ -71,10 +71,10 @@ def mol_repr_to_labels(mol_repr, tokenizer, source_id: int) -> List[int]:
 # copied from spectro_process_utils (env import problems)
 def remove_stereochemistry_and_canonicalize(smiles):
     mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:                           # TODO oddelej if else 
+    if mol is not None:                           # TODO oddelej if else
         Chem.RemoveStereochemistry(mol)
-    else: 
-        return None 
+    else:
+        return None
     new_smiles = Chem.MolToSmiles(mol)
     return new_smiles
 
@@ -82,13 +82,13 @@ def remove_stereochemistry_and_canonicalize(smiles):
 def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     """
     Function that takes a DF and splits the one-array-representation of spectra into mz and intensity parts
-    
+
     Parameters
     ----------
     df : pd.DataFrame
          dataframe containing 'PREDICTED SPECTRUM' column with sdf spectra representation
          -> is used after loading enriched sdf file with PandasTools.LoadSDF
-    
+
     Returns
     -------
     df2 : pd.DataFrame
@@ -117,8 +117,8 @@ def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     return df2
 
 # copied from spectro_process_utils (env import problems)
-def cumsum_filtering(mz: np.ndarray, 
-                     i: np.ndarray, 
+def cumsum_filtering(mz: np.ndarray,
+                     i: np.ndarray,
                      max_cumsum: float) -> Tuple[np.ndarray, np.ndarray]:
     """
     Leaves in the spectrum only the biggest peaks with sum of intensities
@@ -132,20 +132,20 @@ def cumsum_filtering(mz: np.ndarray,
         array of intensities
     max_cumsum : float
         maximum sum of intensities of peaks in the spectrum (if sums to 1, basically percentage of 'mass')
-    
+
     """
 
     # sort arrays
     index = (-i).argsort() # descending sort
     mz_sorted = mz[index]
     i_sorted = i[index]
-    
+
     # cut off the smallest peaks (according to cumsum)
     cs = np.cumsum(i_sorted)
     cut = np.searchsorted(cs, max_cumsum) + 1  # this is ok..
     mz_sorted = mz_sorted[:cut] # take only the biggest peaks
     i_sorted = i_sorted[:cut]
-    
+
     # sort arrays back
     index = mz_sorted.argsort()
     mz_sorted = mz_sorted[index]
@@ -323,7 +323,7 @@ def main(dataset_id: str = typer.Option(..., help="Name of the dataset to identi
     # some chunks didn't get through 5th phase, try to run them again
     else:
         raise Exception(f"Not all chunks got through preprocessing, try to run these" +
-                        f" specific ones via <lost_chunks> config option.\n" + 
+                        f" specific ones via <lost_chunks> config option.\n" +
                         f"Those lost are: {set(range(num_workers)).difference(done_split_ids)}")
 
     # removing after 5phase files
@@ -347,17 +347,17 @@ def process(df: pd.DataFrame,
             phases_to_perform: List[int],
             config: dict,
             tmp_dir: pathlib.Path,
-            logging,  # module 
+            logging,  # module
             return_dict: dict,
             lock: Lock,
             auto_remove: bool,
             process_id: int = 0):
     """
-    This script performs the data preprocessing for the MassGenie project. 
-    It performs the following steps: 
+    This script performs the data preprocessing for the MassGenie project.
+    It performs the following steps:
         - Phase 1: CANONICALIZATION and DESTEREOCHEMICALIZATION
         - Phase 2: DEDUPLICATION, LONG SMILES FILTERING, SDF/PLAIN SMILES PREPARATION
-        - Phase 3: SPECTRA GENERATION       
+        - Phase 3: SPECTRA GENERATION
         - Phase 4: FILTERING
         - Phase 5: DATA CREATION
     """
@@ -374,7 +374,7 @@ def process(df: pd.DataFrame,
         phase1(df, after_phase1_smiles, logging, lock, process_id)
     else:
         logging.info("Skipping phase 1")
-    
+
     if 2 in phases_to_perform:
         phase2(after_phase1_smiles, after_phase2_file,
                logging, config, lock, process_id)
@@ -382,13 +382,13 @@ def process(df: pd.DataFrame,
             autoremove_file(after_phase1_smiles, logging, lock)
     else:
         logging.info("Skipping phase 2")
-    
+
     if 3 in phases_to_perform:
         phase3(after_phase2_file, after_phase3_sdf,
                logging, config, lock, process_id)
         if auto_remove:
             autoremove_file(after_phase2_file, logging, lock)
-    else: 
+    else:
         logging.info("Skipping phase 3")
 
     if 4 in phases_to_perform:
@@ -412,18 +412,18 @@ def process(df: pd.DataFrame,
     else:
         logging.info("Skipping phase 5")
         return_dict[process_id] = {"train": None,
-                            "test": None, 
+                            "test": None,
                             "valid": None}
         return
 
     return_dict[process_id] = {"train": df_train,
-                               "test": df_test, 
+                               "test": df_test,
                                "valid": df_valid}
 
 
 def phase1(df: pd.DataFrame,
            after_phase1_smiles: pathlib.Path,
-           logging,  # module 
+           logging,  # module
            lock: Lock,
            process_id: int = 0):
     """ Phase 1: CANONICALIZATION, DESTEREO, SMILES FIlTERING """
@@ -451,7 +451,7 @@ def phase1(df: pd.DataFrame,
 
 def phase2(after_phase1_smiles: pathlib.Path,
            after_phase2_file: pathlib.Path,
-           logging,  # module 
+           logging,  # module
            config: dict,
            lock: Lock,
            process_id: int = 0):
@@ -469,7 +469,7 @@ def phase2(after_phase1_smiles: pathlib.Path,
     # deduplicate
     log_safely(lock, logging.debug,
                f"DEDUPLICATION process:{process_id}")
-   
+
     df.drop_duplicates(subset=["smiles"], inplace=True)
     log_safely(lock, logging.debug,
                f"DEDUPLICATION DONE process:{process_id}")
@@ -478,7 +478,7 @@ def phase2(after_phase1_smiles: pathlib.Path,
     log_safely(lock, logging.debug,
                f"LONG SMILES FILTERING process:{process_id}")
     df = df[df["smiles"].progress_apply(lambda x: len(x) <= config['max_smiles_len'])]
-    
+
     log_safely(lock, logging.debug,
                f"LONG SMILES FILTERING DONE process:{process_id}")
 
@@ -504,7 +504,7 @@ def phase2(after_phase1_smiles: pathlib.Path,
 
 def phase3(after_phase2_file: pathlib.Path,
            after_phase3_sdf: pathlib.Path,
-           logging,  # module 
+           logging,  # module
            config: dict,
            lock: Lock,
            process_id: int = 0):
@@ -517,7 +517,7 @@ def phase3(after_phase2_file: pathlib.Path,
 
     # generate spectra
     log_safely(lock, logging.debug,
-                f"SPECTRA GENERATION process:{process_id}")   
+                f"SPECTRA GENERATION process:{process_id}")
     # TODO: oddelat hardcode a nejak presit tu condu
 
     subp.check_call(f"python {config['neims_dir']}/make_spectra_prediction.py \
@@ -531,7 +531,7 @@ def phase3(after_phase2_file: pathlib.Path,
 
 def phase4(after_phase3_sdf: pathlib.Path,
            after_phase4_json: pathlib.Path,
-           logging,  # module 
+           logging,  # module
            config: dict,
            lock: Lock,
            process_id: int = 0):
@@ -545,8 +545,8 @@ def phase4(after_phase3_sdf: pathlib.Path,
                f"\n\nLOADING GENERATED SPECTRA process:{process_id}")
 
     df = PandasTools.LoadSDF(str(after_phase3_sdf), idName="id", molColName='Molecule')
-    
-    # processing spectra 
+
+    # processing spectra
     log_safely(lock, logging.debug,
                f"PROCESSING SPECTRA process:{process_id}")
     df = oneD_spectra_to_mz_int(df)
@@ -582,7 +582,7 @@ def phase4(after_phase3_sdf: pathlib.Path,
     df = df[["smiles", "mz", "intensity"]]
 
     # strip potential whitespace from smiles
-    df["smiles"] = df["smiles"].progress_apply(lambda x: x.strip()) 
+    df["smiles"] = df["smiles"].progress_apply(lambda x: x.strip())
 
     # save the df
     log_safely(lock, logging.info,
@@ -597,7 +597,7 @@ def phase4(after_phase3_sdf: pathlib.Path,
 def phase5(df_after_phase4: Optional[pd.DataFrame],
            after_phase4_json: pathlib.Path,
            after_phase5_json: pathlib.Path,
-           logging,  # module 
+           logging,  # module
            config: dict,
            lock: Lock,
            process_id: int = 0):
@@ -636,12 +636,12 @@ def phase5(df_after_phase4: Optional[pd.DataFrame],
             l = mol_repr_to_labels(smiles, tokenizer, source_id)
             labels.append(l)
         df["labels"] = labels
-        
+
         log_safely(lock, logging.debug,
                 f"LOG BINNING INTENSITIES process:{process_id}")
-        
+
         log_log_base = np.log(config["log_base"])
-        df["position_ids"] = [position_ids_creator(arr, log_log_base, config["log_shift"]) 
+        df["position_ids"] = [position_ids_creator(arr, log_log_base, config["log_shift"])
                               for arr in df.intensity]
 
         log_safely(lock, logging.info, f"len after PHASE5 {process_id}: {len(df)}")

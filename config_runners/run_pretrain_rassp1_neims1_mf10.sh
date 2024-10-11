@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 python ../train_bart.py --config-file ../configs/train_co
                                                --wandb-group pretrain \
                                                --resume-id 9b1ifnhd \
                                                --checkpoint ../checkpoints/pretrain/desert-feather-378_rassp1_neims1_mf10/checkpoint-88000
-                                        
+
 
 
 

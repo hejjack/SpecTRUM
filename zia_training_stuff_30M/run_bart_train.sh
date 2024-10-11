@@ -8,7 +8,7 @@ HOMEDIR=/scratch.ssd/ahajek/tmp  # substitute username and path to to your real 
 IMAGE_BASE=`basename $SING_IMAGE`
 export PYTHONUSERBASE=$HOMEDIR/.local-${IMAGE_BASE}
 
-mkdir -p ${PYTHONUSERBASE}/lib/python3.6/site-packages 
+mkdir -p ${PYTHONUSERBASE}/lib/python3.6/site-packages
 
 #set SINGULARITY variables for runtime data
 export SINGULARITY_CACHEDIR=$HOMEDIR

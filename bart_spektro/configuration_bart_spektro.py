@@ -20,11 +20,11 @@ from transformers import BartConfig
 class BartSpektroConfig(BartConfig):
     """
         separate_encoder_decoder_embeds (`bool`, defaults to `False` - Adam's customization):
-            If True, separate embeddings are used for encoder and decoder. 
+            If True, separate embeddings are used for encoder and decoder.
             If False, encoder and decoder share embedding matrix - partly overlapping.
             If None, encoder and decoder share embedding matrix - for older models compatibility.
         max_log_id (`int`, defaults to `None` - Adam's customizaiton):
-            If not None, positional embeddings up to this value can be trained (if provided) and summed with standard embeddings. 
+            If not None, positional embeddings up to this value can be trained (if provided) and summed with standard embeddings.
         max_mz (`int`, defaults to `499` - Adam's customization):
 
     """
@@ -36,7 +36,7 @@ class BartSpektroConfig(BartConfig):
         decoder_max_position_embeddings: int = 200,
         encoder_max_position_embeddings: Optional[int] = None,
         **kwargs):
-        
+
         self.max_log_id=max_log_id
         self.max_mz=max_mz
         self.separate_encoder_decoder_embeds=separate_encoder_decoder_embeds

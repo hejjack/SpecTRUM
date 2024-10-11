@@ -12,7 +12,7 @@ from  utils.data_utils import build_single_datapipe, filter_datapoints, range_fi
 
 def filter_predictions(old_predictions_path, original_data_path, old_config, new_config, save_path=None):
     """
-    Function that takes predictions, original data, old and new config and filters the predicitons according to 
+    Function that takes predictions, original data, old and new config and filters the predicitons according to
     the new config - be careful, the new predictions will always be a subset of the old predictions. If the new
     config is not a subset of the old config, the data will be incomplete.
 
@@ -28,7 +28,7 @@ def filter_predictions(old_predictions_path, original_data_path, old_config, new
         New preprocessing config.
     save_path: str
         Path to save the new predictions.
-    
+
     Returns
     -------
     List[Dict[str: float]]
@@ -50,7 +50,7 @@ def filter_predictions(old_predictions_path, original_data_path, old_config, new
     old_filtered_original_data["predictions"] = list(iter(predictions_pipe))
 
     # Filter everything based on the new preprocessing config
-    new_filter_mask = old_filtered_original_data.progress_apply(lambda row: filter_datapoints(row, new_config), axis=1) 
+    new_filter_mask = old_filtered_original_data.progress_apply(lambda row: filter_datapoints(row, new_config), axis=1)
     new_filtered_combined_data = old_filtered_original_data[new_filter_mask]
     print("Filtered combined data len: ", len(new_filtered_combined_data))
 
@@ -76,13 +76,13 @@ def filter_predictions(old_predictions_path, original_data_path, old_config, new
     return new_predictions
 
 
-def load_labels_from_dataset(dataset_path: Path, 
-                             data_range: range, 
+def load_labels_from_dataset(dataset_path: Path,
+                             data_range: range,
                              do_db_search: bool = False,
                              fp_type: str | None = None,
                              simil_func: str | None = None) -> tuple:
     """Load the labels from the dataset without on the fly filtering
-    
+
     Parameters
     ----------
     dataset_path: Path
@@ -96,7 +96,7 @@ def load_labels_from_dataset(dataset_path: Path,
         Fingerprint type. In case of db_search evaluation specifies which metric to choose.
     simil_func: str
         Similarity function. In case of db_search evaluation specifies which metric to choose.
-    
+
     Returns
     -------
     tuple
@@ -106,7 +106,7 @@ def load_labels_from_dataset(dataset_path: Path,
         data_range = range(len(df))
     df_ranged = df.iloc[data_range.start:data_range.stop] # TODO
     simles_list = df_ranged["smiles"].tolist()
-    
+
     smiles_sim_of_closest = None
     if do_db_search:
         assert f"smiles_sim_of_closest_{fp_type}_{simil_func}" in df_ranged.columns, "smiles_sim_of_closest column not found in labels, not able to do DENOVO evaluation"
@@ -115,14 +115,14 @@ def load_labels_from_dataset(dataset_path: Path,
     return iter(simles_list), smiles_sim_of_closest
 
 
-def load_labels_to_datapipe(dataset_path: Path, 
-                            data_range: range = range(0, 0), 
+def load_labels_to_datapipe(dataset_path: Path,
+                            data_range: range = range(0, 0),
                             do_db_search: bool = False,
                             fp_type: str | None = None,
                             simil_func: str | None = None,
                             filtering_args: dict = {"max_num_peaks": 300, "max_mz": 500, "max_mol_repr_len": 100, "mol_repr": "smiles"}) -> tuple:
     """Load the labels from the dataset with on the fly filtering
-    
+
     Parameters
     ----------
     dataset_path: Path
@@ -151,14 +151,14 @@ def load_labels_to_datapipe(dataset_path: Path,
     if data_range:
         datapipe = datapipe.header(data_range.stop)  # speeding up for slices near to the beginning
         datapipe = datapipe.filter(filter_fn=range_filter(data_range))  # actual slicing
-    
+
     smiles_sim_of_closest_datapipe = None
     if do_db_search:
         assert fp_type is not None and simil_func is not None, "fp_type and simil_func have to be specified for db_search evaluation"
-        smiles_datapipe, smiles_sim_of_closest_datapipe = datapipe.fork(num_instances=2, buffer_size=1e6,)  # 'copy' (fork) the datapipe into two 'new' 
+        smiles_datapipe, smiles_sim_of_closest_datapipe = datapipe.fork(num_instances=2, buffer_size=1e6,)  # 'copy' (fork) the datapipe into two 'new'
         smiles_sim_of_closest_datapipe = iter(smiles_sim_of_closest_datapipe.map(lambda d: d[f"smiles_sim_of_closest_{fp_type}_{simil_func}"]))
     else:
         smiles_datapipe = datapipe
     smiles_datapipe = iter(smiles_datapipe.map(lambda d: d["smiles"]))
-    
+
     return smiles_datapipe, smiles_sim_of_closest_datapipe if do_db_search else None

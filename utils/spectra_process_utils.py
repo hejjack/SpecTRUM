@@ -46,7 +46,7 @@ def smiles_to_inchikey(smiles):
         return None
 
 
-def preprocess_spectrum(s: Spectrum, 
+def preprocess_spectrum(s: Spectrum,
                         tokenizer,
                         source_token: str | None = None,
                         max_num_peaks: int = 300,
@@ -86,7 +86,7 @@ def preprocess_spectrum(s: Spectrum,
     Returns
     -------
     mz : List[int]
-        "tokenized" input to a BART spektro model - it's actually the mz values of the spectrum + 
+        "tokenized" input to a BART spektro model - it's actually the mz values of the spectrum +
     intensities : List[int]
         logged and binned intensities, prepared as position_id for BART spektro model
     canon_mol_reprs : str
@@ -128,7 +128,7 @@ def preprocess_spectrum(s: Spectrum,
         goes_out = 1
         error_dict["high_mz"] = True
 
-    # filter little peaks so it doesn't get kicked out    
+    # filter little peaks so it doesn't get kicked out
     if max_cumsum:
         mz, intensities = cumsum_filtering(s.peaks.mz, s.peaks.intensities, max_cumsum)
     else:
@@ -146,7 +146,7 @@ def preprocess_spectrum(s: Spectrum,
     mz = [round(x) for x in mz]
 
     # scaling intensities
-    intensities = intensities/max(intensities)    
+    intensities = intensities/max(intensities)
 
     # log bining the intensities
     log_base = np.log(log_base)
@@ -162,7 +162,7 @@ def preprocess_spectrum(s: Spectrum,
 
 
 def preprocess_spectra(spectra: List[Spectrum],
-                       tokenizer, 
+                       tokenizer,
                        keep_spectra: bool = False,
                        preprocess_args: dict = {}) -> pd.DataFrame:
     """
@@ -181,7 +181,7 @@ def preprocess_spectra(spectra: List[Spectrum],
     df_out : pd.DataFrame
         a dataframe we are able to feed into SpectroDataset and then to SpectroBart
     """
-    
+
     mzs = []
     intensities = []
     input_idss = []
@@ -197,7 +197,7 @@ def preprocess_spectra(spectra: List[Spectrum],
     too_many_peaks = 0
 
     num_spectra = 0
-    for d in tqdm(spectra): 
+    for d in tqdm(spectra):
         (input_ids, position_ids, cs, l, ed) = preprocess_spectrum(d, tokenizer, **preprocess_args)
         if not input_ids:
             long_mol_reprs += ed["long_mol_repr"]
@@ -215,14 +215,14 @@ def preprocess_spectra(spectra: List[Spectrum],
             labels.append(l)
         num_spectra += 1  # just a counter
 
-    df_out = pd.DataFrame({"input_ids": input_idss, 
+    df_out = pd.DataFrame({"input_ids": input_idss,
                             "position_ids": position_idss,
                             "mol_repr": mol_reprs,
                             "labels": labels})
     if keep_spectra:
         df_out["mz"] = mzs
         df_out["intensity"] = intensities
-        
+
     # print STATS
     print(f"{no_mol_reprs} no mol_repr")
     print(f"{long_mol_reprs} mol_reprs too long")
@@ -239,7 +239,7 @@ def canonicalize_smiles(smi: str) -> str | None:
     try:
         return Chem.MolToSmiles(Chem.MolFromSmiles(smi), True)
     except Exception as msg:
-        print("Couldn't be canonicalized due to Exception:", msg) 
+        print("Couldn't be canonicalized due to Exception:", msg)
     return None
 
 
@@ -260,7 +260,7 @@ def msp2jsonl(path_msp: Path,
               do_preprocess: bool = True,
               preprocess_args: dict = {}):
     """load msp file, preprocess, prepare BART compatible dataframe and save to jsonl file
-    
+
     Parameters
     ----------
     path_msp : Path
@@ -293,7 +293,7 @@ def msp2jsonl(path_msp: Path,
 
 def msp2smi(path_msp: Path):
     """load msp file, canonicalize SMILES and save them to .smi file
-    
+
     Parameters
     ----------
     path_msp : Path
@@ -312,14 +312,14 @@ def msp2smi(path_msp: Path):
 
 def msp2sdf(path_msp: str,
             path_sdf = None) -> None:
-    
-    """load msp file and convert it to sdf file without loss of information. 
-    
-    This function is mainly used for preparation of the data for NEIMS training, 
+
+    """load msp file and convert it to sdf file without loss of information.
+
+    This function is mainly used for preparation of the data for NEIMS training,
     therefore to save processing time we add a functionality to separate replicates.
     If you only want to convert the msp file to sdf file, set separate_replicates to False
     and ignore it.
-    
+
     Parameters
     ----------
     path_msp : Path
@@ -332,7 +332,7 @@ def msp2sdf(path_msp: str,
         path_sdf = str(Path(path_msp).with_suffix(".sdf"))  # type: ignore
 
     data_msp = list(load_from_msp(path_msp, metadata_harmonization=False))
-    
+
     # convert to json
     tmp_json_file = "tmp.json"
     save_as_json(data_msp, tmp_json_file)
@@ -344,7 +344,7 @@ def msp2sdf(path_msp: str,
     PandasTools.AddMoleculeColumnToFrame(df, smilesCol='smiles', molCol='ROMol')
     PandasTools.WriteSDF(df, path_sdf, idName="id", properties=list(
         df.columns))
-    
+
     Path(tmp_json_file).unlink()
 
 
@@ -355,7 +355,7 @@ def jsonl2smi(path_jsonl):
     Parameters
     ----------
     path_jsonl : Path
-        path to the jsonl file  
+        path to the jsonl file
     """
     path_smi = Path(path_jsonl).with_suffix(".smi")
     with open(path_jsonl, "r") as f:
@@ -376,14 +376,14 @@ def sdf2jsonl(sdf_path: str) -> None:
 
     print(f"{sdf_path}: RUNNING"),  # type: ignore
     df_enriched = PandasTools.LoadSDF(sdf_path, idName="id", molColName='Molecule')
-        
+
     # processing spectra (get prefered mz and intensity format)
     df_enriched = oneD_spectra_to_mz_int(df_enriched)
 
     df_enriched = df_enriched[["smiles", "mz", "intensity"]]
 
     # strip potential whitespace from smiles (just to be absolutely sure)
-    df_enriched["smiles"] = df_enriched["smiles"].progress_apply(lambda x: x.strip()) 
+    df_enriched["smiles"] = df_enriched["smiles"].progress_apply(lambda x: x.strip())
 
     # save the df as jsonl
     df_enriched.to_json(Path(sdf_path).with_suffix(".jsonl"), orient="records", lines=True)
@@ -393,18 +393,18 @@ def sdf2jsonl(sdf_path: str) -> None:
 def process_neims_spec(spec, metadata):
     """
     take a sdf spectrum as it comes out of NEIMS and create a matchms.Spectrum
-    
+
     Parameters
     ----------
     spec : str
         string representation of spectra as it comes out of the NEIMS model
     metadata : dict
         a dict that will be attached as metadata to the spectrum
-    
+
     Return
     ------
     matchms.Spectrum
-        matchms representation of the input NEIMS spectra that contains the metadata 
+        matchms representation of the input NEIMS spectra that contains the metadata
         specified in the corresponding parameter
     """
     spec = spec.split("\n")
@@ -451,13 +451,13 @@ def extract_spectra(spectra: List[Spectrum]) -> pd.DataFrame:
 def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     """
     Function that takes a DF and splits the one-array-representation of spectra into mz and intensity parts
-    
+
     Parameters
     ----------
     df : pd.DataFrame
          dataframe containing 'PREDICTED SPECTRUM' column with sdf spectra representation
          -> is used after loading enriched sdf file with PandasTools.LoadSDF
-    
+
     Returns
     -------
     df2 : pd.DataFrame
@@ -486,8 +486,8 @@ def oneD_spectra_to_mz_int(df : pd.DataFrame) -> pd.DataFrame:
     return df2
 
 
-def cumsum_filtering(mz: np.ndarray, 
-                     i: np.ndarray, 
+def cumsum_filtering(mz: np.ndarray,
+                     i: np.ndarray,
                      max_cumsum: float) -> tuple[np.ndarray, np.ndarray]:
     """
     Leaves in the spectrum only the biggest peaks with sum of intensities
@@ -501,7 +501,7 @@ def cumsum_filtering(mz: np.ndarray,
         array of intensities
     max_cumsum : float
         maximum sum (percentage of 'mass') of intensities of peaks in the spectrum
-    
+
     """
     # normalize by array's sum (just for filtering)
     i_norm = i/np.sum(i)
@@ -511,13 +511,13 @@ def cumsum_filtering(mz: np.ndarray,
     mz_sorted = mz[index]
     i_sorted = i[index]
     i_norm_sorted = i_norm[index]
-    
+
     # cut off the smallest peaks (according to cumsum)
     cs = np.cumsum(i_norm_sorted)
     cut = np.searchsorted(cs, max_cumsum) + 1  # this is ok..
     mz_cut = mz_sorted[:cut] # take only the biggest peaks
     i_cut = i_sorted[:cut]
-    
+
     # sort arrays back
     index = mz_cut.argsort()
     mz = mz_cut[index]
@@ -533,7 +533,7 @@ def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
         fpgen = Chem.AllChem.GetMorganGenerator(**gen_kwargs)
     elif fp_type == "daylight":
         fpgen = Chem.AllChem.GetRDKitFPGenerator(**gen_kwargs)
-    else: 
+    else:
         raise ValueError("fp_type has to be either 'morgan' or 'daylight'")
     return fpgen
 
@@ -544,6 +544,6 @@ def get_fp_simil_function(simil_type: str):
         fp_simil_function = DataStructs.FingerprintSimilarity
     elif simil_type == "cosine":
         fp_simil_function = DataStructs.CosineSimilarity
-    else: 
+    else:
         raise ValueError("simil_type has to be either 'tanimoto' or 'cosine'")
     return fp_simil_function

@@ -4,7 +4,7 @@ data_args:
   data_seed: 42
   shuffle_train: True
   dataset_for_choosing_best_model: "nist"  # !!!!!!!!!!!!
-  datasets: 
+  datasets:
     nist:    # 208908 + 26000
       train_path: "../data/datasets/NIST/NIST_split_filip/train.jsonl"
       valid_path: "../data/datasets/NIST/NIST_split_filip/valid.jsonl"
@@ -14,7 +14,7 @@ data_args:
       limit_example_split: 100  # null for full; limit of head chosen for visualized (generated)
       source_token: "<nist>"
 
-preprocess_args: 
+preprocess_args:
   lets_do_this: True # if you want default args, this can be whatever (as long as preprocess_args is not empty or None)
 
 model_args:
@@ -42,7 +42,7 @@ example_generation_args:
   "temperature": null
   "penalty_alpha": null
   "num_return_sequences": 1  # NEVER TOUCH THIS
-  "length_penalty": 1.0 # (use for beam search otherwise set to 0)  
+  "length_penalty": 1.0 # (use for beam search otherwise set to 0)
 
 
 hf_training_args:

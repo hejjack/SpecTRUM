@@ -44,8 +44,8 @@ fac1e8124104363cfaec2dc5d0b93046  $SCRATCHDIR/formulanet.meta
 EOF
 
 	if [ $? != 0 ]; then
-		curl -k -o $SCRATCHDIR/formulanet.model 'https://people.cs.uchicago.edu/~ericj/rassp/formulanet_best_candidate_pcsim_pretrain.nist-fromscratch-3x9x128.35790555.00000740.model' 
-		curl -k -o $SCRATCHDIR/formulanet.meta 'https://people.cs.uchicago.edu/~ericj/rassp/formulanet_best_candidate_pcsim_pretrain.nist-fromscratch-3x9x128.35790555.meta' 
+		curl -k -o $SCRATCHDIR/formulanet.model 'https://people.cs.uchicago.edu/~ericj/rassp/formulanet_best_candidate_pcsim_pretrain.nist-fromscratch-3x9x128.35790555.00000740.model'
+		curl -k -o $SCRATCHDIR/formulanet.meta 'https://people.cs.uchicago.edu/~ericj/rassp/formulanet_best_candidate_pcsim_pretrain.nist-fromscratch-3x9x128.35790555.meta'
 	fi
 fi
 

@@ -1,8 +1,8 @@
 
 # this script is used to create a x% slice of a 1.8B ZINC15 database (2D-clean-annotated-druglike)
-# it slices 
-# creates a random sample from each file acording to sample_ratio. 
-# (... the next step is to add the firstline and concat the files) 
+# it slices
+# creates a random sample from each file acording to sample_ratio.
+# (... the next step is to add the firstline and concat the files)
 
 import random
 import os
@@ -16,7 +16,7 @@ app = typer.Typer(pretty_exceptions_enable=False)
 
 def sample_data(subdir, output_dir, sample_ratio, seed):
     print("subdir {} RUNNING".format(subdir))
-    
+
     subdir_name = Path(subdir).stem
     output_file = output_dir + f"/{subdir_name}.smi"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -40,7 +40,7 @@ def main(
     num_workers: int = typer.Option(8, help="Number of workers to use"),
     seed: int = typer.Option(42, help="Seed for the random number generator"),
 ) -> None:
-    
+
     subdirs = sorted(glob.glob(input_dir + "/*"))
     print(f"subdirs: {subdirs}")
 
@@ -53,4 +53,4 @@ def main(
 if __name__ == "__main__":
     app()
 
-    
+

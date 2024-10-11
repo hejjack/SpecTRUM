@@ -163,7 +163,7 @@ class BartSpektroEncoder(BartPretrainedModel):
             self.embed_tokens = embed_tokens
         else:
             # Adam - if user wants one dictionary for each encoder and decoder (specified in config with separate_encoder_decoder_embeds=True)
-            # he also needs to specify max_mz (size of the dictionary for encoder). vocab_size is used only for decoder then. 
+            # he also needs to specify max_mz (size of the dictionary for encoder). vocab_size is used only for decoder then.
             # if separate_encoder_decoder_embeds=False, or the parameter is missing the execution didn't get here from BartSpektroModel
             # should be compatible with previous models with one tied dict
             if hasattr(config, "separate_encoder_decoder_embeds") and config.separate_encoder_decoder_embeds == True: # all fine
@@ -174,7 +174,7 @@ class BartSpektroEncoder(BartPretrainedModel):
                     raise ValueError("config.max_mz must be set for BartSpektroEncoder to have separated embeddings (it denotes the size of the dictionary for encoder)")
             else:
                 raise ValueError("This adjusted BartSpektroEncoder shouldn't be used appart from BartSpektroModel. Use BartEncoder instead.")
-        
+
         if config.max_log_id:
             self.embed_positions = BartSpektroLearnedPositionalEmbedding(
                 config.max_log_id + 1,  # size of the dict for all max+1 values
@@ -191,7 +191,7 @@ class BartSpektroEncoder(BartPretrainedModel):
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
         self.post_init()
-        
+
     def get_input_embeddings(self):
         return self.embed_tokens
 
@@ -266,7 +266,7 @@ class BartSpektroEncoder(BartPretrainedModel):
 
         if inputs_embeds is None:
             inputs_embeds = self.embed_tokens(input_ids) * self.embed_scale
-        
+
         if position_ids != None: # Adam customization
             embed_pos = self.embed_positions(position_ids)
         else:
@@ -336,7 +336,7 @@ class BartSpektroEncoder(BartPretrainedModel):
 
 
 class BartSpektroDecoder(BartDecoder):
-    """ 
+    """
     The module doesn't change any functionality of the original BartDecoder.
     It only changes the __init__() function to accept the decoder_max_position_embeddings
     parameter instead of the max_position_embeddings parameter.
@@ -371,7 +371,7 @@ class BartSpektroModel(BartPretrainedModel):
     def __init__(self, config: BartSpektroConfig):
         super().__init__(config)
 
-        # this branch is also for older models before adding separate_encoder_decoder_embeds 
+        # this branch is also for older models before adding separate_encoder_decoder_embeds
         # separate_encoder_decoder_embeds is None - old models
         # separate_encoder_decoder_embeds is False - new models that don't want to be separated
         if not hasattr(config, "separate_encoder_decoder_embeds") or not config.separate_encoder_decoder_embeds:

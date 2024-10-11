@@ -19,13 +19,13 @@ from transformers import BartConfig
 class BartSpektroConfig(BartConfig):
     """
         max_log_id (`int`, defaults to `None` - Adam's customizaiton):
-            If not None, positional embeddings up to this value can be trained (if provided) and summed with standard embeddings. 
+            If not None, positional embeddings up to this value can be trained (if provided) and summed with standard embeddings.
     """
     def __init__(
         self,
         max_log_id=None,
         **kwargs):
-        
+
         self.max_log_id=max_log_id
         super().__init__(
             **kwargs,

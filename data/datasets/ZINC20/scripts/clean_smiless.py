@@ -1,8 +1,8 @@
 
 # this script is used to create a x% slice of a 1.8B ZINC15 database (2D-clean-annotated-druglike)
-# it slices 
-# creates a random sample from each file acording to sample_ratio. 
-# (... the next step is to add the firstline and concat the files) 
+# it slices
+# creates a random sample from each file acording to sample_ratio.
+# (... the next step is to add the firstline and concat the files)
 
 import sys
 sys.path.append("../")
@@ -29,7 +29,7 @@ def clean_smiles(smiles):
 
 def clean_all_smiles_in_file(input_file, output_dir):
     print("file {} RUNNING".format(input_file))
-    
+
     file_name = Path(input_file).name
     output_file = output_dir + f"/{file_name}"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -50,7 +50,7 @@ def main(
     output_dir: str = typer.Option(..., help="Path to the directory where to save the sampled tranches"),
     num_workers: int = typer.Option(8, help="Number of workers to use"),
 ) -> None:
-    
+
     files = sorted(glob.glob(input_dir + "/*"))
     print(f"files: {files}")
 
@@ -63,4 +63,4 @@ def main(
 if __name__ == "__main__":
     app()
 
-    
+

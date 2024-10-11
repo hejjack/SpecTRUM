@@ -1,4 +1,4 @@
-This dataset was created by filtering 30M ZINC slice dataset. The filtering process 
+This dataset was created by filtering 30M ZINC slice dataset. The filtering process
 suits the RASSP model trained by Ales Krenek (following the official RASSP model repo)
 
 The data went throuhg: CANONICALIZATION, DESTEREOCHEMICALIZATION, DEDUPLICATION, LONG SMILES FILTERING (100), CORRUPTED SMILES FILTERING (done on the original 30M ZINC slice dataset). There is NO FILTERING regarding `max_num_of_peaks` or `max_mz` or other.
@@ -32,4 +32,4 @@ There is 4.8M SMILES in the dataset. The preprocessing further cut the number of
 finally the lengths of splits are:
     - train 4364744
     - valid 242486
-    - test 242486 
+    - test 242486

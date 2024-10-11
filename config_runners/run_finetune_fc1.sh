@@ -4,4 +4,4 @@ python ../train_bart.py --config-file ../configs/train_config_finetune_fc1.yaml 
                         --additional-info "_fc1" \
                         --wandb-group finetune  \
                         --additional-tags "fc1" \
-                    
+

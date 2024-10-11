@@ -1,4 +1,4 @@
-30M 
+30M
 ---------------
 originaly: 30M
 after canon, dedup, erasing corrupted mols, spectra gen..: ???
@@ -25,15 +25,15 @@ valid: 390287
 ----------------tuple (m/z, intensity) ~ (fragment size, amount)Generate much larger training set artificially
 # train len: 585996
 # test len: 73249
-# valid len: 73250 
+# valid len: 73250
 
 # 8M ... ZINC15 - 2D-clean-inStock-all
 ----------------
 # train len: 4641078
-# test len: 
+# test len:
 # valid len:
 
-# 1M 
+# 1M
 ----------------
 # train len: 354767
 # test len: 44346

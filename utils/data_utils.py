@@ -10,7 +10,7 @@ from typing import Callable, Dict, Sized, Union, Any, Optional, List, Tuple, Ite
 import warnings
 import pandas as pd
 import numpy as np
-from pathlib import Path 
+from pathlib import Path
 from rdkit import Chem
 import selfies as sf
 from tqdm import tqdm
@@ -20,12 +20,12 @@ tqdm.pandas()
 T_co = TypeVar("T_co", covariant=True)
 
 class SpectroDataset(Dataset):
-    # deprecated, using dynamically loaded (preprocessed) datapipes instead 
+    # deprecated, using dynamically loaded (preprocessed) datapipes instead
     def __init__(self, df_or_pth_jsonl, inference_mode=False, restrict_intensities=False):
         """
         Parameters
         ----------
-        df_or_pth_jsonl: pd.DataFrame 
+        df_or_pth_jsonl: pd.DataFrame
             dataframe with prepared data or a path to DFs stored as jsonl (prepared with run_prepare_data.sh)
         inference_mode: bool
             evaluation mode where we don't have the labels at hand
@@ -45,7 +45,7 @@ class SpectroDataset(Dataset):
     def __getitem__(self, idx):
         row = self.data.iloc[idx]
         out = {"input_ids": row["input_ids"]}
-        
+
         if not self.restrict_intensities:
             out["position_ids"] = row["position_ids"]
 
@@ -69,13 +69,13 @@ class SpectroDataCollator:
         self, batch: List[Dict[str, list]]
     ) -> Dict[str, torch.Tensor]:
         return self._collate_batch(batch)
-                   
+
     def _collate_batch(self, batch: List[Dict[str, list]]) -> Dict[str, torch.Tensor]:
         """Collate `examples` into a batch"""
         longest_encoder_sequence = max(len(e["input_ids"]) for e in batch)
         inputs = torch.tensor([e["input_ids"] + [0] * (longest_encoder_sequence - len(e["input_ids"])) for e in batch])   # adding padding
         out = {"input_ids": inputs}
-        
+
         if not self.restrict_intensities: # add position_ids too
             out["position_ids"] = torch.tensor([e["position_ids"] + [0] * (longest_encoder_sequence - len(e["position_ids"])) for e in batch]) # adding padding
 
@@ -85,12 +85,12 @@ class SpectroDataCollator:
             out["attention_mask"] = (inputs != 0).int()
             out["decoder_attention_mask"] = (labels != -100).int()
             out["labels"] = labels
-        
+
         if self.keep_all_columns:
             for k in batch[0].keys():
                 if k not in out:
                     out[k] = [e[k] for e in batch]
-        return out        
+        return out
 
 
 def position_ids_creator(intensities, log_base, log_shift, do_log_binning=True, linear_bin_decimals=None):
@@ -133,12 +133,12 @@ def preprocess_datapoint(datadict, source_token, preprocess_args):
 
     if preprocess_args.get("max_cumsum", None) is not None:
         mzs, intensities = cumsum_filtering(mzs, intensities, preprocess_args["max_cumsum"])
-    
+
     out = {"input_ids": [round(mz) for mz in mzs]}
-    
+
     if not preprocess_args["restrict_intensities"]:
-        out["position_ids"] = position_ids_creator(intensities, 
-                                                   preprocess_args["log_base"], 
+        out["position_ids"] = position_ids_creator(intensities,
+                                                   preprocess_args["log_base"],
                                                    preprocess_args["log_shift"],
                                                    do_log_binning=preprocess_args.get("do_log_binning", True),
                                                    linear_bin_decimals=preprocess_args.get("linear_bin_decimals", None))
@@ -152,7 +152,7 @@ def preprocess_datapoint(datadict, source_token, preprocess_args):
         out["mol_repr"] = canon_mol_repr
         source_id = preprocess_args["tokenizer"].encode(source_token)[0]
         out["labels"] = mol_repr_to_labels(canon_mol_repr, preprocess_args["tokenizer"], source_id)
-    
+
     if preprocess_args.get("keep_all_columns", False):
         out.update(datadict)
 
@@ -192,10 +192,10 @@ def filter_datapoints(datadict, preprocess_args) -> bool:
         elif len(canon_mol_repr) > preprocess_args["max_mol_repr_len"]:
             # print(f"datapoint_out: Too long SMILES: {canon_mol_repr}")
             return False
-        
+
     # if selfies, encode it
     if preprocess_args["mol_repr"] == "selfies" and canon_mol_repr is not None:
-        try:    
+        try:
             canon_mol_repr = sf.encoder(canon_mol_repr)        # TODO?? try block?
         except:
             # print(f"datapoint_out: Corrupted SMILES: {datadict['smiles']}")
@@ -206,7 +206,7 @@ def filter_datapoints(datadict, preprocess_args) -> bool:
         # print(f"datapoint_out: Too high MZ: {max(datadict['mz'])}")
         return False
 
-    # filter little peaks so it doesn't get kicked out    
+    # filter little peaks so it doesn't get kicked out
     if preprocess_args.get("max_cumsum", None) is not None:
         mz, _ = cumsum_filtering(datadict["mz"], datadict["intensity"], preprocess_args["max_cumsum"])
     else:
@@ -226,13 +226,13 @@ def range_filter(data_range: range) -> Callable[[Any], bool]:
 
    count = data_range.start
    def f(_: Any) -> bool:
-        nonlocal count 
+        nonlocal count
         count += 1
         return count <= data_range.stop
    return f
 
 
-def build_single_datapipe(json_file: str, 
+def build_single_datapipe(json_file: str,
                           shuffle: bool,
                           buffer_size: Optional[int] = None,
                           limit: Optional[int] = None,
@@ -251,11 +251,11 @@ def build_single_datapipe(json_file: str,
     buffer_size: int
         Buffer size for shuffling.
     limit: int
-        Limit the number of datapoints (0, limit). 
+        Limit the number of datapoints (0, limit).
     source_token: str
         Source token for the tokenizer.
     preprocess_args: Dict[str, Any]
-        Preprocessing and filtering arguments. 
+        Preprocessing and filtering arguments.
     """
 
     if preprocess_args:
@@ -281,8 +281,8 @@ def build_single_datapipe(json_file: str,
     return datapipe
 
 
-def build_datapipe_mixture(datapipes: List[IterDataPipe], 
-                           weights: Union[Tuple[float], None], 
+def build_datapipe_mixture(datapipes: List[IterDataPipe],
+                           weights: Union[Tuple[float], None],
                            concat: bool = False,
                            seed: Optional[int] = 42):
     """
@@ -302,7 +302,7 @@ def build_datapipe_mixture(datapipes: List[IterDataPipe],
     else:
         assert weights is not None, "weights must be provided if concat=False"
         assert len(datapipes) == len(weights)
-        
+
         # filter zero weight datasets
         nonzero_datapipes = [(pipe, weight) for pipe, weight in zip(datapipes, weights) if weight]
         if len(nonzero_datapipes)==0:
@@ -322,7 +322,7 @@ def load_all_datapipes(data_args: Dict[str, Any], preprocess_args: Optional[Dict
     ----------
     data_args: Dict[str,Dict]
         Dictionary containing datasets' paths, weights and other config info (like shuffle and buffer_size       Buffer size for shuffling.
-    
+
     Returns
     -------
     Dict[str, IterDataPipe]
@@ -339,7 +339,7 @@ def load_all_datapipes(data_args: Dict[str, Any], preprocess_args: Optional[Dict
     datapipes = {}
 
     info = [(dataset_name,
-             dataset["train_path"], 
+             dataset["train_path"],
              dataset["valid_path"],
              dataset["weight"],
              dataset["limit_train_split"],
@@ -349,31 +349,31 @@ def load_all_datapipes(data_args: Dict[str, Any], preprocess_args: Optional[Dict
              )
            for dataset_name, dataset in data_args["datasets"].items()]
     dataset_names, train_paths, valid_paths, weights, limit_train_splits, limit_val_splits, limit_example_splits, source_tokens = list(zip(*info))
-    
-    train_pipes = [build_single_datapipe(path, 
+
+    train_pipes = [build_single_datapipe(path,
                                          shuffle=shuffle_train,
                                          buffer_size=buffer_size,
                                          limit=limit,
                                          preprocess_args=preprocess_args,
-                                         source_token=source_token) 
+                                         source_token=source_token)
                    for path, limit, source_token in zip(train_paths, limit_train_splits, source_tokens)]
     valid_pipes = {name: build_single_datapipe(path,
                                                shuffle=False,
                                                buffer_size=buffer_size,
                                                limit=limit,
-                                               preprocess_args=preprocess_args, 
+                                               preprocess_args=preprocess_args,
                                                source_token=source_token)
                    for name, path, limit, source_token in zip(dataset_names, valid_paths, limit_val_splits, source_tokens)
                    if limit != 0}
-    example_pipes = {name: build_single_datapipe(path, 
+    example_pipes = {name: build_single_datapipe(path,
                                                  shuffle=False,
                                                  buffer_size=buffer_size,
                                                  limit=limit,
                                                  preprocess_args=preprocess_args,
                                                  source_token=source_token)
-                     for name, path, limit, source_token in zip(dataset_names, valid_paths, limit_example_splits, source_tokens) 
+                     for name, path, limit, source_token in zip(dataset_names, valid_paths, limit_example_splits, source_tokens)
                      if limit != 0}
- 
+
     datapipes["train"] = build_datapipe_mixture(train_pipes, weights, concat=False, seed=seed)
     datapipes["valid"] = valid_pipes
     datapipes["example"] = example_pipes

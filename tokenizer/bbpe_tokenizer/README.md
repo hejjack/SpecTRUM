@@ -1,6 +1,6 @@
 # BBPE tokenizers
 
-These toknizers were trained for purposes of SMILES tokenization. (And to check how many tokens they'll have) 
+These toknizers were trained for purposes of SMILES tokenization. (And to check how many tokens they'll have)
 
 bart_bbpe_1M_tokenizer
     - max vocab_size 50257
@@ -36,7 +36,7 @@ bart_bbpe_tokenizer_1M_mf500
     - max vocab_size 50257
     - min_frequency 500
     - final vocab size 506 (including 11 special tokens)
-  
+
 bart_bbpe_tokenizer_1M_mf1000
     - max vocab_size 50257
     - min_frequency 1000

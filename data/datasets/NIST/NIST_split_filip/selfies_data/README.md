@@ -1,5 +1,5 @@
 ## This dataset is created by the following steps:
-1. Create some of the jsonl mfX SMILES datasets using the guidlines in their corresponding README.md (doesn' matter which you use, they are all the same for this purpose). 
+1. Create some of the jsonl mfX SMILES datasets using the guidlines in their corresponding README.md (doesn' matter which you use, they are all the same for this purpose).
 2. Translate the SMILES json dataset to a SELFIES json dataset using the following script:
 
 ```python
@@ -53,9 +53,9 @@ def smiles_dataset_to_selfies_dataset(smiles_dataset_path, selfies_dataset_save_
             f_sel.write(sel_line + "\n")
 
 for datatype in ["train", "valid", "test"]:
-    smiles_dataset_to_selfies_dataset(f"../data/datasets/NIST/NIST_split_filip/mf100/{datatype}.jsonl", 
-                                    f"../data/datasets/NIST/NIST_split_filip/selfies_data/{datatype}.jsonl", 
-                                    sel_tokenizer, 
+    smiles_dataset_to_selfies_dataset(f"../data/datasets/NIST/NIST_split_filip/mf100/{datatype}.jsonl",
+                                    f"../data/datasets/NIST/NIST_split_filip/selfies_data/{datatype}.jsonl",
+                                    sel_tokenizer,
                                     sel_tokenizer.encode("<nist>")[0])
 ```
 

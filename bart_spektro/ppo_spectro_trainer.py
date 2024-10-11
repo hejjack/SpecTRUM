@@ -5,9 +5,9 @@ import warnings
 import numpy as np
 import torch
 from trl import PPOTrainer
-from trl.core import (PPODecorators, 
-                     logprobs_from_logits, 
-                     stack_dicts, 
+from trl.core import (PPODecorators,
+                     logprobs_from_logits,
+                     stack_dicts,
                      masked_mean,
                      stats_to_np,
                      WANDB_PADDING)
@@ -48,7 +48,7 @@ class PPOSpectroTrainer(PPOTrainer):
         model_input = {key: value.to(device) for key, value in model_input.items()} # move tensors from batch to device
         response = self.accelerator.unwrap_model(self.model).generate(**model_input, **generation_kwargs)
         return response
-    
+
 
     @PPODecorators.empty_cuda_cache()
     def batched_forward_pass(
@@ -98,10 +98,10 @@ class PPOSpectroTrainer(PPOTrainer):
                 attention_mask = input_kwargs["attention_mask"]
 
             logprobs = logprobs_from_logits(logits[:, :-1, :], input_ids[:, 1:])
-            
+
             # Adam: the original code sets MASK as intersection of decoder_attention_mask and response_mask
             # Adam: I changed it to only response_mask (which we create here), bcs we don't want to penalize
-            # the model for creating longer sequences than the target - if smiles is ok, it's ok. 
+            # the model for creating longer sequences than the target - if smiles is ok, it's ok.
             masks = torch.isin(response_batch, torch.tensor([0,1,2,3], device=response_batch.device), invert=True).int() # Adam: this is the response_mask used as MASK (explained below)
             masks = torch.nn.functional.pad(masks, (0, values.shape[1] - masks.shape[1]), value=0)  # this might be a weak point (len is 199 or 200?)
             assert masks.shape[1] == values.shape[1], f"masks and values should have the same length ({masks.shape[1]} != {values.shape[1]})"
@@ -257,7 +257,7 @@ class PPOSpectroTrainer(PPOTrainer):
 
         t = time.time()
         labels = batch.pop("labels", None)
-        batch["decoder_input_ids"] = shift_tokens_right(labels, 
+        batch["decoder_input_ids"] = shift_tokens_right(labels,
                                                         self.model.pretrained_model.config.pad_token_id,
                                                         self.model.pretrained_model.config.decoder_start_token_id)
         model_inputs_names = list(batch.keys())

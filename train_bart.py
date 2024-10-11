@@ -36,7 +36,7 @@ def set_batch_size(hf_training_args: Dict):
     given 'effective_{train, eval}_batch_size', number of GPUs, GPU RAM, and the size of model ('base' or 'large'). If auto_bs is False
     or not provided, it uses the batch size and gas provided in hf_training_args - 'per_device_{train, eval}_batch_size',
     'gradient_accumulation_steps' and 'eval_accumulation_steps'.
-    
+
     Parameters:
     -----------
     hf_training_args (Dict): dictionary with training arguments
@@ -62,7 +62,7 @@ def set_batch_size(hf_training_args: Dict):
         # GPU specific batch size
         train_eff_bs = hf_training_args.pop("effective_train_batch_size")
         eval_eff_bs = hf_training_args.pop("effective_eval_batch_size")
-        
+
         if bart_size == "large":
             if gpu_ram > 70*1e9:               # 80GB
                 possible_to_fit_on_gpu = 32
@@ -70,16 +70,16 @@ def set_batch_size(hf_training_args: Dict):
             else:                              # 40GB
                 possible_to_fit_on_gpu = 16
                 possible_to_fit_on_gpu_eval = 16
-        
+
         elif bart_size == "base":
             if gpu_ram > 70*1e9:               # 80GB
                 possible_to_fit_on_gpu = 128
-                possible_to_fit_on_gpu_eval = 64  
+                possible_to_fit_on_gpu_eval = 64
             else:                              # 40GB
                 possible_to_fit_on_gpu = 64
-                possible_to_fit_on_gpu_eval = 32  
+                possible_to_fit_on_gpu_eval = 32
         else:
-            raise ValueError("bart_size must be provided in hf_training_args if auto_bs is True")    
+            raise ValueError("bart_size must be provided in hf_training_args if auto_bs is True")
 
         gas = train_eff_bs // (num_gpu * possible_to_fit_on_gpu)
         train_eff_bs = gas * num_gpu * possible_to_fit_on_gpu
@@ -110,7 +110,7 @@ def set_batch_size(hf_training_args: Dict):
                "You must specify per_device_train_batch_size, per_device_eval_batch_size, \
                gradient_accumulation_steps and eval_accumulation_steps in config's \
                hf_training_args when auto_bs is False."
-        
+
         hf_training_args.pop("effective_train_batch_size", None)  # these have to be removed if present
         hf_training_args.pop("effective_eval_batch_size", None)   # these have to be removed if present
 
@@ -194,7 +194,7 @@ def get_spectro_config(model_args: Dict, tokenizer: transformers.PreTrainedToken
                              forced_eos_token_id=0,
                              max_log_id=model_args.get("max_log_id", 9) if not model_args.get("restrict_intensities", False) else None # extremely important, don't change
                              )
- 
+
 
 @app.command()
 def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the config file"),
@@ -206,7 +206,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
          device: str = typer.Option("cuda", help="Device to use for training: 'cuda' or 'cpu' ... CPU currently not available "),
          wandb_group: str = typer.Option(..., help="Wandb group to use for logging"),
          ):
-    
+
     assert device in ["cuda", "cpu"], "ArgumentError: Device must be 'cuda' or 'cpu'"
     if device == "cpu":
         print("Training on CPU is currently not supported due to dependency issues.")
@@ -252,10 +252,10 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
 
 
     hf_training_args = set_batch_size(hf_training_args)
-        
+
     # set the name for metric choosing the best model (add chosen dataset name)
     if dataset_args.get("dataset_for_choosing_best_model", None):
-        hf_training_args["metric_for_best_model"] = enrich_best_metric_name(hf_training_args["metric_for_best_model"], 
+        hf_training_args["metric_for_best_model"] = enrich_best_metric_name(hf_training_args["metric_for_best_model"],
                                                                             dataset_args["dataset_for_choosing_best_model"])
         print(f"Metric for choosing best model: {hf_training_args['metric_for_best_model']}")
     else:
@@ -288,8 +288,8 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
 
         if preprocess_args["do_log_binning"]:
             model_args["max_log_id"] = preprocess_args["log_shift"]
-        else: 
-            if not preprocess_args.get("linear_bin_decimals", None): 
+        else:
+            if not preprocess_args.get("linear_bin_decimals", None):
                 raise ValueError("linear_bin_decimals must be provided if do_log_binning is False. It's 2 for 100 bins, 3 for 1000 bins, ...")
             model_args["max_log_id"] = 10**preprocess_args["linear_bin_decimals"]
 
@@ -307,7 +307,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     print("log_shift:", preprocess_args.get("log_shift", None))
     print("log_base:", preprocess_args.get("log_base", None))
     print("report_to:", report_to)
-    
+
     model.to(device)
 
     # model freezing
@@ -333,9 +333,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
 
         wandb.login()
         run = wandb.init(
-                id=resume_id, 
+                id=resume_id,
                 resume="must" if resume_id else "never",
-                entity="hajekad", 
+                entity="hajekad",
                 project="BART_for_gcms",
                 tags=log_tags,
                 save_code=True,
@@ -343,7 +343,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 config=config,
                 group=wandb_group,
             )
-        
+
         # to not add additional info to the run name if it is already there
         if run.name.endswith(additional_info):
             run_name = run.name
@@ -354,7 +354,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         run_name = get_nice_time() + additional_info
     print(f"Run name: {run_name}")
-        
+
     # Resume training
     if resume_id:
         if not checkpoint:
@@ -363,7 +363,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     else:
         save_path = checkpoints_dir / wandb_group / run_name
     print(f"save path: {save_path}")
-    
+
     # set callbacks
     sorted_dataset_names = sorted([name for name in datapipes["example"].keys()])
     prediction_callback = PredictionLogger(datasets=[datapipes["example"][name] for name in sorted_dataset_names],
@@ -384,19 +384,19 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                                                                     report_to=[report_to],
                                                                     # use_cpu= device == "cpu", # coming in future versions
                                                                     )
-    
+
 
     trainer = transformers.Seq2SeqTrainer(
-                    model=model,                   
-                    args=seq2seq_training_args,                
+                    model=model,
+                    args=seq2seq_training_args,
                     train_dataset=datapipes["train"],
-                    eval_dataset=datapipes["valid"], 
+                    eval_dataset=datapipes["valid"],
                     callbacks=[prediction_callback],
                     tokenizer=tokenizer,
                     compute_metrics=compute_metrics,
                     data_collator = SpectroDataCollator(restrict_intensities=model_args.get("restrict_intensities", False)),
                 )
-    
+
 
     if checkpoint and resume_id:
         trainer.train(resume_from_checkpoint=str(checkpoint))
