@@ -527,6 +527,16 @@ def cumsum_filtering(mz: np.ndarray,
 
 
 def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
+    """
+    Returns a fingerprint generator based on the type of fingerprint and its kwargs
+
+    Parameters
+    ----------
+    fp_type : str
+        Type of fingerprint to be used. Either "morgan" or "daylight"
+    gen_kwargs : dict
+        Additional parameters for the fingerprint generator, depending on the type of fingerprint you choose
+    """
     if fp_type == "morgan":
         if not gen_kwargs:
             gen_kwargs = {"radius": 2}
@@ -539,6 +549,19 @@ def get_fp_generator(fp_type: str, gen_kwargs: dict = {}):
 
 
 def get_fp_simil_function(simil_type: str):
+    """
+    Returns a function that calculates similarity between two fingerprints
+
+    Parameters
+    ----------
+    simil_type : str
+        Type of similarity function to be used. Either "tanimoto" or "cosine"
+
+    Returns
+    -------
+    function
+        Function that calculates similarity between two fingerprints
+    """
     fp_simil_function = None
     if simil_type == "tanimoto":
         fp_simil_function = DataStructs.FingerprintSimilarity
