@@ -178,8 +178,6 @@ def main(
     if config["do_mces"]:
         best_mcess = []
         best_prob_mcess = []
-        counter_first_hit_index_probsort = defaultdict(lambda: 0) # number of situations when the first hit has
-
 
     simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
     prob_all_simils = defaultdict(list)   # all simils sorted by probability (at each ranking)
