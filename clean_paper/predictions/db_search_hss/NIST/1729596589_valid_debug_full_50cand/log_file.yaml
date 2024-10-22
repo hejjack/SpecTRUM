@@ -1,0 +1,20 @@
+command: ../predict_db_search.py --output-folder predictions --config-file configs/predict_db_search_debug.yaml
+  --num-workers 40
+dataset:
+  data_split: valid_debug
+  dataset_name: NIST
+  query_data: data/nist/debug/valid_debug.jsonl
+  reference_data: data/nist/debug/valid_debug.jsonl
+filtering_args:
+  max_mol_repr_len: 100
+  max_mz: 500
+  max_num_peaks: 300
+  mol_repr: smiles
+general:
+  additional_naming_info: ''
+  num_candidates: 50
+  ranking_function: hss
+start_loading_time: 22/10/2024 13:29:49
+finished_time_utc: 22/10/2024 13:29:56
+generation_time: 00:00:07
+wall_time_utc: 00:00:07

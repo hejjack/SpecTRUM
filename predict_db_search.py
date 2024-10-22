@@ -221,7 +221,7 @@ def main(
         # load data
         print("LOADING DATA")
         df_reference = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
-        df_all_queries = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
+        df_all_queries = pd.read_json(dataset_config["query_data"], lines=True, orient="records")
         tqdm.pandas(desc="Filtering queries")
         df_queries = df_all_queries[df_all_queries.progress_apply(lambda row: filter_datapoints(row, filtering_args), axis=1)]
 

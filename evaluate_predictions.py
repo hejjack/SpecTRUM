@@ -17,7 +17,7 @@ import plotly.express as px
 import yaml
 import time
 from myopic_mces import MCES
-
+from rdkit.Chem.Descriptors import ExactMolWt
 
 from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
 from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds
@@ -112,8 +112,10 @@ def main(
 
     with open(config_file, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    do_db_search = config["do_db_search"]
-    on_the_fly = config["on_the_fly"]
+    do_db_search = config.get("do_db_search", False)
+    on_the_fly = config.get("on_the_fly", False)
+    do_mces = config.get("do_mces", False)
+    do_save_best_predictions = config.get("save_best_predictions", False)
 
 
     data_name, data_split, data_range = parse_predictions_path(predictions_path)
@@ -154,7 +156,7 @@ def main(
     print(f">> Setting up   {config['fingerprint_type']}   fingerprint generator. Do your data CORRESPOND?")
     print(f">> Setting up   {config['fp_simil_function']}   similarity function. Do your data CORRESPOND?")
 
-
+    # open files for writing
     parent_dir = predictions_path.parent
     log_file_path = parent_dir / "log_file.yaml"
     pred_f = predictions_path.open("r")
@@ -168,19 +170,20 @@ def main(
     start_time = time.time()
 
     # set empty lists for best predictions dataframe
-    if config["save_best_predictions"]:
+    if do_save_best_predictions:
         save_best_to_new_df = not (parent_dir / "df_best_predictions.jsonl").exists()
         if save_best_to_new_df:
             all_gt_smiless = []
         simil_best_smiless = []
         prob_best_smiless = []
 
-    if config["do_mces"]:
+    if do_mces:
         best_mcess = []
         best_prob_mcess = []
 
-    simil_all_simils = defaultdict(list) # all simils sorted by similarity with gt (at each ranking)
-    prob_all_simils = defaultdict(list)   # all simils sorted by probability (at each ranking)
+    # set up counters and lists for stats
+    simil_all_simils = defaultdict(list) # all simils (list for each ranking - similsort)
+    prob_all_simils = defaultdict(list)   # all simils (list for each ranking - probsort)
     counter_fp_simil_fail_simil = 0 # number of situations when fingerprint similarity is 1 for different molecules (similsort)
     counter_fp_simil_fail_prob = 0 # number of situations when fingerprint similarity is 1 for different molecules (probsort)
     counter_multiple_hits = defaultdict(lambda: 0) # number of situations when there are multiple hits with similarity 1
@@ -190,7 +193,9 @@ def main(
     counter_correct_formulas_best_simil = 0
     counter_correct_formulas_best_prob = 0
     counter_at_least_one_correct_formula = 0
-
+    mw_bests_simil = []    # molecular weights of the best prediction (similsort)
+    mw_bests_prob = []     # molecular weights of the best prediction (probsort)
+    mw_gts = []            # molecular weights of the ground truth
 
     for line in tqdm(dummy_generator()):  # basically a while True
         pred_jsonl = pred_f.readline()
@@ -213,12 +218,13 @@ def main(
             counter_empty_preds += 1
             simil_all_simils[0].append(0)
             prob_all_simils[0].append(0)
-            if config["save_best_predictions"]:
+            if do_save_best_predictions:
                 if save_best_to_new_df:
                     all_gt_smiless.append(gt_smiles)
                 simil_best_smiless.append(None)
                 prob_best_smiless.append(None)
             continue
+
 
         # SMILES simils
         smiles_simils = [fp_simil_function(fp, gt_fp) for fp in pred_fps]
@@ -257,11 +263,17 @@ def main(
         update_counter(prob_simil[simil_decreasing_index][:, 1], simil_all_simils)
         update_counter(prob_simil[prob_decreasing_index][:, 1], prob_all_simils)
 
-        if config["save_best_predictions"]:
+        if do_save_best_predictions:
             if save_best_to_new_df:
                 all_gt_smiless.append(gt_smiles)
             simil_best_smiless.append(gt_smiles if we_hit_correct_smiles else pred_smiless[simil_decreasing_index[0]])
             prob_best_smiless.append(pred_smiless[prob_decreasing_index[0]])
+
+        # MW differences
+        gt_mw = ExactMolWt(gt_mol)
+        mw_bests_simil.append(ExactMolWt(pred_mols[simil_decreasing_index[0]]))
+        mw_bests_prob.append(ExactMolWt(pred_mols[prob_decreasing_index[0]]))
+        mw_gts.append(gt_mw)
 
         # FORMULA stats
         is_correct_formula = [gt_formula == formula for formula in pred_formulas]
@@ -272,7 +284,7 @@ def main(
         counter_correct_formulas_best_prob += 1 if gt_formula == pred_formulas[prob_decreasing_index[0]] else 0
 
         # MCES
-        if config["do_mces"]:
+        if do_mces:
             with suppress_subprocess_output():  # mute MCES output
                 candidates_mces = [MCES(smiles, gt_smiles)[1] for smiles in pred_smiless]
                 best_mces = min(min(candidates_mces), 10)  # min MCES or a default value of threshold 10 (not similar)
@@ -281,14 +293,8 @@ def main(
                 best_prob_mcess.append(best_prob_mces)
 
 
-
-    simil_average_simil_kth = [mean(simil_all_simils[k]) for k in sorted(simil_all_simils.keys())]
-    prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
-    num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
-
-    hit_at_k_prob = compute_hit_at_k(counter_first_hit_index_probsort, num_lines_predictions)
-
     # create plots
+    hit_at_k_prob = compute_hit_at_k(counter_first_hit_index_probsort, num_lines_predictions)
     print("INFO: Creating plots...")
     fig_similsort = create_topk_diagram_from_dict(simil_all_simils, title="Similarity of the k-th best prediction (similsort)")
     fig_probsort = create_topk_diagram_from_dict(prob_all_simils, title="Similarity of the k-th best prediction (probsort)")
@@ -304,18 +310,6 @@ def main(
         fig.update_layout(title_font_size=title_font_size, title_x=0.5, title_y=0.9, title_xanchor='center', title_yanchor='top', font=dict(size=general_font_size))
         fig.update_xaxes(title_font_size=axis_title_font_size, tickfont_size=tickfont_size)
         fig.update_yaxes(title_font_size=axis_title_font_size, tickfont_size=tickfont_size)
-
-
-    # fig.update_layout(barmode='stack',
-    #                   title=dict(text="Maximum m/z filter", font=dict(size=27)),
-    #                   xaxis_title=dict(text="max m/z", font=dict(size=22)),
-    #                   yaxis_title=dict(text="count", font=dict(size=22)),
-    #                       legend=dict(
-    #                         x=0.7,
-    #                         y=0.9,
-    #                         traceorder='normal',
-    #                         font=dict(size=18)),
-    #                   )
 
     # save plots
     print("INFO: Saving plots...")
@@ -334,7 +328,7 @@ def main(
     num_better_than_threshold_probsort = sum(np.array(prob_all_simils[0]) > config["threshold"])
 
 
-    if config["save_best_predictions"]:
+    if do_save_best_predictions:
         print("INFO: Saving best predictions")
         if save_best_to_new_df:
             # create a dataframe
@@ -347,6 +341,16 @@ def main(
         df_best_predictions[f"simil_best_simil_{fp_simil_args_info}"] = simil_all_simils[0]
         df_best_predictions[f"prob_best_simil_{fp_simil_args_info}"] = prob_all_simils[0]
         df_best_predictions.to_json(parent_dir / "df_best_predictions.jsonl", lines=True, orient="records")
+
+
+    # prepare for logging
+    mw_bests_simil, mw_bests_prob, mw_gts = np.array(mw_bests_simil), np.array(mw_bests_prob), np.array(mw_gts)
+    mw_abs_diff_simil = np.abs(mw_bests_simil - mw_gts)
+    mw_abs_diff_prob = np.abs(mw_bests_prob - mw_gts)
+
+    simil_average_simil_kth = [mean(simil_all_simils[k]) for k in sorted(simil_all_simils.keys())]
+    prob_average_simil_kth = [mean(prob_all_simils[k]) for k in sorted(prob_all_simils.keys())]
+    num_predictions_at_k_counter = [len(l[1]) for l in sorted(list(simil_all_simils.items()), key=lambda x: x[0])]
 
     with open(log_file_path, "r", encoding="utf-8") as f:
         old_logs = yaml.safe_load(f)
@@ -363,21 +367,21 @@ def main(
                 "threshold_stats": {"threshold": str(config["threshold"]),
                                     "num_better_than_threshold_similsort": str(num_better_than_threshold_similsort),
                                     "num_better_than_threshold_probsort": str(num_better_than_threshold_probsort),
-                                    "percentage_of_better_than_threshold_similsort": str(num_better_than_threshold_similsort / len(simil_all_simils[0])),
-                                    "percentage_of_better_than_threshold_probsort": str(num_better_than_threshold_probsort / len(prob_all_simils[0]))
+                                    "rate_of_better_than_threshold_similsort": str(num_better_than_threshold_similsort / len(simil_all_simils[0])),
+                                    "rate_of_better_than_threshold_probsort": str(num_better_than_threshold_probsort / len(prob_all_simils[0]))
                                     },
                 "simil_1_hits": {"num_1_hits_as_first_similsort": str(num_1_hits_as_first_similsort),
                                  "num_1_hits_as_first_probsort": str(num_1_hits_as_first_probsort),
-                                 "percentage_of_1_hits_as_first_similsort": str(num_1_hits_as_first_similsort / num_lines_predictions),
-                                 "percentage_of_1_hits_as_first_probsort": str(num_1_hits_as_first_probsort / num_lines_predictions),
+                                 "rate_of_1_hits_as_first_similsort": str(num_1_hits_as_first_similsort / num_lines_predictions),
+                                 "rate_of_1_hits_as_first_probsort": str(num_1_hits_as_first_probsort / num_lines_predictions),
                                  "counter_multiple_hits": str(counter_multiple_hits.items()),
                                  "num_fp_simil_fail_simil": str(counter_fp_simil_fail_simil),
                                  "num_fp_simil_fail_prob": str(counter_fp_simil_fail_prob),
                                 },
                 "precise_preds_stats": {"num_precise_preds_similsort": str(num_1_hits_as_first_similsort - counter_fp_simil_fail_simil),
                                         "num_precise_preds_probsort": str(num_1_hits_as_first_probsort - counter_fp_simil_fail_prob),
-                                        "percentage_of_precise_preds_similsort": str((num_1_hits_as_first_similsort - counter_fp_simil_fail_simil) / num_lines_predictions),
-                                        "percentage_of_precise_preds_probsort": str((num_1_hits_as_first_probsort - counter_fp_simil_fail_prob) / num_lines_predictions),
+                                        "rate_of_precise_preds_similsort": str((num_1_hits_as_first_similsort - counter_fp_simil_fail_simil) / num_lines_predictions),
+                                        "rate_of_precise_preds_probsort": str((num_1_hits_as_first_probsort - counter_fp_simil_fail_prob) / num_lines_predictions),
                                         },
                 "start_time_utc": timestamp_to_readable(start_time),
                 "eval_time": f"{hours_minutes_seconds(finish_time - start_time)}",
@@ -386,17 +390,26 @@ def main(
                                   "num_at_least_one_correct_formula": str(counter_at_least_one_correct_formula),
                                   "num_correct_formulas_at_best_simil": str(counter_correct_formulas_best_simil),
                                   "num_correct_formulas_at_best_prob": str(counter_correct_formulas_best_prob),
-                                  "percentage_of_all_correct_formulas": str(counter_all_correct_formulas / counter_all_predictions),
-                                  "percentage_of_correct_formulas_at_best_simil": str(counter_correct_formulas_best_simil / num_lines_predictions),
-                                  "percentage_of_correct_formulas_at_best_prob": str(counter_correct_formulas_best_prob / num_lines_predictions),
-                                  "percentage_of_at_least_one_correct_formula": str(counter_at_least_one_correct_formula / num_lines_predictions),
-                                 }
+                                  "rate_of_all_correct_formulas": str(counter_all_correct_formulas / counter_all_predictions),
+                                  "rate_of_correct_formulas_at_best_simil": str(counter_correct_formulas_best_simil / num_lines_predictions),
+                                  "rate_of_correct_formulas_at_best_prob": str(counter_correct_formulas_best_prob / num_lines_predictions),
+                                  "rate_of_at_least_one_correct_formula": str(counter_at_least_one_correct_formula / num_lines_predictions),
+                                 },
+                "molecular_weight_stats": {"mean_mw_difference_best_simil": str(mw_abs_diff_simil.mean()),
+                                           "mean_mw_difference_best_prob": str(mw_abs_diff_prob.mean()),
+                                           "rate_of_mw_difference_less_than_1_best_simil": str(sum(mw_abs_diff_simil < 1) / num_lines_predictions),
+                                           "rate_of_mw_difference_less_than_1_best_prob": str(sum(mw_abs_diff_prob < 1) / num_lines_predictions),
+                                           "rate_of_exact_nominal_mw_simil": str(sum(mw_bests_simil.round() == mw_gts.round()) / num_lines_predictions),
+                                           "rate_of_exact_nominal_mw_prob": str(sum(mw_bests_prob.round() == mw_gts.round()) / num_lines_predictions),
+                                           "rate_of_exact_mw_simil": str(sum(mw_bests_simil == mw_gts) / num_lines_predictions),
+                                           "rate_of_exact_mw_prob": str(sum(mw_bests_prob == mw_gts) / num_lines_predictions),
+                                            }
                 }
             }
 
     if do_db_search:
         try:
-            smiles_sim_of_closest = np.array(list(smiles_sim_of_closest))
+            smiles_sim_of_closest = np.array(list(smiles_sim_of_closest)[:len(simil_all_simils[0])])
         except KeyError as exc:
             raise ValueError("smiles_sim_of_closest missing in labels: precompute the similarity index with precompute_db_index.py before you run db_search evaluation or set do_db_search in config file to False") from exc
         simil_preds_minus_closest = np.array(simil_all_simils[0]) - smiles_sim_of_closest
@@ -435,30 +448,29 @@ def main(
         logs[eval_tag]["db_search"] = {"mean_fpsd_score_similsort": str(simil_preds_minus_closest.mean()),
                                         "mean_fpsd_score_probsort": str(prob_preds_minus_closest.mean()),
                                         "mean_db_score": str(smiles_sim_of_closest.mean()),
-                                        "percentage_of_BART_wins_similsort": str(sum(simil_preds_minus_closest > 0) / len(simil_preds_minus_closest)),
-                                        "percentage_of_BART_wins_probsort": str(sum(prob_preds_minus_closest > 0) / len(prob_preds_minus_closest)),
-                                        "percentage_of_ties_similsort": str(len(simil_fpsd_tie_simils) / len(simil_preds_minus_closest)),
-                                        "percentage_of_ties_probsort": str(len(prob_fpsd_tie_simils) / len(prob_preds_minus_closest)),
+                                        "rate_of_BART_wins_similsort": str(sum(simil_preds_minus_closest > 0) / len(simil_preds_minus_closest)),
+                                        "rate_of_BART_wins_probsort": str(sum(prob_preds_minus_closest > 0) / len(prob_preds_minus_closest)),
+                                        "rate_of_ties_similsort": str(len(simil_fpsd_tie_simils) / len(simil_preds_minus_closest)),
+                                        "rate_of_ties_probsort": str(len(prob_fpsd_tie_simils) / len(prob_preds_minus_closest)),
                                         "ties": {"num_of_ties_similsort": str(len(simil_fpsd_tie_simils)),
                                                   "num_of_ties_probsort": str(len(prob_fpsd_tie_simils)),
                                                   "num_of_ties_simils_equal_to_1_similsort": str(sum(simil_fpsd_tie_simils == 1)),
                                                   "num_of_ties_simils_equal_to_1_probsort": str(sum(prob_fpsd_tie_simils == 1)),
-                                                  "percentage_of_ties_simils_equal_to_1_similsort": str(sum(simil_fpsd_tie_simils == 1) / len(simil_fpsd_tie_simils)),
-                                                  "percentage_of_ties_simils_equal_to_1_probsort": str(sum(prob_fpsd_tie_simils == 1) / len(prob_fpsd_tie_simils)),
+                                                  "rate_of_ties_simils_equal_to_1_similsort": str(sum(simil_fpsd_tie_simils == 1) / len(simil_fpsd_tie_simils)),
+                                                  "rate_of_ties_simils_equal_to_1_probsort": str(sum(prob_fpsd_tie_simils == 1) / len(prob_fpsd_tie_simils)),
                                                   "mean_tie_simils_similsort": str(simil_fpsd_tie_simils.mean()),
                                                   "mean_tie_simils_probsort": str(prob_fpsd_tie_simils.mean()),
                                                   }
                                     }
 
-    if config["do_mces"]:
+    if do_mces:
         best_mcess = np.array(best_mcess)
         best_prob_mcess = np.array(best_prob_mcess)
-        logs[eval_tag]["mces: graph edit distance"] = {"top-k mces (~ similsort without fp simil)": str(best_mcess.mean()),
+        logs[eval_tag]["mces: graph edit distance"] = {"top-k_mces (~ as in MassSpecGym paper)": str(best_mcess.mean()),
                                                        "mean_best_probsort_mces": str(best_prob_mcess.mean()),
-                                                       "percentage_mces_over_10": best
+                                                       "rate_best_mces_over_10 (bad predictions)": str(sum(best_mcess >= 10) / len(best_mcess)),
                                                       }
-        # TODO: jenom 10 binu (11?) a ne 100
-        fig_top1_mces = px.histogram(x=best_mcess, nbins=100, labels={'x':'MCES', 'y':'count'}, title="Top-k MCES histogram (MCESsort)")
+        fig_top1_mces = px.histogram(x=best_mcess, nbins=11, labels={'x':'MCES', 'y':'count'}, title="Top-k MCES histogram (MCESsort)")
         fig_top1_prob_mces = px.histogram(x=best_prob_mcess, nbins=100, labels={'x':'MCES', 'y':'count'}, title="Top-k MCES histogram (probsort)")
 
         for fig in [fig_top1_mces, fig_top1_prob_mces]:
