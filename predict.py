@@ -139,7 +139,6 @@ def main(
 
     # Start generating
     start_generation_time = time.time()
-    config["start_generation_time"] = timestamp_to_readable(start_generation_time)
     model.eval()
     model.to(device)
     with torch.no_grad():

@@ -1,6 +1,4 @@
 import sys
-import io
-import os
 import shutil
 import time
 from pathlib import Path
@@ -10,10 +8,10 @@ import numpy as np
 import json
 import pandas as pd
 from tqdm import tqdm
-from typing import Dict, Any, Tuple, List
 from copy import deepcopy
 import multiprocessing
 import heapq
+from glob import glob
 
 from rdkit import Chem, RDLogger
 from rdkit.Chem.Descriptors import ExactMolWt
@@ -21,40 +19,50 @@ from matchms.similarity import ModifiedCosine, CosineGreedy
 from matchms import Spectrum
 
 from utils.spectra_process_utils import get_fp_generator, get_fp_simil_function
-from utils.data_utils import SpectroDataCollator, filter_datapoints
-from bart_spektro.modeling_bart_spektro import BartSpektroForConditionalGeneration
-from utils.general_utils import build_tokenizer, get_sequence_probs, timestamp_to_readable, hours_minutes_seconds
-from utils.general_utils import move_file_pointer, line_count, dummy_generator, timestamp_to_readable, hours_minutes_seconds
-from predict import open_files, get_unique_predictions, get_canon_predictions
+from utils.data_utils import filter_datapoints
+from utils.general_utils import timestamp_to_readable, hours_minutes_seconds
+from utils.general_utils import timestamp_to_readable, hours_minutes_seconds
+from predict import open_files
 
 RDLogger.DisableLog('rdApp.*')
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
-# def get_unified_similarity_measure(similarity_type, simil_function):
-#     """Get the similarity measure based on the ranking function.
-#     Currently supports modified cosine (hss), cosine greedy (sss) and morgan tanimoto (morgan_tanimoto).
-#     The outputed function takes two dicts (df rows) with corresponding precomputed fields and returns the similarity score.
+def find_run_with_more_candidates(output_folder, data_range, config):
+    """Check if there is a prediction file with more candidates"""
+    db_search_name = f"db_search_{config['general']['ranking_function']}"
+    range_str = (f"{data_range}") if data_range else "full"
+    dataset_name = config["dataset"]["dataset_name"]
+    data_split = config["dataset"]["data_split"]
+    additional_info = config["general"]["additional_naming_info"]
+    potential_folders = glob(str(output_folder / db_search_name / dataset_name / f"*{data_split}_{range_str}*{additional_info}"))
 
-#     The ranking functions need:
-#     - hss: spectrum field in both dicts with matchms.Specrta that include mz, intensities and metadata with precursor_mz
-#     - sss: spectrum field in both dicts with matchms.Specrta that include mz and intensities
-#     - morgan_tanimoto: fp field in both dicts with the precomputed fingerprints
-#     Parameters
-#     ----------
-#     similarity_type : str
-#         The type of similarity function to use
-#     """
-#     if similarity_type == "modified_cosine":
-#         def similarity_measure(ref, query):
-#             return .(ref["spectrum"], query["spectrum"])
-#         similarity_measure = ModifiedCosine(tolerance=0.005)
-#     elif similarity_type == "cosine_greedy":
-#         similarity_measure = CosineGreedy(tolerance=0.005)
-#     else:
-#         raise ValueError(f"Unknown similarity type: {similarity_type}")
-#     return similarity_measure
+    for folder in potential_folders:
+        log_file = Path(folder) / "log_file.yaml"
+        if not log_file.exists():
+            continue
+
+        with open(log_file, "r", encoding="utf-8") as f:
+            logs = yaml.safe_load(f)
+
+        if logs["general"]["num_candidates"] > config["general"]["num_candidates"]:
+            if logs.get("finished_time_utc", None):
+                if logs["filtering_args"] == config["filtering_args"]:
+                    print(f"Found a finished prediction run with the same filtering and more predicted candidates: {folder}")
+                return folder
+    print(f"No finished prediction run with more candidates found")
+    return None
+
+
+def extract_candidates(old_predictions_file, new_predictions_file, num_candidates):
+    with open(old_predictions_file, "r") as old_f:
+        with open(new_predictions_file, "w") as new_f:
+            for line in tqdm(old_f):
+                old_preds = json.loads(line)
+                sorted_candidates = sorted(old_preds.items(), key=lambda x: x[1], reverse=True)
+                new_candidates = {k: v for k, v in sorted_candidates[:num_candidates]}
+                new_f.write(json.dumps(new_candidates) + "\n")
 
 
 def find_candidates_in_database_for_one_query(query_row, df_references, ranking_function, similarity_measure, num_candidates):
@@ -193,23 +201,9 @@ def main(
     config["start_loading_time"] = timestamp_to_readable(start_time)
     additional_info = general_config["additional_naming_info"]
 
-    # load data
-    print("LOADING DATA")
-    df_reference = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
-    df_all_queries = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
-    tqdm.pandas(desc="Filtering queries")
-    df_queries = df_all_queries[df_all_queries.progress_apply(lambda row: filter_datapoints(row, filtering_args), axis=1)]
-
-    # load range
-    if data_range:
-        data_range_min, data_range_max = list(map(int, data_range.split(":")))
-        df_queries = df_queries.iloc[data_range_min:data_range_max]
-    else:
-        data_range_min, data_range_max = None, None
-
     # set output files
     db_search_name = f"db_search_{general_config['ranking_function']}"
-    placeholder_path = Path(db_search_name) / "placeholder"  # in order to comply with the open files function
+    placeholder_path = Path(db_search_name) / "placeholder"  # in order to comply with the open_files function
     additional_info = f"{general_config['num_candidates']}cand" + additional_info
     log_file, outfile = open_files(output_folder, placeholder_path, dataset_config, data_range, additional_info)
     outfile_path = Path(outfile.name)
@@ -217,11 +211,31 @@ def main(
 
     yaml.dump(config, log_file)
 
-    # Start generating
-    start_generation_time = time.time()
-    config["start_generation_time"] = timestamp_to_readable(start_generation_time)
+    # check if there is a prediction file with more candidates
+    run_with_more_candidates = find_run_with_more_candidates(output_folder, data_range, config)
+    if run_with_more_candidates:
+        print(f"Skipping prediction, using the existing prediction file to extract the candidates: {run_with_more_candidates}")
+        start_generation_time = time.time()
+        extract_candidates(run_with_more_candidates + "/predictions.jsonl", outfile_path, general_config["num_candidates"])
+    else:
+        # load data
+        print("LOADING DATA")
+        df_reference = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
+        df_all_queries = pd.read_json(dataset_config["reference_data"], lines=True, orient="records")
+        tqdm.pandas(desc="Filtering queries")
+        df_queries = df_all_queries[df_all_queries.progress_apply(lambda row: filter_datapoints(row, filtering_args), axis=1)]
 
-    parallel_db_search(df_reference, df_queries, config, outfile_path, num_workers)
+        # load range
+        if data_range:
+            data_range_min, data_range_max = list(map(int, data_range.split(":")))
+            df_queries = df_queries.iloc[data_range_min:data_range_max]
+        else:
+            data_range_min, data_range_max = None, None
+
+        # Start generating
+        start_generation_time = time.time()
+
+        parallel_db_search(df_reference, df_queries, config, outfile_path, num_workers)
 
     finished_time = time.time()
 
