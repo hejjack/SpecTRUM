@@ -1,0 +1,31 @@
+<<<<<<<< Updated upstream:clean_paper/predictions/db_search_hss/NIST/1729605198_valid_full_50cand/log_file.yaml
+command: ../predict_db_search.py --output-folder predictions --config-file configs/predict_db_search.yaml
+  --num-workers 64
+========
+command: ../predict_db_search.py --output-folder predictions --config-file configs/predict_db_search_mt.yaml
+  --num-workers 32
+>>>>>>>> Stashed changes:clean_paper/predictions/db_search_morgan_tanimoto/NIST/1729606578_valid_full_50cand/log_file.yaml
+dataset:
+  data_split: valid
+  dataset_name: NIST
+  query_data: data/nist/valid.jsonl
+  reference_data: data/nist/train.jsonl
+filtering_args:
+  max_mol_repr_len: 100
+  max_mz: 500
+  max_num_peaks: 300
+  mol_repr: smiles
+general:
+  additional_naming_info: ''
+  num_candidates: 50
+<<<<<<<< Updated upstream:clean_paper/predictions/db_search_hss/NIST/1729605198_valid_full_50cand/log_file.yaml
+  ranking_function: hss
+start_loading_time: 22/10/2024 15:53:17
+========
+  ranking_function: morgan_tanimoto
+start_loading_time: 22/10/2024 16:15:57
+tokenizer_path: tokenizer/tokenizer_mf10M.model
+finished_time_utc: 22/10/2024 19:34:20
+generation_time: 03:18:02
+wall_time_utc: 03:18:23
+>>>>>>>> Stashed changes:clean_paper/predictions/db_search_morgan_tanimoto/NIST/1729606578_valid_full_50cand/log_file.yaml

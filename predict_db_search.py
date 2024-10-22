@@ -172,8 +172,8 @@ def parallel_db_search(df_references,
     with open(outfile_path, "w+") as outfile:
         for i in range(num_workers):
             with open(tmp_paths[i], "r") as f:
-                    for line in f:
-                        outfile.write(line)
+                for line in f:
+                    outfile.write(line)
 
     # force remove tmp folder
     print("REMOVING TMP FILES")
