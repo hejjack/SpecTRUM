@@ -1,7 +1,7 @@
 general:
   additional_naming_info: "" # optional
-  ranking_function: "hss"  # sss/hss/morgan_tanimoto
-  num_candidates: 50          # num candidates to retrieve from db search 1/10/50
+  ranking_function: "sss"  # sss/hss/morgan_tanimoto
+  num_candidates: 1          # num candidates to retrieve from db search 1/10/50
 
 dataset:
   reference_data: "data/nist/train.jsonl" # REQUIRED!

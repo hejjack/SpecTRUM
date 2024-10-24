@@ -9,8 +9,6 @@ dataset:
   dataset_name: NIST # rcx/ZINC/NIST/...    REQUIRED! (for naming)
   data_split: valid # train/test/valid/... REQUIRED! (for naming)
 
-tokenizer_path: "tokenizer/tokenizer_mf10M.model" # REQUIRED!
-
 filtering_args:  # if you don't specify these, default ones are used
   max_num_peaks: 300
   max_mz: 500

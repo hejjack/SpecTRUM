@@ -66,7 +66,6 @@ def extract_candidates(old_predictions_file, new_predictions_file, num_candidate
 
 
 def find_candidates_in_database_for_one_query(query_row, df_references, ranking_function, similarity_measure, num_candidates):
-
     if ranking_function in ["hss", "sss"]:
         query = Spectrum(mz=np.array(query_row.mz),
                         intensities=np.array(query_row.intensity),

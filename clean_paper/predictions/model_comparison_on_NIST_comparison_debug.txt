@@ -1,0 +1,138 @@
+Statistical significance of model comparison
+
+|    | Model                                  |   probsort_mean_simil |   similsort_mean_simil |
+|---:|:---------------------------------------|----------------------:|-----------------------:|
+|  0 | valiant-totem-557_exp4_neims           |              0.617143 |               0.617143 |
+|  1 | avid-rain-560_exp4_rassp               |              0.596316 |               0.596316 |
+|  2 | effortless-river-558_exp4_rassp_neims  |              0.617238 |               0.617238 |
+|  3 | hopeful-rain-557_exp4_rassp_neims_nist |              0.621698 |               0.621698 |
+|  4 | autumn-dawn-564_exp5_one_src_token     |              0.619748 |               0.619748 |
+|  5 | jolly-lion-562_exp6_45perc_frozen      |              0.594123 |               0.594123 |
+|  6 | smooth-totem-563_exp6_72perc_frozen    |              0.576459 |               0.576459 |
+|  7 | db_search_hss                          |              0.446807 |               0.446807 |
+|  8 | db_search_morgan_tanimoto              |              0.718315 |               0.718315 |
+|  9 | db_search_sss                          |              0.384342 |               0.384342 |
+
+|                                        |   rate_of_precise_preds_probsort |   rate_of_precise_preds_similsort |
+|:---------------------------------------|---------------------------------:|----------------------------------:|
+| valiant-totem-557_exp4_neims           |                                  |                                   |
+| avid-rain-560_exp4_rassp               |                                  |                                   |
+| effortless-river-558_exp4_rassp_neims  |                                  |                                   |
+| hopeful-rain-557_exp4_rassp_neims_nist |                         0.372218 |                          0.372218 |
+| autumn-dawn-564_exp5_one_src_token     |                                  |                                   |
+| jolly-lion-562_exp6_45perc_frozen      |                                  |                                   |
+| smooth-totem-563_exp6_72perc_frozen    |                                  |                                   |
+| db_search_hss                          |                         0        |                          0        |
+| db_search_morgan_tanimoto              |                         0        |                          0        |
+| db_search_sss                          |                         0        |                          0        |
+
+Friedman test (probsort): statistic=50692.104666251296, p-value=0.0   *** highly significant
+Friedman test (similsort): statistic=50692.104666251296, p-value=0.0   *** highly significant
+
+
+SIGNIFICANT -> Nemenyi post-hoc test (probsort):
+|                                        |   valiant-totem-557_exp4_neims |   avid-rain-560_exp4_rassp |   effortless-river-558_exp4_rassp_neims |   hopeful-rain-557_exp4_rassp_neims_nist |   autumn-dawn-564_exp5_one_src_token |   jolly-lion-562_exp6_45perc_frozen |   smooth-totem-563_exp6_72perc_frozen |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|-------------------------------:|---------------------------:|----------------------------------------:|-----------------------------------------:|-------------------------------------:|------------------------------------:|--------------------------------------:|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |                       1        |                      0.001 |                                0.9      |                                 0.301899 |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| avid-rain-560_exp4_rassp               |                       0.001    |                      1     |                                0.001    |                                 0.001    |                                0.001 |                               0.9   |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| effortless-river-558_exp4_rassp_neims  |                       0.9      |                      0.001 |                                1        |                                 0.466281 |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| hopeful-rain-557_exp4_rassp_neims_nist |                       0.301899 |                      0.001 |                                0.466281 |                                 1        |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| autumn-dawn-564_exp5_one_src_token     |                       0.9      |                      0.001 |                                0.9      |                                 0.9      |                                1     |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| jolly-lion-562_exp6_45perc_frozen      |                       0.001    |                      0.9   |                                0.001    |                                 0.001    |                                0.001 |                               1     |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| smooth-totem-563_exp6_72perc_frozen    |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 1     |           0.001 |                       0.001 |           0.001 |
+| db_search_hss                          |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           1     |                       0.001 |           0.001 |
+| db_search_morgan_tanimoto              |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           0.001 |                       1     |           0.001 |
+| db_search_sss                          |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           1     |
+
+
+SIGNIFICANT -> Nemenyi post-hoc test (similsort):
+|                                        |   valiant-totem-557_exp4_neims |   avid-rain-560_exp4_rassp |   effortless-river-558_exp4_rassp_neims |   hopeful-rain-557_exp4_rassp_neims_nist |   autumn-dawn-564_exp5_one_src_token |   jolly-lion-562_exp6_45perc_frozen |   smooth-totem-563_exp6_72perc_frozen |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|-------------------------------:|---------------------------:|----------------------------------------:|-----------------------------------------:|-------------------------------------:|------------------------------------:|--------------------------------------:|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |                       1        |                      0.001 |                                0.9      |                                 0.301899 |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| avid-rain-560_exp4_rassp               |                       0.001    |                      1     |                                0.001    |                                 0.001    |                                0.001 |                               0.9   |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| effortless-river-558_exp4_rassp_neims  |                       0.9      |                      0.001 |                                1        |                                 0.466281 |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| hopeful-rain-557_exp4_rassp_neims_nist |                       0.301899 |                      0.001 |                                0.466281 |                                 1        |                                0.9   |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| autumn-dawn-564_exp5_one_src_token     |                       0.9      |                      0.001 |                                0.9      |                                 0.9      |                                1     |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| jolly-lion-562_exp6_45perc_frozen      |                       0.001    |                      0.9   |                                0.001    |                                 0.001    |                                0.001 |                               1     |                                 0.001 |           0.001 |                       0.001 |           0.001 |
+| smooth-totem-563_exp6_72perc_frozen    |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 1     |           0.001 |                       0.001 |           0.001 |
+| db_search_hss                          |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           1     |                       0.001 |           0.001 |
+| db_search_morgan_tanimoto              |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           0.001 |                       1     |           0.001 |
+| db_search_sss                          |                       0.001    |                      0.001 |                                0.001    |                                 0.001    |                                0.001 |                               0.001 |                                 0.001 |           0.001 |                       0.001 |           1     |
+
+
+Rate of wins over database search predictions (probsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.642297 |                    0.293715 |        0.705753 |
+| avid-rain-560_exp4_rassp               |        0.620329 |                    0.262306 |        0.688008 |
+| effortless-river-558_exp4_rassp_neims  |        0.642545 |                    0.293253 |        0.70334  |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.648721 |                    0.300564 |        0.707634 |
+| autumn-dawn-564_exp5_one_src_token     |        0.644781 |                    0.293679 |        0.703411 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.620435 |                    0.2666   |        0.684211 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.606275 |                    0.248926 |        0.674877 |
+
+
+Rate of wins over database search predictions (similsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.642297 |                    0.293715 |        0.705753 |
+| avid-rain-560_exp4_rassp               |        0.620329 |                    0.262306 |        0.688008 |
+| effortless-river-558_exp4_rassp_neims  |        0.642545 |                    0.293253 |        0.70334  |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.648721 |                    0.300564 |        0.707634 |
+| autumn-dawn-564_exp5_one_src_token     |        0.644781 |                    0.293679 |        0.703411 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.620435 |                    0.2666   |        0.684211 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.606275 |                    0.248926 |        0.674877 |
+
+
+Rate of at least as good as database search predictions (probsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.785357 |                    0.431451 |        0.842496 |
+| avid-rain-560_exp4_rassp               |        0.764205 |                    0.402207 |        0.824999 |
+| effortless-river-558_exp4_rassp_neims  |        0.784257 |                    0.432622 |        0.839869 |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.788799 |                    0.440395 |        0.842602 |
+| autumn-dawn-564_exp5_one_src_token     |        0.787983 |                    0.432906 |        0.841928 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.756575 |                    0.401143 |        0.815559 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.733045 |                    0.375448 |        0.796501 |
+
+
+Rate of at least as good as database search predictions (similsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.785357 |                    0.431451 |        0.842496 |
+| avid-rain-560_exp4_rassp               |        0.764205 |                    0.402207 |        0.824999 |
+| effortless-river-558_exp4_rassp_neims  |        0.784257 |                    0.432622 |        0.839869 |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.788799 |                    0.440395 |        0.842602 |
+| autumn-dawn-564_exp5_one_src_token     |        0.787983 |                    0.432906 |        0.841928 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.756575 |                    0.401143 |        0.815559 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.733045 |                    0.375448 |        0.796501 |
+
+
+Mean difference in similarity to database search predictions (probsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.170336 |                  -0.101172  |        0.232801 |
+| avid-rain-560_exp4_rassp               |        0.149508 |                  -0.122     |        0.211974 |
+| effortless-river-558_exp4_rassp_neims  |        0.17043  |                  -0.101077  |        0.232896 |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.17489  |                  -0.0966175 |        0.237356 |
+| autumn-dawn-564_exp5_one_src_token     |        0.172941 |                  -0.0985668 |        0.235407 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.147316 |                  -0.124192  |        0.209782 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.129652 |                  -0.141856  |        0.192118 |
+
+
+Mean difference in similarity to database search predictions (similsort):
+|                                        |   db_search_hss |   db_search_morgan_tanimoto |   db_search_sss |
+|:---------------------------------------|----------------:|----------------------------:|----------------:|
+| valiant-totem-557_exp4_neims           |        0.170336 |                  -0.101172  |        0.232801 |
+| avid-rain-560_exp4_rassp               |        0.149508 |                  -0.122     |        0.211974 |
+| effortless-river-558_exp4_rassp_neims  |        0.17043  |                  -0.101077  |        0.232896 |
+| hopeful-rain-557_exp4_rassp_neims_nist |        0.17489  |                  -0.0966175 |        0.237356 |
+| autumn-dawn-564_exp5_one_src_token     |        0.172941 |                  -0.0985668 |        0.235407 |
+| jolly-lion-562_exp6_45perc_frozen      |        0.147316 |                  -0.124192  |        0.209782 |
+| smooth-totem-563_exp6_72perc_frozen    |        0.129652 |                  -0.141856  |        0.192118 |
+
+
+Performance of database searches:
+|                           |   db_search_hss |   db_search_sss |
+|:--------------------------|----------------:|----------------:|
+| db_search_morgan_tanimoto |               1 |               1 |
